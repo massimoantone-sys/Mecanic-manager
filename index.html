@@ -41,10 +41,13 @@
         .card { background: var(--card-bg); border-radius: 16px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; }
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .card-title { font-size: 1.15rem; font-weight: 700; color: white; }
+        
         .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; font-weight: 700; text-transform: uppercase; }
+        .status-eau { background: rgba(46, 196, 182, 0.2); color: #2ec4b6; border: 1px solid #2ec4b6; }
+        .status-hangar { background: rgba(0, 180, 216, 0.2); color: #00b4d8; border: 1px solid #00b4d8; }
         .status-atelier { background: rgba(230, 57, 70, 0.2); color: #ff4d6d; border: 1px solid #e63946; }
-        .status-mer { background: rgba(46, 196, 182, 0.2); color: #2ec4b6; border: 1px solid #2ec4b6; }
         .status-hivernage { background: rgba(141, 153, 174, 0.2); color: #8d99ae; border: 1px solid #8d99ae; }
+
         .card-sub { font-size: 0.85rem; color: #00b4d8; font-weight: 600; }
         
         .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); background: rgba(11, 19, 43, 0.5); padding: 10px; border-radius: 8px; }
@@ -70,6 +73,8 @@
         .maintenance-item { background: rgba(11, 19, 43, 0.6); padding: 10px; border-radius: 8px; border-left: 4px solid var(--accent-green); font-size: 0.85rem; margin-top: 5px; }
         .stock-use-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; margin-bottom: 6px; }
         .stock-use-input { width: 70px; padding: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: white; text-align: center; font-size: 0.85rem; }
+        
+        .textarea-box { width: 100%; min-height: 80px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: white; font-size: 0.85rem; resize: vertical; }
 
         /* Navigation */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(11, 19, 43, 0.95); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 12px 0 25px; backdrop-filter: blur(10px); z-index: 50; }
@@ -115,6 +120,13 @@
         <button class="back-btn" onclick="backToFlotte()">← Retour à la Flotte</button>
         <div id="boat-detail-content"></div>
         
+        <!-- Encart Travaux à prévoir modifiable -->
+        <div class="maintenance-box">
+            <h3 style="font-size: 1rem; color: #ff4d6d;">📝 Travaux à Prévoir / À Faire</h3>
+            <textarea id="boat-upcoming-works" class="textarea-box" placeholder="Notez ici les prochaines interventions, pièces à commander, vérifications..."></textarea>
+            <button class="btn-sm btn-primary" style="padding: 10px;" onclick="saveUpcomingWorks()">Enregistrer les travaux à prévoir</button>
+        </div>
+
         <div class="maintenance-box">
             <h3 style="font-size: 1rem; color: #00b4d8;">🛠️ Enregistrer une Maintenance</h3>
             <input type="text" id="m-desc" class="modal-input" placeholder="Description des travaux (ex: Révision, filtres...)">
@@ -152,8 +164,9 @@
             <input type="text" id="b-immat" class="modal-input" placeholder="Immatriculation / CIN (N° de coque)">
             <input type="text" id="b-engine-sn" class="modal-input" placeholder="Numéro de série Moteur">
             <select id="b-status" class="modal-select">
+                <option value="eau">À l'eau</option>
+                <option value="hangar">Au hangar</option>
                 <option value="atelier">En Atelier / Entretien</option>
-                <option value="mer">En Mer / Prêt</option>
                 <option value="hivernage">En Hivernage</option>
             </select>
             <input type="number" id="b-hours" class="modal-input" placeholder="Heures Moteur Initiales">
@@ -162,7 +175,7 @@
                 <option value="Diesel">Diesel</option>
                 <option value="Électrique">Électrique</option>
             </select>
-            <input type="text" id="b-notes" class="modal-input" placeholder="Notes / Travaux à prévoir">
+            <input type="text" id="b-notes" class="modal-input" placeholder="Notes générales">
             <div class="modal-buttons">
                 <button class="btn-sm btn-secondary" onclick="closeModals()">Annuler</button>
                 <button class="btn-sm btn-primary" onclick="saveBoat()">Enregistrer</button>
@@ -221,7 +234,6 @@
         let currentTab = 'flotte';
         let activeBoatId = null;
 
-        // Synchronisation en temps réel avec Firestore
         onSnapshot(collection(db, "boats"), (snapshot) => {
             boats = [];
             snapshot.forEach((docSnap) => {
@@ -254,7 +266,7 @@
             if (currentTab === 'flotte') {
                 container.innerHTML = `
                     <div class="metric-card"><div class="metric-title">FLOTTE TOTALE ⛵</div><div class="metric-value">${boats.length}</div></div>
-                    <div class="metric-card"><div class="metric-title">EN ATELIER 🛠</div><div class="metric-value" style="color:#ff4d6d;">${boats.filter(b => b.status === 'atelier').length}</div></div>
+                    <div class="metric-card"><div class="metric-title">AU HANGAR 🏠</div><div class="metric-value" style="color:#00b4d8;">${boats.filter(b => b.status === 'hangar').length}</div></div>
                     <button class="btn-add" onclick="openBoatModal()">+ Ajouter Un Bateau</button>
                 `;
             } else {
@@ -279,8 +291,12 @@
             filtered.forEach(b => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                let statusClass = b.status === 'mer' ? 'status-mer' : (b.status === 'hivernage' ? 'status-hivernage' : 'status-atelier');
-                let statusLabel = b.status === 'mer' ? 'En Mer' : (b.status === 'hivernage' ? 'Hivernage' : 'En Atelier');
+                
+                let statusClass = 'status-eau';
+                let statusLabel = "À l'eau";
+                if(b.status === 'hangar') { statusClass = 'status-hangar'; statusLabel = 'Au Hangar'; }
+                else if(b.status === 'atelier') { statusClass = 'status-atelier'; statusLabel = 'En Atelier'; }
+                else if(b.status === 'hivernage') { statusClass = 'status-hivernage'; statusLabel = 'Hivernage'; }
 
                 card.innerHTML = `
                     <div class="card-header">
@@ -368,14 +384,20 @@
             if(!boat.logs) boat.logs = [];
 
             document.getElementById('view-subtitle').innerText = `Fiche : ${boat.name}`;
+            
+            document.getElementById('boat-upcoming-works').value = boat.upcomingWorks || '';
 
-            let statusLabel = boat.status === 'mer' ? 'En Mer' : (boat.status === 'hivernage' ? 'Hivernage' : 'En Atelier');
+            let statusClass = 'status-eau';
+            let statusLabel = "À l'eau";
+            if(boat.status === 'hangar') { statusClass = 'status-hangar'; statusLabel = 'Au Hangar'; }
+            else if(boat.status === 'atelier') { statusClass = 'status-atelier'; statusLabel = 'En Atelier'; }
+            else if(boat.status === 'hivernage') { statusClass = 'status-hivernage'; statusLabel = 'Hivernage'; }
             
             document.getElementById('boat-detail-content').innerHTML = `
                 <div class="card" style="margin:0;">
                     <div class="card-header">
                         <div><div class="card-title">${boat.name}</div><div class="card-sub">${boat.model}</div></div>
-                        <span class="status-badge status-${boat.status}">${statusLabel}</span>
+                        <span class="status-badge ${statusClass}">${statusLabel}</span>
                     </div>
                     <div class="details-grid">
                         <div>👤 <b>Proprio :</b> ${boat.owner || 'N/C'}</div>
@@ -413,6 +435,19 @@
                     </div>
                 `;
             });
+        }
+
+        window.saveUpcomingWorks = async function() {
+            if(!activeBoatId) return;
+            const worksText = document.getElementById('boat-upcoming-works').value;
+            try {
+                await updateDoc(doc(db, "boats", activeBoatId), {
+                    upcomingWorks: worksText
+                });
+                alert("Travaux à prévoir mis à jour avec succès !");
+            } catch (e) {
+                console.error("Erreur mise à jour travaux:", e);
+            }
         }
 
         window.saveMaintenance = async function() {
@@ -483,6 +518,7 @@
                     hours: parseInt(document.getElementById('b-hours').value) || 0,
                     fuel: document.getElementById('b-fuel').value,
                     notes: document.getElementById('b-notes').value,
+                    upcomingWorks: "",
                     logs: []
                 });
                 closeModals();
