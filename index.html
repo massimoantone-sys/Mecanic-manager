@@ -57,6 +57,7 @@
         .btn-sm { padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; border: none; cursor: pointer; flex: 1; text-align: center; text-decoration: none; display: inline-block;}
         .btn-primary { background: var(--accent-blue); color: white; }
         .btn-secondary { background: var(--border-color); color: white; }
+        .btn-success { background: var(--accent-green); color: #000; }
         .btn-danger { background: rgba(236, 57, 70, 0.2); color: #ff4d6d; border: 1px solid var(--accent-red); flex: 0.4; }
 
         .stock-row { display: flex; gap: 12px; align-items: center; }
@@ -121,11 +122,11 @@
         <button class="back-btn" onclick="backToFlotte()">← Retour à la Flotte</button>
         <div id="boat-detail-content"></div>
         
-        <!-- Encart Travaux à prévoir modifiable -->
+        <!-- Encart Travaux à prévoir modifiable + Bouton de validation vers historique -->
         <div class="maintenance-box">
             <h3 style="font-size: 1rem; color: #ff4d6d;">📝 Travaux à Prévoir / À Faire</h3>
-            <textarea id="boat-upcoming-works" class="textarea-box" placeholder="Notez ici les prochaines interventions, pièces à commander, vérifications..."></textarea>
-            <button class="btn-sm btn-primary" style="padding: 10px;" onclick="saveUpcomingWorks()">Enregistrer les travaux à prévoir</button>
+            <textarea id="boat-upcoming-works" class="textarea-box" placeholder="Notez ici les prochaines interventions, pièces à commander, vérifications..." oninput="autoSaveUpcomingWorks(this.value)"></textarea>
+            <button class="btn-sm btn-success" style="padding: 10px; font-weight: 700;" onclick="completeUpcomingWorks()">📥 Terminer & archiver dans l'historique</button>
         </div>
 
         <div class="maintenance-box">
@@ -234,6 +235,7 @@
 
         let currentTab = 'flotte';
         let activeBoatId = null;
+        let saveTimeout = null;
 
         onSnapshot(collection(db, "boats"), (snapshot) => {
             boats = [];
@@ -242,6 +244,13 @@
             });
             renderMetrics();
             if (activeBoatId) {
+                const activeTextarea = document.getElementById('boat-upcoming-works');
+                const currentFocused = document.activeElement === activeTextarea;
+                const boat = boats.find(b => b.id === activeBoatId);
+                
+                if (boat && activeTextarea && !currentFocused) {
+                    activeTextarea.value = boat.upcomingWorks || '';
+                }
                 renderSingleBoatContent();
             } else {
                 renderBoats(document.getElementById('search-input').value);
@@ -385,13 +394,16 @@
             if(!boat.logs) boat.logs = [];
 
             document.getElementById('view-subtitle').innerText = `Fiche : ${boat.name}`;
-            document.getElementById('boat-upcoming-works').value = boat.upcomingWorks || '';
             
+            const textarea = document.getElementById('boat-upcoming-works');
+            if (document.activeElement !== textarea) {
+                textarea.value = boat.upcomingWorks || '';
+            }
+
             document.getElementById('boat-detail-content').innerHTML = `
                 <div class="card" style="margin:0;">
                     <div class="card-header">
                         <div><div class="card-title">${boat.name}</div><div class="card-sub">${boat.model}</div></div>
-                        <!-- Sélecteur de statut modifiable en direct -->
                         <select class="inline-status-select" onchange="updateBoatStatus('${boat.id}', this.value)">
                             <option value="eau" ${boat.status === 'eau' ? 'selected' : ''}>📍 À l'eau</option>
                             <option value="hangar" ${boat.status === 'hangar' ? 'selected' : ''}>🏠 Au hangar</option>
@@ -437,7 +449,54 @@
             });
         }
 
-        // Fonction pour modifier le statut du bateau directement
+        // Sauvegarde automatique en direct des travaux à prévoir
+        window.autoSaveUpcomingWorks = function(text) {
+            if(!activeBoatId) return;
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(async () => {
+                try {
+                    await updateDoc(doc(db, "boats", activeBoatId), {
+                        upcomingWorks: text
+                    });
+                } catch (e) {
+                    console.error("Erreur auto-sauvegarde travaux:", e);
+                }
+            }, 600);
+        }
+
+        // Bouton pour basculer les travaux à prévoir directement dans l'historique de maintenance
+        window.completeUpcomingWorks = async function() {
+            if(!activeBoatId) return;
+            const boat = boats.find(b => b.id === activeBoatId);
+            if(!boat) return;
+
+            const worksText = document.getElementById('boat-upcoming-works').value.trim();
+            if(!worksText) {
+                return alert("Aucun travail à prévoir renseigné pour être archivé.");
+            }
+
+            // Création d'une nouvelle entrée de maintenance basée sur les travaux réalisés
+            const newLog = {
+                date: new Date().toLocaleDateString('fr-FR'),
+                desc: `[Travaux réalisés] ${worksText}`,
+                newHours: boat.hours,
+                partsUsed: []
+            };
+
+            const updatedLogs = [...(boat.logs || []), newLog];
+
+            try {
+                await updateDoc(doc(db, "boats", boat.id), {
+                    logs: updatedLogs,
+                    upcomingWorks: "" // On vide le champ des travaux à prévoir
+                });
+                document.getElementById('boat-upcoming-works').value = "";
+                alert("Travaux terminés et archivés dans l'historique avec succès !");
+            } catch (e) {
+                console.error("Erreur lors de l'archivage des travaux :", e);
+            }
+        }
+
         window.updateBoatStatus = async function(boatId, newStatus) {
             try {
                 await updateDoc(doc(db, "boats", boatId), {
@@ -445,19 +504,6 @@
                 });
             } catch (e) {
                 console.error("Erreur mise à jour statut:", e);
-            }
-        }
-
-        window.saveUpcomingWorks = async function() {
-            if(!activeBoatId) return;
-            const worksText = document.getElementById('boat-upcoming-works').value;
-            try {
-                await updateDoc(doc(db, "boats", activeBoatId), {
-                    upcomingWorks: worksText
-                });
-                alert("Travaux à prévoir mis à jour avec succès !");
-            } catch (e) {
-                console.error("Erreur mise à jour travaux:", e);
             }
         }
 
