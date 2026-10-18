@@ -38,16 +38,16 @@
         .search-input::placeholder { color: var(--text-secondary); }
 
         .items-list { padding: 0 20px; display: flex; flex-direction: column; gap: 15px; }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 16px; border: 1px solid var(--border-color); }
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .card-title { font-size: 1.15rem; font-weight: 700; color: white; }
         .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; font-weight: 700; text-transform: uppercase; }
         .status-atelier { background: rgba(230, 57, 70, 0.2); color: #ff4d6d; border: 1px solid #e63946; }
         .status-mer { background: rgba(46, 196, 182, 0.2); color: #2ec4b6; border: 1px solid #2ec4b6; }
         .status-hivernage { background: rgba(141, 153, 174, 0.2); color: #8d99ae; border: 1px solid #8d99ae; }
-        .card-sub { font-size: 0.85rem; color: #00b4d8; font-weight: 600; margin-bottom: 10px; }
+        .card-sub { font-size: 0.85rem; color: #00b4d8; font-weight: 600; }
         
-        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); background: rgba(11, 19, 43, 0.5); padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); background: rgba(11, 19, 43, 0.5); padding: 10px; border-radius: 8px; }
         .details-full { grid-column: span 2; }
         
         .card-actions { display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; }
@@ -56,7 +56,9 @@
         .btn-secondary { background: var(--border-color); color: white; }
         .btn-danger { background: rgba(236, 57, 70, 0.2); color: #ff4d6d; border: 1px solid var(--accent-red); flex: 0.4; }
 
-        .stock-qty { font-size: 1.3rem; font-weight: 800; color: var(--accent-green); }
+        .stock-row { display: flex; gap: 12px; align-items: center; }
+        .stock-thumb { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: var(--bg-color); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+        .stock-qty { font-size: 1.2rem; font-weight: 800; color: var(--accent-green); }
         .stock-qty.low { color: var(--accent-red); }
         .qty-controls { display: flex; align-items: center; gap: 10px; }
         .btn-qty { width: 32px; height: 32px; border-radius: 8px; background: var(--border-color); color: white; border: none; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
@@ -146,8 +148,9 @@
             <h2>Nouveau Bateau</h2>
             <input type="text" id="b-name" class="modal-input" placeholder="Nom du bateau *">
             <input type="text" id="b-model" class="modal-input" placeholder="Marque & Modèle *">
-            <input type="text" id="b-owner" class="modal-input" placeholder="Propriétaire & Tél">
-            <input type="text" id="b-immat" class="modal-input" placeholder="Immatriculation / CIN">
+            <input type="text" id="b-owner" class="modal-input" placeholder="Nom du propriétaire & Tél">
+            <input type="text" id="b-immat" class="modal-input" placeholder="Immatriculation / CIN (N° de coque)">
+            <input type="text" id="b-engine-sn" class="modal-input" placeholder="Numéro de série Moteur">
             <select id="b-status" class="modal-select">
                 <option value="atelier">En Atelier / Entretien</option>
                 <option value="mer">En Mer / Prêt</option>
@@ -171,8 +174,8 @@
     <div class="modal" id="stock-modal">
         <div class="modal-content">
             <h2>Nouvelle Référence Stock</h2>
-            <input type="text" id="s-name" class="modal-input" placeholder="Désignation pièce *">
-            <input type="text" id="s-ref" class="modal-input" placeholder="Référence constructeur">
+            <input type="text" id="s-name" class="modal-input" placeholder="Nom de la pièce *">
+            <input type="text" id="s-ref" class="modal-input" placeholder="Numéro de série / Référence pièce">
             <select id="s-cat" class="modal-select">
                 <option value="Moteur / Filtres">Moteur & Filtres</option>
                 <option value="Électricité">Électricité & Batterie</option>
@@ -183,6 +186,7 @@
             <input type="number" id="s-qty" class="modal-input" placeholder="Quantité initiale *">
             <input type="number" id="s-min" class="modal-input" placeholder="Alerte Stock Minimum">
             <input type="text" id="s-loc" class="modal-input" placeholder="Emplacement (ex: Étagère A3)">
+            <input type="text" id="s-img" class="modal-input" placeholder="Lien photo de la pièce (URL optionnelle)">
             <div class="modal-buttons">
                 <button class="btn-sm btn-secondary" onclick="closeModals()">Annuler</button>
                 <button class="btn-sm btn-primary" onclick="saveStock()">Ajouter Pièce</button>
@@ -192,14 +196,14 @@
 
     <script>
         let boats = JSON.parse(localStorage.getItem('nautic_boats')) || [
-            { id: "b1", name: "Symphonie des Mers", model: "Beneteau Oceanis 38.1", owner: "Marc Le Gall (06 11 22 33 44)", immat: "FR-BEY12345D818", status: "atelier", hours: 340, fuel: "Diesel", notes: "Révision des 300h", logs: [] },
-            { id: "b2", name: "Cap Ouest", model: "Jeanneau Cap Camarat 7.5", owner: "Chantier Naval", immat: "FR-CAP750", status: "mer", hours: 120, fuel: "Essence", notes: "Prêt", logs: [] }
+            { id: "b1", name: "Symphonie des Mers", model: "Beneteau Oceanis 38.1", owner: "Marc Le Gall (06 11 22 33 44)", immat: "FR-BEY12345D818", engineSn: "YAN-3YM30-E-04821", status: "atelier", hours: 340, fuel: "Diesel", notes: "Révision des 300h", logs: [] },
+            { id: "b2", name: "Cap Ouest", model: "Jeanneau Cap Camarat 7.5", owner: "Chantier Naval", immat: "FR-CAP750", engineSn: "MER-F150-2022-998", status: "mer", hours: 120, fuel: "Essence", notes: "Prêt", logs: [] }
         ];
 
         let stock = JSON.parse(localStorage.getItem('nautic_stock')) || [
-            { id: "s1", name: "Filtre à Huile Yanmar", ref: "129150-35153", cat: "Moteur / Filtres", qty: 8, min: 3, loc: "Rayon M1" },
-            { id: "s2", name: "Anode Zinguée Embase", ref: "ANZ-4050", cat: "Accastillage", qty: 2, min: 4, loc: "Bac A2" },
-            { id: "s3", name: "Huile Moteur 15W40 5L", ref: "OIL-15W40", cat: "Huiles & Chimie", qty: 5, min: 2, loc: "Étagère B" }
+            { id: "s1", name: "Filtre à Huile Yanmar", ref: "129150-35153", cat: "Moteur / Filtres", qty: 8, min: 3, loc: "Rayon M1", img: "" },
+            { id: "s2", name: "Anode Zinguée Embase", ref: "ANZ-4050", cat: "Accastillage", qty: 2, min: 4, loc: "Bac A2", img: "" },
+            { id: "s3", name: "Huile Moteur 15W40 5L", ref: "OIL-15W40", cat: "Huiles & Chimie", qty: 5, min: 2, loc: "Étagère B", img: "" }
         ];
 
         let currentTab = 'flotte';
@@ -250,7 +254,9 @@
                     </div>
                     <div class="details-grid">
                         <div>👤 <b>Proprio :</b> ${b.owner || 'N/C'}</div>
-                        <div>⏱ <b>Moteur :</b> ${b.hours} h</div>
+                        <div>⏱ <b>Heures Moteur :</b> ${b.hours} h</div>
+                        <div>⚓ <b>N° Coque :</b> ${b.immat || 'N/C'}</div>
+                        <div>⚙️ <b>N° Série Moteur :</b> ${b.engineSn || 'N/C'}</div>
                     </div>
                     <div class="card-actions">
                         <button class="btn-sm btn-primary" onclick="openBoatDetail('${b.id}')">Fiche & Entretien 🛠️</button>
@@ -264,7 +270,7 @@
         function renderStock(filter = '') {
             const container = document.getElementById('stock-view');
             container.innerHTML = '';
-            const filtered = stock.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()) || s.ref.toLowerCase().includes(filter.toLowerCase()));
+            const filtered = stock.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()) || (s.ref && s.ref.toLowerCase().includes(filter.toLowerCase())));
 
             if(filtered.length === 0) {
                 container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">Aucune pièce en stock.</div>`;
@@ -274,10 +280,18 @@
             filtered.forEach(s => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                
+                let thumbContent = s.img ? `<img src="${s.img}" class="stock-thumb" alt="pièce">` : `<div class="stock-thumb">📦</div>`;
+
                 card.innerHTML = `
-                    <div class="card-header">
-                        <div><div class="card-title">${s.name}</div><div class="card-sub">Ref: ${s.ref || 'N/A'} - [${s.cat}]</div></div>
-                        <div class="stock-qty ${s.qty <= s.min ? 'low' : ''}">${s.qty} en stock</div>
+                    <div class="stock-row">
+                        ${thumbContent}
+                        <div style="flex:1; overflow:hidden;">
+                            <div class="card-title" style="font-size:1.05rem;">${s.name}</div>
+                            <div class="card-sub">N° Série / Ref : ${s.ref || 'N/A'}</div>
+                            <div style="font-size:0.75rem; color:var(--text-secondary);">Catégorie : ${s.cat}</div>
+                        </div>
+                        <div class="stock-qty ${s.qty <= s.min ? 'low' : ''}">${s.qty}</div>
                     </div>
                     <div class="details-grid">
                         <div>📍 <b>Lieu :</b> ${s.loc || 'Atelier'}</div>
@@ -329,8 +343,9 @@
                     </div>
                     <div class="details-grid">
                         <div>👤 <b>Proprio :</b> ${boat.owner || 'N/C'}</div>
-                        <div>🆔 <b>Immat :</b> ${boat.immat || 'N/C'}</div>
-                        <div>⏱ <b>Moteur :</b> ${boat.hours} h</div>
+                        <div>⏱ <b>Heures Moteur :</b> ${boat.hours} h</div>
+                        <div>⚓ <b>N° Coque :</b> ${boat.immat || 'N/C'}</div>
+                        <div>⚙️ <b>N° Série Moteur :</b> ${boat.engineSn || 'N/C'}</div>
                         <div>⛽ <b>Carburant :</b> ${boat.fuel}</div>
                         ${boat.notes ? `<div class="details-full">📝 <b>Notes :</b> ${boat.notes}</div>` : ''}
                     </div>
@@ -369,7 +384,6 @@
 
             const boat = boats.find(b => b.id === activeBoatId);
             
-            // Mise à jour de l'index des heures si renseigné
             if(newHoursInput !== "") {
                 const parsedHours = parseInt(newHoursInput);
                 if(!isNaN(parsedHours)) {
@@ -383,7 +397,7 @@
                 const stockItem = stock.find(s => s.id === cb.value);
                 if(stockItem && stockItem.qty > 0) {
                     stockItem.qty -= 1;
-                    partsUsedDesc.persisted ? null : partsUsedDesc.push(`${stockItem.name} (-1)`);
+                    partsUsedDesc.push(`${stockItem.name} (-1)`);
                 }
             });
 
@@ -414,6 +428,7 @@
                 name: name, model: model,
                 owner: document.getElementById('b-owner').value,
                 immat: document.getElementById('b-immat').value,
+                engineSn: document.getElementById('b-engine-sn').value,
                 status: document.getElementById('b-status').value,
                 hours: parseInt(document.getElementById('b-hours').value) || 0,
                 fuel: document.getElementById('b-fuel').value,
@@ -438,10 +453,13 @@
 
             stock.push({
                 id: 's_' + Date.now(),
-                name: name, ref: document.getElementById('s-ref').value,
-                cat: document.getElementById('s-cat').value, qty: qty,
+                name: name, 
+                ref: document.getElementById('s-ref').value,
+                cat: document.getElementById('s-cat').value, 
+                qty: qty,
                 min: parseInt(document.getElementById('s-min').value) || 2,
-                loc: document.getElementById('s-loc').value
+                loc: document.getElementById('s-loc').value,
+                img: document.getElementById('s-img').value
             });
 
             saveData(); closeModals(); renderMetrics(); renderStock();
