@@ -197,26 +197,59 @@
         </div>
     </div>
 
-    <script>
-        let boats = JSON.parse(localStorage.getItem('nautic_boats')) || [
-            { id: "b1", name: "Symphonie des Mers", model: "Beneteau Oceanis 38.1", owner: "Marc Le Gall (06 11 22 33 44)", immat: "FR-BEY12345D818", engineSn: "YAN-3YM30-E-04821", status: "atelier", hours: 340, fuel: "Diesel", notes: "Révision des 300h", logs: [] },
-            { id: "b2", name: "Cap Ouest", model: "Jeanneau Cap Camarat 7.5", owner: "Chantier Naval", immat: "FR-CAP750", engineSn: "MER-F150-2022-998", status: "mer", hours: 120, fuel: "Essence", notes: "Prêt", logs: [] }
-        ];
+    <!-- Scripts Firebase et Logique Application -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        let stock = JSON.parse(localStorage.getItem('nautic_stock')) || [
-            { id: "s1", name: "Filtre à Huile Yanmar", ref: "129150-35153", cat: "Moteur / Filtres", qty: 8, min: 3, loc: "Rayon M1", img: "" },
-            { id: "s2", name: "Huile Moteur 15W40 (Litres)", ref: "OIL-15W40", cat: "Huiles & Chimie", qty: 25.0, min: 5.0, loc: "Bidon Atelier", img: "" }
-        ];
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpJHdSdSimVx_SIAke",
+            authDomain: "mecanic-manager.firebaseapp.com",
+            projectId: "mecanic-manager",
+            storageBucket: "mecanic-manager.appspot.com",
+            messagingSenderId: "305702049718",
+            appId: "1:305702049718:web:077474c...",
+            measurementId: "G-WNYD05J1GF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let boats = [];
+        let stock = [];
 
         let currentTab = 'flotte';
         let activeBoatId = null;
 
-        function saveData() {
-            localStorage.setItem('nautic_boats', JSON.stringify(boats));
-            localStorage.setItem('nautic_stock', JSON.stringify(stock));
-        }
+        // Synchronisation en temps réel avec Firestore
+        onSnapshot(collection(db, "boats"), (snapshot) => {
+            boats = [];
+            snapshot.forEach((docSnap) => {
+                boats.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            renderMetrics();
+            if (activeBoatId) {
+                renderSingleBoatContent();
+            } else {
+                renderBoats(document.getElementById('search-input').value);
+            }
+        });
 
-        function renderMetrics() {
+        onSnapshot(collection(db, "stock"), (snapshot) => {
+            stock = [];
+            snapshot.forEach((docSnap) => {
+                stock.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            renderMetrics();
+            if (currentTab === 'stock') {
+                renderStock(document.getElementById('search-input').value);
+            }
+            if (activeBoatId) {
+                renderSingleBoatContent();
+            }
+        });
+
+        window.renderMetrics = function() {
             const container = document.getElementById('metrics-container');
             if (currentTab === 'flotte') {
                 container.innerHTML = `
@@ -233,7 +266,7 @@
             }
         }
 
-        function renderBoats(filter = '') {
+        window.renderBoats = function(filter = '') {
             const container = document.getElementById('boats-view');
             container.innerHTML = '';
             const filtered = boats.filter(b => b.name.toLowerCase().includes(filter.toLowerCase()) || b.model.toLowerCase().includes(filter.toLowerCase()));
@@ -269,7 +302,7 @@
             });
         }
 
-        function renderStock(filter = '') {
+        window.renderStock = function(filter = '') {
             const container = document.getElementById('stock-view');
             container.innerHTML = '';
             const filtered = stock.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()) || (s.ref && s.ref.toLowerCase().includes(filter.toLowerCase())));
@@ -302,9 +335,9 @@
                     </div>
                     <div class="card-actions">
                         <div class="qty-controls" style="flex:1;">
-                            <button class="btn-qty" onclick="changeQty('${s.id}', ${isOil ? -1 : -1})">-</button>
+                            <button class="btn-qty" onclick="changeQty('${s.id}', -1)">-</button>
                             <span style="font-weight:700; font-size:0.85rem; color:white;">Quantité</span>
-                            <button class="btn-qty" onclick="changeQty('${s.id}', ${isOil ? 1 : 1})">+</button>
+                            <button class="btn-qty" onclick="changeQty('${s.id}', 1)">+</button>
                         </div>
                         <button class="btn-sm btn-danger" onclick="deleteStock('${s.id}')">🗑</button>
                     </div>
@@ -313,7 +346,7 @@
             });
         }
 
-        function openBoatDetail(id) {
+        window.openBoatDetail = function(id) {
             activeBoatId = id;
             document.getElementById('main-app-container').style.display = 'none';
             document.getElementById('bottom-navigation').style.display = 'none';
@@ -321,7 +354,7 @@
             renderSingleBoatContent();
         }
 
-        function backToFlotte() {
+        window.backToFlotte = function() {
             activeBoatId = null;
             document.getElementById('boat-detail-view').style.display = 'none';
             document.getElementById('main-app-container').style.display = 'block';
@@ -329,7 +362,7 @@
             renderBoats();
         }
 
-        function renderSingleBoatContent() {
+        window.renderSingleBoatContent = function() {
             const boat = boats.find(b => b.id === activeBoatId);
             if(!boat) return;
             if(!boat.logs) boat.logs = [];
@@ -376,88 +409,99 @@
                     <div class="maintenance-item">
                         <div style="font-weight:700; color:#00b4d8; margin-bottom:2px;">📅 ${log.date} - ⏱ Index compteur : ${log.newHours}h</div>
                         <div>${log.desc}</div>
-                        ${log.partsUsed.length > 0 ? `<div style="font-size:0.75rem; color:var(--accent-green); margin-top:4px;">📦 Éléments utilisés : ${log.partsUsed.join(', ')}</div>` : ''}
+                        ${log.partsUsed && log.partsUsed.length > 0 ? `<div style="font-size:0.75rem; color:var(--accent-green); margin-top:4px;">📦 Éléments utilisés : ${log.partsUsed.join(', ')}</div>` : ''}
                     </div>
                 `;
             });
         }
 
-        function saveMaintenance() {
+        window.saveMaintenance = async function() {
             const desc = document.getElementById('m-desc').value;
             const newHoursInput = document.getElementById('m-new-hours').value;
             if(!desc) return alert('Veuillez entrer une description des travaux.');
 
             const boat = boats.find(b => b.id === activeBoatId);
+            let updatedHours = boat.hours;
             
             if(newHoursInput !== "") {
                 const parsedHours = parseInt(newHoursInput);
                 if(!isNaN(parsedHours)) {
-                    boat.hours = parsedHours;
+                    updatedHours = parsedHours;
                 }
             }
 
             let partsUsedDesc = [];
             const inputs = document.querySelectorAll('.stock-use-input');
             
-            inputs.forEach(input => {
+            for(const input of inputs) {
                 const qtyUsed = parseFloat(input.value);
                 if(!isNaN(qtyUsed) && qtyUsed > 0) {
                     const stockId = input.getAttribute('data-stock-id');
                     const stockItem = stock.find(s => s.id === stockId);
                     if(stockItem) {
-                        stockItem.qty = Math.max(0, parseFloat((stockItem.qty - qtyUsed).toFixed(1)));
+                        const newQty = Math.max(0, parseFloat((stockItem.qty - qtyUsed).toFixed(1)));
+                        await updateDoc(doc(db, "stock", stockItem.id), { qty: newQty });
                         let unitLabel = stockItem.cat === 'Huiles & Chimie' ? 'L' : '';
                         partsUsedDesc.push(`${stockItem.name} (-${qtyUsed} ${unitLabel})`);
                     }
                 }
-            });
+            }
 
-            boat.logs.push({
+            const newLogs = [...(boat.logs || []), {
                 date: new Date().toLocaleDateString('fr-FR'),
                 desc: desc,
-                newHours: boat.hours,
+                newHours: updatedHours,
                 partsUsed: partsUsedDesc
+            }];
+
+            await updateDoc(doc(db, "boats", boat.id), {
+                hours: updatedHours,
+                logs: newLogs
             });
 
-            saveData();
             document.getElementById('m-desc').value = '';
             document.getElementById('m-new-hours').value = '';
-            renderSingleBoatContent();
         }
 
-        function openBoatModal() { document.getElementById('boat-modal').classList.add('active'); }
-        function openStockModal() { document.getElementById('stock-modal').classList.add('active'); }
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+        window.openBoatModal = function() { document.getElementById('boat-modal').classList.add('active'); }
+        window.openStockModal = function() { document.getElementById('stock-modal').classList.add('active'); }
+        window.closeModals = function() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
 
-        function saveBoat() {
+        window.saveBoat = async function() {
             const name = document.getElementById('b-name').value;
             const model = document.getElementById('b-model').value;
             if(!name || !model) return alert('Remplir le nom et le modèle.');
 
-            boats.push({
-                id: 'b_' + Date.now(),
-                name: name, model: model,
-                owner: document.getElementById('b-owner').value,
-                immat: document.getElementById('b-immat').value,
-                engineSn: document.getElementById('b-engine-sn').value,
-                status: document.getElementById('b-status').value,
-                hours: parseInt(document.getElementById('b-hours').value) || 0,
-                fuel: document.getElementById('b-fuel').value,
-                notes: document.getElementById('b-notes').value,
-                logs: []
-            });
-
-            saveData(); closeModals(); renderMetrics(); renderBoats();
-        }
-
-        function deleteBoat(id) {
-            if(confirm("Supprimer ce bateau ?")) {
-                boats = boats.filter(b => b.id !== id);
-                saveData(); renderMetrics(); renderBoats(document.getElementById('search-input').value);
+            try {
+                await addDoc(collection(db, "boats"), {
+                    name: name, 
+                    model: model,
+                    owner: document.getElementById('b-owner').value,
+                    immat: document.getElementById('b-immat').value,
+                    engineSn: document.getElementById('b-engine-sn').value,
+                    status: document.getElementById('b-status').value,
+                    hours: parseInt(document.getElementById('b-hours').value) || 0,
+                    fuel: document.getElementById('b-fuel').value,
+                    notes: document.getElementById('b-notes').value,
+                    logs: []
+                });
+                closeModals();
+            } catch (e) {
+                console.error("Erreur ajout bateau:", e);
             }
         }
 
-        function saveStock() {
+        window.deleteBoat = async function(id) {
+            if(confirm("Supprimer ce bateau ?")) {
+                try {
+                    await deleteDoc(doc(db, "boats", id));
+                } catch (e) {
+                    console.error("Erreur suppression bateau:", e);
+                }
+            }
+        }
+
+        window.saveStock = function() {
             const name = document.getElementById('s-name').value;
             const qty = parseFloat(document.getElementById('s-qty').value);
             if(!name || isNaN(qty)) return alert('Nom et quantité requis.');
@@ -475,36 +519,46 @@
             }
         }
 
-        function finishSaveStock(name, imgSrc, qty) {
-            stock.push({
-                id: 's_' + Date.now(),
-                name: name, 
-                ref: document.getElementById('s-ref').value,
-                cat: document.getElementById('s-cat').value, 
-                qty: qty,
-                min: parseFloat(document.getElementById('s-min').value) || 2.0,
-                loc: document.getElementById('s-loc').value,
-                img: imgSrc
-            });
-
-            saveData(); closeModals(); renderMetrics(); renderStock();
-        }
-
-        function changeQty(id, delta) {
-            const item = stock.find(s => s.id === id);
-            if(item.qty + delta < 0) return;
-            item.qty = parseFloat((item.qty + delta).toFixed(1));
-            saveData(); renderMetrics(); renderStock(document.getElementById('search-input').value);
-        }
-
-        function deleteStock(id) {
-            if(confirm("Supprimer cette référence ?")) {
-                stock = stock.filter(s => s.id !== id);
-                saveData(); renderMetrics(); renderStock(document.getElementById('search-input').value);
+        async function finishSaveStock(name, imgSrc, qty) {
+            try {
+                await addDoc(collection(db, "stock"), {
+                    name: name, 
+                    ref: document.getElementById('s-ref').value,
+                    cat: document.getElementById('s-cat').value, 
+                    qty: qty,
+                    min: parseFloat(document.getElementById('s-min').value) || 2.0,
+                    loc: document.getElementById('s-loc').value,
+                    img: imgSrc
+                });
+                closeModals();
+            } catch (e) {
+                console.error("Erreur ajout stock:", e);
             }
         }
 
-        function switchTab(tab) {
+        window.changeQty = async function(id, delta) {
+            const item = stock.find(s => s.id === id);
+            if(!item) return;
+            const newQty = parseFloat((item.qty + delta).toFixed(1));
+            if(newQty < 0) return;
+            try {
+                await updateDoc(doc(db, "stock", id), { qty: newQty });
+            } catch (e) {
+                console.error("Erreur mise à jour quantité:", e);
+            }
+        }
+
+        window.deleteStock = async function(id) {
+            if(confirm("Supprimer cette référence ?")) {
+                try {
+                    await deleteDoc(doc(db, "stock", id));
+                } catch (e) {
+                    console.error("Erreur suppression stock:", e);
+                }
+            }
+        }
+
+        window.switchTab = function(tab) {
             currentTab = tab;
             document.getElementById('nav-flotte').classList.toggle('active', tab === 'flotte');
             document.getElementById('nav-stock').classList.toggle('active', tab === 'stock');
@@ -520,9 +574,6 @@
             if(currentTab === 'flotte') renderBoats(e.target.value);
             else renderStock(e.target.value);
         };
-
-        renderMetrics();
-        renderBoats();
     </script>
 </body>
 </html>
