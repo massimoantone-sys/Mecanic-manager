@@ -50,7 +50,7 @@
 
         .card-sub { font-size: 0.85rem; color: #00b4d8; font-weight: 600; }
         
-        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); background: rgba(11, 19, 43, 0.5); padding: 10px; border-radius: 8px; }
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); background: rgba(11, 19, 43, 0.5); padding: 10px; border-radius: 8px; align-items: center; }
         .details-full { grid-column: span 2; }
         
         .card-actions { display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; }
@@ -75,6 +75,7 @@
         .stock-use-input { width: 70px; padding: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: white; text-align: center; font-size: 0.85rem; }
         
         .textarea-box { width: 100%; min-height: 80px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: white; font-size: 0.85rem; resize: vertical; }
+        .inline-status-select { background: var(--bg-color); border: 1px solid var(--border-color); color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; width: 100%; cursor: pointer; }
 
         /* Navigation */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(11, 19, 43, 0.95); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 12px 0 25px; backdrop-filter: blur(10px); z-index: 50; }
@@ -384,20 +385,19 @@
             if(!boat.logs) boat.logs = [];
 
             document.getElementById('view-subtitle').innerText = `Fiche : ${boat.name}`;
-            
             document.getElementById('boat-upcoming-works').value = boat.upcomingWorks || '';
-
-            let statusClass = 'status-eau';
-            let statusLabel = "À l'eau";
-            if(boat.status === 'hangar') { statusClass = 'status-hangar'; statusLabel = 'Au Hangar'; }
-            else if(boat.status === 'atelier') { statusClass = 'status-atelier'; statusLabel = 'En Atelier'; }
-            else if(boat.status === 'hivernage') { statusClass = 'status-hivernage'; statusLabel = 'Hivernage'; }
             
             document.getElementById('boat-detail-content').innerHTML = `
                 <div class="card" style="margin:0;">
                     <div class="card-header">
                         <div><div class="card-title">${boat.name}</div><div class="card-sub">${boat.model}</div></div>
-                        <span class="status-badge ${statusClass}">${statusLabel}</span>
+                        <!-- Sélecteur de statut modifiable en direct -->
+                        <select class="inline-status-select" onchange="updateBoatStatus('${boat.id}', this.value)">
+                            <option value="eau" ${boat.status === 'eau' ? 'selected' : ''}>📍 À l'eau</option>
+                            <option value="hangar" ${boat.status === 'hangar' ? 'selected' : ''}>🏠 Au hangar</option>
+                            <option value="atelier" ${boat.status === 'atelier' ? 'selected' : ''}>🛠️ En Atelier</option>
+                            <option value="hivernage" ${boat.status === 'hivernage' ? 'selected' : ''}>❄️ En Hivernage</option>
+                        </select>
                     </div>
                     <div class="details-grid">
                         <div>👤 <b>Proprio :</b> ${boat.owner || 'N/C'}</div>
@@ -435,6 +435,17 @@
                     </div>
                 `;
             });
+        }
+
+        // Fonction pour modifier le statut du bateau directement
+        window.updateBoatStatus = async function(boatId, newStatus) {
+            try {
+                await updateDoc(doc(db, "boats", boatId), {
+                    status: newStatus
+                });
+            } catch (e) {
+                console.error("Erreur mise à jour statut:", e);
+            }
         }
 
         window.saveUpcomingWorks = async function() {
