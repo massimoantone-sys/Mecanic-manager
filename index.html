@@ -126,7 +126,6 @@
         
         <div id="boat-detail-content"></div>
         
-        <!-- Encart Travaux à prévoir modifiable en direct + Bouton validation -->
         <div class="maintenance-box">
             <h3 style="font-size: 1rem; color: #ff4d6d;">📝 Travaux à Prévoir / À Faire</h3>
             <textarea id="boat-upcoming-works" class="textarea-box" placeholder="Notez ici les prochaines interventions, pièces à commander, vérifications..." oninput="autoSaveUpcomingWorks(this.value)"></textarea>
@@ -228,7 +227,7 @@
             <input type="number" step="0.1" id="s-min" class="modal-input" placeholder="Alerte Stock Minimum">
             <input type="text" id="s-loc" class="modal-input" placeholder="Emplacement (ex: Bidon Atelier, Rayon M1)">
             <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 0.8rem; color: var(--text-secondary);">Prendre une photo :</label>
+                <label style="font-size: 0.8rem; color: var(--text-secondary);">Photo (Optionnel) :</label>
                 <input type="file" id="s-img-file" accept="image/*" capture="environment" class="modal-input" style="padding: 6px;">
             </div>
             <div class="modal-buttons">
@@ -475,7 +474,6 @@
             });
         }
 
-        // Sauvegarde automatique en direct des travaux à prévoir
         window.autoSaveUpcomingWorks = function(text) {
             if(!activeBoatId) return;
             clearTimeout(saveTimeout);
@@ -490,7 +488,6 @@
             }, 600);
         }
 
-        // Bouton pour basculer les travaux à prévoir directement dans l'historique de maintenance
         window.completeUpcomingWorks = async function() {
             if(!activeBoatId) return;
             const boat = boats.find(b => b.id === activeBoatId);
@@ -655,6 +652,7 @@
             }
         }
 
+        // --- CORRECTION DU BUG DE BLOCAGE SUR LE STOCK AVEC PHOTO ---
         window.saveStock = function() {
             const name = document.getElementById('s-name').value;
             const qty = parseFloat(document.getElementById('s-qty').value);
@@ -663,11 +661,19 @@
             const fileInput = document.getElementById('s-img-file');
             
             if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    finishSaveStock(name, e.target.result, qty);
+                    const base64Img = e.target.result;
+                    // Sécurité : si l'image fait plus de 700Ko, on prévient et on enregistre sans image pour ne pas bloquer Firestore
+                    if (base64Img.length > 700000) {
+                        alert("Attention : L'image est un peu trop lourde pour la base de données. L'article a été ajouté sans l'image pour éviter le blocage.");
+                        finishSaveStock(name, "", qty);
+                    } else {
+                        finishSaveStock(name, base64Img, qty);
+                    }
                 };
-                reader.readAsDataURL(fileInput.files[0]);
+                reader.readAsDataURL(file);
             } else {
                 finishSaveStock(name, "", qty);
             }
@@ -684,9 +690,16 @@
                     loc: document.getElementById('s-loc').value,
                     img: imgSrc
                 });
+                document.getElementById('s-name').value = '';
+                document.getElementById('s-ref').value = '';
+                document.getElementById('s-qty').value = '';
+                document.getElementById('s-min').value = '';
+                document.getElementById('s-loc').value = '';
+                document.getElementById('s-img-file').value = '';
                 closeModals();
             } catch (e) {
                 console.error("Erreur ajout stock:", e);
+                alert("Erreur lors de l'enregistrement dans la base de données.");
             }
         }
 
