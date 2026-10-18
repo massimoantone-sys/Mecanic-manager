@@ -68,8 +68,8 @@
         .back-btn { background: var(--border-color); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; align-self: flex-start; margin-bottom: 5px; }
         .maintenance-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         .maintenance-item { background: rgba(11, 19, 43, 0.6); padding: 10px; border-radius: 8px; border-left: 4px solid var(--accent-green); font-size: 0.85rem; margin-top: 5px; }
-        .checkbox-group { display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; background: var(--bg-color); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); }
-        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; color: white; }
+        .stock-use-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; margin-bottom: 6px; }
+        .stock-use-input { width: 70px; padding: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: white; text-align: center; font-size: 0.85rem; }
 
         /* Navigation */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(11, 19, 43, 0.95); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 12px 0 25px; backdrop-filter: blur(10px); z-index: 50; }
@@ -119,8 +119,8 @@
             <h3 style="font-size: 1rem; color: #00b4d8;">🛠️ Enregistrer une Maintenance</h3>
             <input type="text" id="m-desc" class="modal-input" placeholder="Description des travaux (ex: Révision, filtres...)">
             <input type="number" id="m-new-hours" class="modal-input" placeholder="Nouvel index compteur heures (ex: 365)">
-            <label style="font-size: 0.8rem; color: var(--text-secondary);">Pièces du stock utilisées :</label>
-            <div class="checkbox-group" id="stock-checkboxes"></div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary);">Pièces et consommables utilisés :</label>
+            <div style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;" id="stock-usage-container"></div>
             <button class="btn-sm btn-primary" style="padding: 12px; margin-top: 5px;" onclick="saveMaintenance()">Valider & Mettre à jour</button>
         </div>
 
@@ -174,25 +174,25 @@
     <div class="modal" id="stock-modal">
         <div class="modal-content">
             <h2>Nouvelle Référence Stock</h2>
-            <input type="text" id="s-name" class="modal-input" placeholder="Nom de la pièce *">
-            <input type="text" id="s-ref" class="modal-input" placeholder="Numéro de série / Référence pièce">
+            <input type="text" id="s-name" class="modal-input" placeholder="Nom de la pièce ou Huile (ex: Huile 15W40) *">
+            <input type="text" id="s-ref" class="modal-input" placeholder="Référence / Numéro de série">
             <select id="s-cat" class="modal-select">
                 <option value="Moteur / Filtres">Moteur & Filtres</option>
+                <option value="Huiles & Chimie">Huiles & Lubrifiants (Litres)</option>
                 <option value="Électricité">Électricité & Batterie</option>
                 <option value="Sécurité">Sécurité & Armement</option>
                 <option value="Castillage">Accastillage</option>
-                <option value="Huiles & Chimie">Huiles & Chimie</option>
             </select>
-            <input type="number" id="s-qty" class="modal-input" placeholder="Quantité initiale *">
-            <input type="number" id="s-min" class="modal-input" placeholder="Alerte Stock Minimum">
-            <input type="text" id="s-loc" class="modal-input" placeholder="Emplacement (ex: Étagère A3)">
+            <input type="number" step="0.1" id="s-qty" class="modal-input" placeholder="Quantité initiale (ou Litres) *">
+            <input type="number" step="0.1" id="s-min" class="modal-input" placeholder="Alerte Stock Minimum">
+            <input type="text" id="s-loc" class="modal-input" placeholder="Emplacement (ex: Bidon Atelier, Rayon M1)">
             <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 0.8rem; color: var(--text-secondary);">Prendre une photo de la pièce :</label>
+                <label style="font-size: 0.8rem; color: var(--text-secondary);">Prendre une photo :</label>
                 <input type="file" id="s-img-file" accept="image/*" capture="environment" class="modal-input" style="padding: 6px;">
             </div>
             <div class="modal-buttons">
                 <button class="btn-sm btn-secondary" onclick="closeModals()">Annuler</button>
-                <button class="btn-sm btn-primary" onclick="saveStock()">Ajouter Pièce</button>
+                <button class="btn-sm btn-primary" onclick="saveStock()">Ajouter Stock</button>
             </div>
         </div>
     </div>
@@ -205,8 +205,7 @@
 
         let stock = JSON.parse(localStorage.getItem('nautic_stock')) || [
             { id: "s1", name: "Filtre à Huile Yanmar", ref: "129150-35153", cat: "Moteur / Filtres", qty: 8, min: 3, loc: "Rayon M1", img: "" },
-            { id: "s2", name: "Anode Zinguée Embase", ref: "ANZ-4050", cat: "Accastillage", qty: 2, min: 4, loc: "Bac A2", img: "" },
-            { id: "s3", name: "Huile Moteur 15W40 5L", ref: "OIL-15W40", cat: "Huiles & Chimie", qty: 5, min: 2, loc: "Étagère B", img: "" }
+            { id: "s2", name: "Huile Moteur 15W40 (Litres)", ref: "OIL-15W40", cat: "Huiles & Chimie", qty: 25.0, min: 5.0, loc: "Bidon Atelier", img: "" }
         ];
 
         let currentTab = 'flotte';
@@ -229,7 +228,7 @@
                 container.innerHTML = `
                     <div class="metric-card"><div class="metric-title">RÉFÉRENCES 📦</div><div class="metric-value">${stock.length}</div></div>
                     <div class="metric-card"><div class="metric-title">ALERTE STOCK ⚠️</div><div class="metric-value" style="color:${stock.filter(s => s.qty <= s.min).length > 0 ? '#ff4d6d' : '#2ec4b6'}">${stock.filter(s => s.qty <= s.min).length}</div></div>
-                    <button class="btn-add" style="background:#2ec4b6;" onclick="openStockModal()">+ Ajouter Une Pièce</button>
+                    <button class="btn-add" style="background:#2ec4b6;" onclick="openStockModal()">+ Ajouter Une Pièce / Huile</button>
                 `;
             }
         }
@@ -285,16 +284,17 @@
                 card.className = 'card';
                 
                 let thumbContent = s.img ? `<img src="${s.img}" class="stock-thumb" alt="pièce">` : `<div class="stock-thumb">📦</div>`;
+                let isOil = s.cat === 'Huiles & Chimie';
 
                 card.innerHTML = `
                     <div class="stock-row">
                         ${thumbContent}
                         <div style="flex:1; overflow:hidden;">
                             <div class="card-title" style="font-size:1.05rem;">${s.name}</div>
-                            <div class="card-sub">N° Série / Ref : ${s.ref || 'N/A'}</div>
+                            <div class="card-sub">Ref : ${s.ref || 'N/A'}</div>
                             <div style="font-size:0.75rem; color:var(--text-secondary);">Catégorie : ${s.cat}</div>
                         </div>
-                        <div class="stock-qty ${s.qty <= s.min ? 'low' : ''}">${s.qty}</div>
+                        <div class="stock-qty ${s.qty <= s.min ? 'low' : ''}">${s.qty} ${isOil ? 'L' : ''}</div>
                     </div>
                     <div class="details-grid">
                         <div>📍 <b>Lieu :</b> ${s.loc || 'Atelier'}</div>
@@ -302,9 +302,9 @@
                     </div>
                     <div class="card-actions">
                         <div class="qty-controls" style="flex:1;">
-                            <button class="btn-qty" onclick="changeQty('${s.id}', -1)">-</button>
+                            <button class="btn-qty" onclick="changeQty('${s.id}', ${isOil ? -1 : -1})">-</button>
                             <span style="font-weight:700; font-size:0.85rem; color:white;">Quantité</span>
-                            <button class="btn-qty" onclick="changeQty('${s.id}', 1)">+</button>
+                            <button class="btn-qty" onclick="changeQty('${s.id}', ${isOil ? 1 : 1})">+</button>
                         </div>
                         <button class="btn-sm btn-danger" onclick="deleteStock('${s.id}')">🗑</button>
                     </div>
@@ -355,14 +355,16 @@
                 </div>
             `;
 
-            const cbContainer = document.getElementById('stock-checkboxes');
-            cbContainer.innerHTML = stock.length === 0 ? '<span style="font-size:0.8rem; color:var(--text-secondary);">Aucune pièce en stock</span>' : '';
+            const usageContainer = document.getElementById('stock-usage-container');
+            usageContainer.innerHTML = stock.length === 0 ? '<span style="font-size:0.8rem; color:var(--text-secondary);">Aucune pièce en stock</span>' : '';
+            
             stock.forEach(s => {
-                cbContainer.innerHTML += `
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="used-stock" value="${s.id}"> 
-                        ${s.name} (Dispo: ${s.qty})
-                    </label>
+                let isOil = s.cat === 'Huiles & Chimie';
+                usageContainer.innerHTML += `
+                    <div class="stock-use-row">
+                        <span style="color:white; flex:1;">${s.name} (Dispo: ${s.qty} ${isOil ? 'L' : ''})</span>
+                        <input type="number" step="0.1" min="0" class="stock-use-input" data-stock-id="${s.id}" placeholder="${isOil ? 'Litres' : 'Quantité'}">
+                    </div>
                 `;
             });
 
@@ -374,7 +376,7 @@
                     <div class="maintenance-item">
                         <div style="font-weight:700; color:#00b4d8; margin-bottom:2px;">📅 ${log.date} - ⏱ Index compteur : ${log.newHours}h</div>
                         <div>${log.desc}</div>
-                        ${log.partsUsed.length > 0 ? `<div style="font-size:0.75rem; color:var(--accent-green); margin-top:4px;">📦 Pièces : ${log.partsUsed.join(', ')}</div>` : ''}
+                        ${log.partsUsed.length > 0 ? `<div style="font-size:0.75rem; color:var(--accent-green); margin-top:4px;">📦 Éléments utilisés : ${log.partsUsed.join(', ')}</div>` : ''}
                     </div>
                 `;
             });
@@ -395,12 +397,18 @@
             }
 
             let partsUsedDesc = [];
-            const checkboxes = document.querySelectorAll('input[name="used-stock"]:checked');
-            checkboxes.forEach(cb => {
-                const stockItem = stock.find(s => s.id === cb.value);
-                if(stockItem && stockItem.qty > 0) {
-                    stockItem.qty -= 1;
-                    partsUsedDesc.push(`${stockItem.name} (-1)`);
+            const inputs = document.querySelectorAll('.stock-use-input');
+            
+            inputs.forEach(input => {
+                const qtyUsed = parseFloat(input.value);
+                if(!isNaN(qtyUsed) && qtyUsed > 0) {
+                    const stockId = input.getAttribute('data-stock-id');
+                    const stockItem = stock.find(s => s.id === stockId);
+                    if(stockItem) {
+                        stockItem.qty = Math.max(0, parseFloat((stockItem.qty - qtyUsed).toFixed(1)));
+                        let unitLabel = stockItem.cat === 'Huiles & Chimie' ? 'L' : '';
+                        partsUsedDesc.push(`${stockItem.name} (-${qtyUsed} ${unitLabel})`);
+                    }
                 }
             });
 
@@ -451,7 +459,7 @@
 
         function saveStock() {
             const name = document.getElementById('s-name').value;
-            const qty = parseInt(document.getElementById('s-qty').value);
+            const qty = parseFloat(document.getElementById('s-qty').value);
             if(!name || isNaN(qty)) return alert('Nom et quantité requis.');
 
             const fileInput = document.getElementById('s-img-file');
@@ -459,22 +467,22 @@
             if (fileInput.files && fileInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    finishSaveStock(name, e.target.result);
+                    finishSaveStock(name, e.target.result, qty);
                 };
                 reader.readAsDataURL(fileInput.files[0]);
             } else {
-                finishSaveStock(name, "");
+                finishSaveStock(name, "", qty);
             }
         }
 
-        function finishSaveStock(name, imgSrc) {
+        function finishSaveStock(name, imgSrc, qty) {
             stock.push({
                 id: 's_' + Date.now(),
                 name: name, 
                 ref: document.getElementById('s-ref').value,
                 cat: document.getElementById('s-cat').value, 
-                qty: parseInt(document.getElementById('s-qty').value),
-                min: parseInt(document.getElementById('s-min').value) || 2,
+                qty: qty,
+                min: parseFloat(document.getElementById('s-min').value) || 2.0,
                 loc: document.getElementById('s-loc').value,
                 img: imgSrc
             });
@@ -485,7 +493,7 @@
         function changeQty(id, delta) {
             const item = stock.find(s => s.id === id);
             if(item.qty + delta < 0) return;
-            item.qty += delta;
+            item.qty = parseFloat((item.qty + delta).toFixed(1));
             saveData(); renderMetrics(); renderStock(document.getElementById('search-input').value);
         }
 
