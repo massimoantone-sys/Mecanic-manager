@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NauticManager Pro</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NauticManager">
+    <style>
+        :root {
+            --bg-color: #0b132b;
+            --card-bg: #1c2541;
+            --accent-blue: #007bff;
+            --accent-green: #2ec4b6;
+            --accent-red: #e63946;
+            --text-color: #ffffff;
+            --text-secondary: #8d99ae;
+            --border-color: #2a3a5e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 90px; }
+        header { padding: 50px 20px 15px; background: linear-gradient(180deg, rgba(11,19,43,1) 0%, rgba(28,37,65,0.85) 100%); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); }
+        .app-title { display: flex; align-items: center; gap: 12px; }
+        .app-icon { width: 42px; height: 42px; background: #0077b6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .title-text h1 { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; color: white; }
+        .tag-pro { background: #00b4d8; color: #000; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
+        .subtitle { font-size: 0.8rem; color: var(--text-secondary); }
+        
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px 20px; }
+        .metric-card { background: var(--card-bg); padding: 12px 15px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .metric-title { font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
+        .metric-value { font-size: 1.6rem; font-weight: 800; color: #00b4d8; }
+        .btn-add { grid-column: span 2; background: var(--accent-blue); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); }
+
+        .search-box { padding: 0 20px 15px; }
+        .search-input { width: 100%; padding: 12px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; color: white; font-size: 0.9rem; }
+        .search-input::placeholder { color: var(--text-secondary); }
+
+        .items-list { padding: 0 20px; display: flex; flex-direction: column; gap: 15px; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 16px; border: 1px solid var(--border-color); }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: white; }
+        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; font-weight: 700; text-transform: uppercase; }
+        .status-atelier { background: rgba(230, 57, 70, 0.2); color: #ff4d6d; border: 1px solid #e63946; }
+        .status-mer { background: rgba(46, 196, 182, 0.2); color: #2ec4b6; border: 1px solid #2ec4b6; }
+        .status-hivernage { background: rgba(141, 153, 174, 0.2); color: #8d99ae; border: 1px solid #8d99ae; }
+        .card-sub { font-size: 0.85rem; color: #00b4d8; font-weight: 600; margin-bottom: 10px; }
+        
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); background: rgba(11, 19, 43, 0.5); padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+        .details-full { grid-column: span 2; }
+        
+        .card-actions { display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; }
+        .btn-sm { padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; border: none; cursor: pointer; flex: 1; text-align: center; text-decoration: none; display: inline-block;}
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-secondary { background: var(--border-color); color: white; }
+        .btn-danger { background: rgba(236, 57, 70, 0.2); color: #ff4d6d; border: 1px solid var(--accent-red); flex: 0.4; }
+
+        .stock-qty { font-size: 1.3rem; font-weight: 800; color: var(--accent-green); }
+        .stock-qty.low { color: var(--accent-red); }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .btn-qty { width: 32px; height: 32px; border-radius: 8px; background: var(--border-color); color: white; border: none; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+
+        /* Vue Fiche Bateau Individuelle */
+        .view-detail { padding: 20px; display: none; flex-direction: column; gap: 15px; }
+        .back-btn { background: var(--border-color); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; align-self: flex-start; margin-bottom: 5px; }
+        .maintenance-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .maintenance-item { background: rgba(11, 19, 43, 0.6); padding: 10px; border-radius: 8px; border-left: 4px solid var(--accent-green); font-size: 0.85rem; margin-top: 5px; }
+        .checkbox-group { display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; background: var(--bg-color); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; color: white; }
+
+        /* Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(11, 19, 43, 0.95); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 12px 0 25px; backdrop-filter: blur(10px); z-index: 50; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); font-size: 0.75rem; text-decoration: none; gap: 4px; background: none; border: none; cursor: pointer; }
+        .nav-item.active { color: #00b4d8; font-weight: 700; }
+        .nav-icon { font-size: 20px; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 420px; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; max-height: 90vh; overflow-y: auto; }
+        .modal-content h2 { font-size: 1.1rem; margin-bottom: 5px; color: white; }
+        .modal-input, .modal-select { width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: white; font-size: 0.85rem; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="app-title">
+            <div class="app-icon">⚓</div>
+            <div class="title-text">
+                <h1>NauticManager <span class="tag-pro">PRO</span></h1>
+                <div class="subtitle" id="view-subtitle">Gestion de Flotte Bateaux</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- VUE PRINCIPALE -->
+    <div id="main-app-container">
+        <section class="metrics-grid" id="metrics-container"></section>
+
+        <div class="search-box">
+            <input type="text" id="search-input" class="search-input" placeholder="Rechercher...">
+        </div>
+
+        <section class="items-list" id="boats-view"></section>
+        <section class="items-list" id="stock-view" style="display: none;"></section>
+    </div>
+
+    <!-- VUE FICHE BATEAU INDIVIDUELLE -->
+    <div class="view-detail" id="boat-detail-view">
+        <button class="back-btn" onclick="backToFlotte()">← Retour à la Flotte</button>
+        <div id="boat-detail-content"></div>
+        
+        <div class="maintenance-box">
+            <h3 style="font-size: 1rem; color: #00b4d8;">🛠️ Enregistrer une Maintenance</h3>
+            <input type="text" id="m-desc" class="modal-input" placeholder="Description des travaux (ex: Révision, filtres...)">
+            <input type="number" id="m-new-hours" class="modal-input" placeholder="Nouvel index compteur heures (ex: 365)">
+            <label style="font-size: 0.8rem; color: var(--text-secondary);">Pièces du stock utilisées :</label>
+            <div class="checkbox-group" id="stock-checkboxes"></div>
+            <button class="btn-sm btn-primary" style="padding: 12px; margin-top: 5px;" onclick="saveMaintenance()">Valider & Mettre à jour</button>
+        </div>
+
+        <div class="card" style="margin-top: 10px;">
+            <h3 style="font-size: 1rem; margin-bottom: 10px; color: white;">📋 Historique des Maintenances</h3>
+            <div id="maintenance-history-list"></div>
+        </div>
+    </div>
+
+    <!-- Navigation du bas -->
+    <nav class="bottom-nav" id="bottom-navigation">
+        <button class="nav-item active" id="nav-flotte" onclick="switchTab('flotte')">
+            <span class="nav-icon">⛵</span>
+            <span>Flotte</span>
+        </button>
+        <button class="nav-item" id="nav-stock" onclick="switchTab('stock')">
+            <span class="nav-icon">📦</span>
+            <span>Stock Pièces</span>
+        </button>
+    </nav>
+
+    <!-- MODAL BATEAU -->
+    <div class="modal" id="boat-modal">
+        <div class="modal-content">
+            <h2>Nouveau Bateau</h2>
+            <input type="text" id="b-name" class="modal-input" placeholder="Nom du bateau *">
+            <input type="text" id="b-model" class="modal-input" placeholder="Marque & Modèle *">
+            <input type="text" id="b-owner" class="modal-input" placeholder="Propriétaire & Tél">
+            <input type="text" id="b-immat" class="modal-input" placeholder="Immatriculation / CIN">
+            <select id="b-status" class="modal-select">
+                <option value="atelier">En Atelier / Entretien</option>
+                <option value="mer">En Mer / Prêt</option>
+                <option value="hivernage">En Hivernage</option>
+            </select>
+            <input type="number" id="b-hours" class="modal-input" placeholder="Heures Moteur Initiales">
+            <select id="b-fuel" class="modal-select">
+                <option value="Essence">Essence</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Électrique">Électrique</option>
+            </select>
+            <input type="text" id="b-notes" class="modal-input" placeholder="Notes / Travaux à prévoir">
+            <div class="modal-buttons">
+                <button class="btn-sm btn-secondary" onclick="closeModals()">Annuler</button>
+                <button class="btn-sm btn-primary" onclick="saveBoat()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL STOCK -->
+    <div class="modal" id="stock-modal">
+        <div class="modal-content">
+            <h2>Nouvelle Référence Stock</h2>
+            <input type="text" id="s-name" class="modal-input" placeholder="Désignation pièce *">
+            <input type="text" id="s-ref" class="modal-input" placeholder="Référence constructeur">
+            <select id="s-cat" class="modal-select">
+                <option value="Moteur / Filtres">Moteur & Filtres</option>
+                <option value="Électricité">Électricité & Batterie</option>
+                <option value="Sécurité">Sécurité & Armement</option>
+                <option value="Castillage">Accastillage</option>
+                <option value="Huiles & Chimie">Huiles & Chimie</option>
+            </select>
+            <input type="number" id="s-qty" class="modal-input" placeholder="Quantité initiale *">
+            <input type="number" id="s-min" class="modal-input" placeholder="Alerte Stock Minimum">
+            <input type="text" id="s-loc" class="modal-input" placeholder="Emplacement (ex: Étagère A3)">
+            <div class="modal-buttons">
+                <button class="btn-sm btn-secondary" onclick="closeModals()">Annuler</button>
+                <button class="btn-sm btn-primary" onclick="saveStock()">Ajouter Pièce</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let boats = JSON.parse(localStorage.getItem('nautic_boats')) || [
+            { id: "b1", name: "Symphonie des Mers", model: "Beneteau Oceanis 38.1", owner: "Marc Le Gall (06 11 22 33 44)", immat: "FR-BEY12345D818", status: "atelier", hours: 340, fuel: "Diesel", notes: "Révision des 300h", logs: [] },
+            { id: "b2", name: "Cap Ouest", model: "Jeanneau Cap Camarat 7.5", owner: "Chantier Naval", immat: "FR-CAP750", status: "mer", hours: 120, fuel: "Essence", notes: "Prêt", logs: [] }
+        ];
+
+        let stock = JSON.parse(localStorage.getItem('nautic_stock')) || [
+            { id: "s1", name: "Filtre à Huile Yanmar", ref: "129150-35153", cat: "Moteur / Filtres", qty: 8, min: 3, loc: "Rayon M1" },
+            { id: "s2", name: "Anode Zinguée Embase", ref: "ANZ-4050", cat: "Accastillage", qty: 2, min: 4, loc: "Bac A2" },
+            { id: "s3", name: "Huile Moteur 15W40 5L", ref: "OIL-15W40", cat: "Huiles & Chimie", qty: 5, min: 2, loc: "Étagère B" }
+        ];
+
+        let currentTab = 'flotte';
+        let activeBoatId = null;
+
+        function saveData() {
+            localStorage.setItem('nautic_boats', JSON.stringify(boats));
+            localStorage.setItem('nautic_stock', JSON.stringify(stock));
+        }
+
+        function renderMetrics() {
+            const container = document.getElementById('metrics-container');
+            if (currentTab === 'flotte') {
+                container.innerHTML = `
+                    <div class="metric-card"><div class="metric-title">FLOTTE TOTALE ⛵</div><div class="metric-value">${boats.length}</div></div>
+                    <div class="metric-card"><div class="metric-title">EN ATELIER 🛠</div><div class="metric-value" style="color:#ff4d6d;">${boats.filter(b => b.status === 'atelier').length}</div></div>
+                    <button class="btn-add" onclick="openBoatModal()">+ Ajouter Un Bateau</button>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="metric-card"><div class="metric-title">RÉFÉRENCES 📦</div><div class="metric-value">${stock.length}</div></div>
+                    <div class="metric-card"><div class="metric-title">ALERTE STOCK ⚠️</div><div class="metric-value" style="color:${stock.filter(s => s.qty <= s.min).length > 0 ? '#ff4d6d' : '#2ec4b6'}">${stock.filter(s => s.qty <= s.min).length}</div></div>
+                    <button class="btn-add" style="background:#2ec4b6;" onclick="openStockModal()">+ Ajouter Une Pièce</button>
+                `;
+            }
+        }
+
+        function renderBoats(filter = '') {
+            const container = document.getElementById('boats-view');
+            container.innerHTML = '';
+            const filtered = boats.filter(b => b.name.toLowerCase().includes(filter.toLowerCase()) || b.model.toLowerCase().includes(filter.toLowerCase()));
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">Aucun bateau trouvé.</div>`;
+                return;
+            }
+
+            filtered.forEach(b => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                let statusClass = b.status === 'mer' ? 'status-mer' : (b.status === 'hivernage' ? 'status-hivernage' : 'status-atelier');
+                let statusLabel = b.status === 'mer' ? 'En Mer' : (b.status === 'hivernage' ? 'Hivernage' : 'En Atelier');
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div><div class="card-title">${b.name}</div><div class="card-sub">${b.model}</div></div>
+                        <span class="status-badge ${statusClass}">${statusLabel}</span>
+                    </div>
+                    <div class="details-grid">
+                        <div>👤 <b>Proprio :</b> ${b.owner || 'N/C'}</div>
+                        <div>⏱ <b>Moteur :</b> ${b.hours} h</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-sm btn-primary" onclick="openBoatDetail('${b.id}')">Fiche & Entretien 🛠️</button>
+                        <button class="btn-sm btn-danger" onclick="deleteBoat('${b.id}')">🗑</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderStock(filter = '') {
+            const container = document.getElementById('stock-view');
+            container.innerHTML = '';
+            const filtered = stock.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()) || s.ref.toLowerCase().includes(filter.toLowerCase()));
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">Aucune pièce en stock.</div>`;
+                return;
+            }
+
+            filtered.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div><div class="card-title">${s.name}</div><div class="card-sub">Ref: ${s.ref || 'N/A'} - [${s.cat}]</div></div>
+                        <div class="stock-qty ${s.qty <= s.min ? 'low' : ''}">${s.qty} en stock</div>
+                    </div>
+                    <div class="details-grid">
+                        <div>📍 <b>Lieu :</b> ${s.loc || 'Atelier'}</div>
+                        <div>⚠️ <b>Min :</b> ${s.min}</div>
+                    </div>
+                    <div class="card-actions">
+                        <div class="qty-controls" style="flex:1;">
+                            <button class="btn-qty" onclick="changeQty('${s.id}', -1)">-</button>
+                            <span style="font-weight:700; font-size:0.85rem; color:white;">Quantité</span>
+                            <button class="btn-qty" onclick="changeQty('${s.id}', 1)">+</button>
+                        </div>
+                        <button class="btn-sm btn-danger" onclick="deleteStock('${s.id}')">🗑</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openBoatDetail(id) {
+            activeBoatId = id;
+            document.getElementById('main-app-container').style.display = 'none';
+            document.getElementById('bottom-navigation').style.display = 'none';
+            document.getElementById('boat-detail-view').style.display = 'flex';
+            renderSingleBoatContent();
+        }
+
+        function backToFlotte() {
+            activeBoatId = null;
+            document.getElementById('boat-detail-view').style.display = 'none';
+            document.getElementById('main-app-container').style.display = 'block';
+            document.getElementById('bottom-navigation').style.display = 'flex';
+            renderBoats();
+        }
+
+        function renderSingleBoatContent() {
+            const boat = boats.find(b => b.id === activeBoatId);
+            if(!boat) return;
+            if(!boat.logs) boat.logs = [];
+
+            document.getElementById('view-subtitle').innerText = `Fiche : ${boat.name}`;
+
+            let statusLabel = boat.status === 'mer' ? 'En Mer' : (boat.status === 'hivernage' ? 'Hivernage' : 'En Atelier');
+            
+            document.getElementById('boat-detail-content').innerHTML = `
+                <div class="card" style="margin:0;">
+                    <div class="card-header">
+                        <div><div class="card-title">${boat.name}</div><div class="card-sub">${boat.model}</div></div>
+                        <span class="status-badge status-${boat.status}">${statusLabel}</span>
+                    </div>
+                    <div class="details-grid">
+                        <div>👤 <b>Proprio :</b> ${boat.owner || 'N/C'}</div>
+                        <div>🆔 <b>Immat :</b> ${boat.immat || 'N/C'}</div>
+                        <div>⏱ <b>Moteur :</b> ${boat.hours} h</div>
+                        <div>⛽ <b>Carburant :</b> ${boat.fuel}</div>
+                        ${boat.notes ? `<div class="details-full">📝 <b>Notes :</b> ${boat.notes}</div>` : ''}
+                    </div>
+                </div>
+            `;
+
+            const cbContainer = document.getElementById('stock-checkboxes');
+            cbContainer.innerHTML = stock.length === 0 ? '<span style="font-size:0.8rem; color:var(--text-secondary);">Aucune pièce en stock</span>' : '';
+            stock.forEach(s => {
+                cbContainer.innerHTML += `
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="used-stock" value="${s.id}"> 
+                        ${s.name} (Dispo: ${s.qty})
+                    </label>
+                `;
+            });
+
+            const histContainer = document.getElementById('maintenance-history-list');
+            histContainer.innerHTML = boat.logs.length === 0 ? '<div style="font-size:0.85rem; color:var(--text-secondary);">Aucune maintenance enregistrée.</div>' : '';
+            
+            boat.logs.slice().reverse().forEach(log => {
+                histContainer.innerHTML += `
+                    <div class="maintenance-item">
+                        <div style="font-weight:700; color:#00b4d8; margin-bottom:2px;">📅 ${log.date} - ⏱ Index compteur : ${log.newHours}h</div>
+                        <div>${log.desc}</div>
+                        ${log.partsUsed.length > 0 ? `<div style="font-size:0.75rem; color:var(--accent-green); margin-top:4px;">📦 Pièces : ${log.partsUsed.join(', ')}</div>` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        function saveMaintenance() {
+            const desc = document.getElementById('m-desc').value;
+            const newHoursInput = document.getElementById('m-new-hours').value;
+            if(!desc) return alert('Veuillez entrer une description des travaux.');
+
+            const boat = boats.find(b => b.id === activeBoatId);
+            
+            // Mise à jour de l'index des heures si renseigné
+            if(newHoursInput !== "") {
+                const parsedHours = parseInt(newHoursInput);
+                if(!isNaN(parsedHours)) {
+                    boat.hours = parsedHours;
+                }
+            }
+
+            let partsUsedDesc = [];
+            const checkboxes = document.querySelectorAll('input[name="used-stock"]:checked');
+            checkboxes.forEach(cb => {
+                const stockItem = stock.find(s => s.id === cb.value);
+                if(stockItem && stockItem.qty > 0) {
+                    stockItem.qty -= 1;
+                    partsUsedDesc.persisted ? null : partsUsedDesc.push(`${stockItem.name} (-1)`);
+                }
+            });
+
+            boat.logs.push({
+                date: new Date().toLocaleDateString('fr-FR'),
+                desc: desc,
+                newHours: boat.hours,
+                partsUsed: partsUsedDesc
+            });
+
+            saveData();
+            document.getElementById('m-desc').value = '';
+            document.getElementById('m-new-hours').value = '';
+            renderSingleBoatContent();
+        }
+
+        function openBoatModal() { document.getElementById('boat-modal').classList.add('active'); }
+        function openStockModal() { document.getElementById('stock-modal').classList.add('active'); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+
+        function saveBoat() {
+            const name = document.getElementById('b-name').value;
+            const model = document.getElementById('b-model').value;
+            if(!name || !model) return alert('Remplir le nom et le modèle.');
+
+            boats.push({
+                id: 'b_' + Date.now(),
+                name: name, model: model,
+                owner: document.getElementById('b-owner').value,
+                immat: document.getElementById('b-immat').value,
+                status: document.getElementById('b-status').value,
+                hours: parseInt(document.getElementById('b-hours').value) || 0,
+                fuel: document.getElementById('b-fuel').value,
+                notes: document.getElementById('b-notes').value,
+                logs: []
+            });
+
+            saveData(); closeModals(); renderMetrics(); renderBoats();
+        }
+
+        function deleteBoat(id) {
+            if(confirm("Supprimer ce bateau ?")) {
+                boats = boats.filter(b => b.id !== id);
+                saveData(); renderMetrics(); renderBoats(document.getElementById('search-input').value);
+            }
+        }
+
+        function saveStock() {
+            const name = document.getElementById('s-name').value;
+            const qty = parseInt(document.getElementById('s-qty').value);
+            if(!name || isNaN(qty)) return alert('Nom et quantité requis.');
+
+            stock.push({
+                id: 's_' + Date.now(),
+                name: name, ref: document.getElementById('s-ref').value,
+                cat: document.getElementById('s-cat').value, qty: qty,
+                min: parseInt(document.getElementById('s-min').value) || 2,
+                loc: document.getElementById('s-loc').value
+            });
+
+            saveData(); closeModals(); renderMetrics(); renderStock();
+        }
+
+        function changeQty(id, delta) {
+            const item = stock.find(s => s.id === id);
+            if(item.qty + delta < 0) return;
+            item.qty += delta;
+            saveData(); renderMetrics(); renderStock(document.getElementById('search-input').value);
+        }
+
+        function deleteStock(id) {
+            if(confirm("Supprimer cette référence ?")) {
+                stock = stock.filter(s => s.id !== id);
+                saveData(); renderMetrics(); renderStock(document.getElementById('search-input').value);
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('nav-flotte').classList.toggle('active', tab === 'flotte');
+            document.getElementById('nav-stock').classList.toggle('active', tab === 'stock');
+            document.getElementById('boats-view').style.display = tab === 'flotte' ? 'flex' : 'none';
+            document.getElementById('stock-view').style.display = tab === 'stock' ? 'flex' : 'none';
+            document.getElementById('view-subtitle').innerText = tab === 'flotte' ? 'Gestion de Flotte Bateaux' : 'Inventaire Stock & Pièces';
+            document.getElementById('search-input').value = '';
+            renderMetrics();
+            if(tab === 'flotte') renderBoats(); else renderStock();
+        }
+
+        document.getElementById('search-input').oninput = (e) => {
+            if(currentTab === 'flotte') renderBoats(e.target.value);
+            else renderStock(e.target.value);
+        };
+
+        renderMetrics();
+        renderBoats();
+    </script>
+</body>
+</html>
