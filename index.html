@@ -186,7 +186,10 @@
             <input type="number" id="s-qty" class="modal-input" placeholder="Quantité initiale *">
             <input type="number" id="s-min" class="modal-input" placeholder="Alerte Stock Minimum">
             <input type="text" id="s-loc" class="modal-input" placeholder="Emplacement (ex: Étagère A3)">
-            <input type="text" id="s-img" class="modal-input" placeholder="Lien photo de la pièce (URL optionnelle)">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 0.8rem; color: var(--text-secondary);">Photo de la pièce :</label>
+                <input type="file" id="s-img-file" accept="image/*" class="modal-input" style="padding: 6px;">
+            </div>
             <div class="modal-buttons">
                 <button class="btn-sm btn-secondary" onclick="closeModals()">Annuler</button>
                 <button class="btn-sm btn-primary" onclick="saveStock()">Ajouter Pièce</button>
@@ -451,15 +454,29 @@
             const qty = parseInt(document.getElementById('s-qty').value);
             if(!name || isNaN(qty)) return alert('Nom et quantité requis.');
 
+            const fileInput = document.getElementById('s-img-file');
+            
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    finishSaveStock(name, e.target.result);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                finishSaveStock(name, "");
+            }
+        }
+
+        function finishSaveStock(name, imgSrc) {
             stock.push({
                 id: 's_' + Date.now(),
                 name: name, 
                 ref: document.getElementById('s-ref').value,
                 cat: document.getElementById('s-cat').value, 
-                qty: qty,
+                qty: parseInt(document.getElementById('s-qty').value),
                 min: parseInt(document.getElementById('s-min').value) || 2,
                 loc: document.getElementById('s-loc').value,
-                img: document.getElementById('s-img').value
+                img: imgSrc
             });
 
             saveData(); closeModals(); renderMetrics(); renderStock();
