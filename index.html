@@ -349,7 +349,8 @@
                         <div>⏱ <b>Heures Moteur :</b> ${boat.hours} h</div>
                         <div>⚓ <b>N° Coque :</b> ${boat.immat || 'N/C'}</div>
                         <div>⚙️ <b>N° Série Moteur :</b> ${boat.engineSn || 'N/C'}</div>
-                        <div>⛽ <b>Carburant :</b> ${boat.fuel}</div>${boat.notes ? `<div class="details-full">📝 <b>Notes :</b> ${boat.notes}</div>` : ''}
+                        <div>⛽ <b>Carburant :</b> ${boat.fuel}</div>
+                        ${boat.notes ? `<div class="details-full">📝 <b>Notes :</b> ${boat.notes}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -360,7 +361,7 @@
                 cbContainer.innerHTML += `
                     <label class="checkbox-label">
                         <input type="checkbox" name="used-stock" value="${s.id}"> 
-                        ${s.name} (Dispo:${s.qty})
+                        ${s.name} (Dispo: ${s.qty})
                     </label>
                 `;
             });
@@ -372,7 +373,8 @@
                 histContainer.innerHTML += `
                     <div class="maintenance-item">
                         <div style="font-weight:700; color:#00b4d8; margin-bottom:2px;">📅 ${log.date} - ⏱ Index compteur : ${log.newHours}h</div>
-                        <div>${log.desc}</div>${log.partsUsed.length > 0 ? `<div style="font-size:0.75rem; color:var(--accent-green); margin-top:4px;">📦 Pièces : ${log.partsUsed.join(', ')}</div>` : ''}
+                        <div>${log.desc}</div>
+                        ${log.partsUsed.length > 0 ? `<div style="font-size:0.75rem; color:var(--accent-green); margin-top:4px;">📦 Pièces : ${log.partsUsed.join(', ')}</div>` : ''}
                     </div>
                 `;
             });
@@ -428,7 +430,7 @@
                 id: 'b_' + Date.now(),
                 name: name, model: model,
                 owner: document.getElementById('b-owner').value,
-                immat: document.getElementById('b-immat.value') || document.getElementById('b-immat').value,
+                immat: document.getElementById('b-immat').value,
                 engineSn: document.getElementById('b-engine-sn').value,
                 status: document.getElementById('b-status').value,
                 hours: parseInt(document.getElementById('b-hours').value) || 0,
@@ -484,7 +486,7 @@
             const item = stock.find(s => s.id === id);
             if(item.qty + delta < 0) return;
             item.qty += delta;
-            saveData(); renderMetrics(); renderStock(document.getElementById('search-input`).value);
+            saveData(); renderMetrics(); renderStock(document.getElementById('search-input').value);
         }
 
         function deleteStock(id) {
