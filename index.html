@@ -119,10 +119,14 @@
 
     <!-- VUE FICHE BATEAU INDIVIDUELLE -->
     <div class="view-detail" id="boat-detail-view">
-        <button class="back-btn" onclick="backToFlotte()">← Retour à la Flotte</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <button class="back-btn" onclick="backToFlotte()" style="margin:0;">← Retour à la Flotte</button>
+            <button class="btn-sm btn-primary" style="flex: unset; padding: 8px 12px;" onclick="openEditBoatModal()">✏️ Modifier les infos</button>
+        </div>
+        
         <div id="boat-detail-content"></div>
         
-        <!-- Encart Travaux à prévoir modifiable + Bouton de validation vers historique -->
+        <!-- Encart Travaux à prévoir modifiable en direct + Bouton validation -->
         <div class="maintenance-box">
             <h3 style="font-size: 1rem; color: #ff4d6d;">📝 Travaux à Prévoir / À Faire</h3>
             <textarea id="boat-upcoming-works" class="textarea-box" placeholder="Notez ici les prochaines interventions, pièces à commander, vérifications..." oninput="autoSaveUpcomingWorks(this.value)"></textarea>
@@ -156,7 +160,7 @@
         </button>
     </nav>
 
-    <!-- MODAL BATEAU -->
+    <!-- MODAL AJOUT BATEAU -->
     <div class="modal" id="boat-modal">
         <div class="modal-content">
             <h2>Nouveau Bateau</h2>
@@ -181,6 +185,28 @@
             <div class="modal-buttons">
                 <button class="btn-sm btn-secondary" onclick="closeModals()">Annuler</button>
                 <button class="btn-sm btn-primary" onclick="saveBoat()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MODIFICATION BATEAU -->
+    <div class="modal" id="edit-boat-modal">
+        <div class="modal-content">
+            <h2>Modifier les infos du bateau</h2>
+            <input type="text" id="edit-b-name" class="modal-input" placeholder="Nom du bateau *">
+            <input type="text" id="edit-b-model" class="modal-input" placeholder="Marque & Modèle *">
+            <input type="text" id="edit-b-owner" class="modal-input" placeholder="Nom du propriétaire & Tél">
+            <input type="text" id="edit-b-immat" class="modal-input" placeholder="Immatriculation / CIN">
+            <input type="text" id="edit-b-engine-sn" class="modal-input" placeholder="Numéro de série Moteur">
+            <select id="edit-b-fuel" class="modal-select">
+                <option value="Essence">Essence</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Électrique">Électrique</option>
+            </select>
+            <input type="text" id="edit-b-notes" class="modal-input" placeholder="Notes générales">
+            <div class="modal-buttons">
+                <button class="btn-sm btn-secondary" onclick="closeModals()">Annuler</button>
+                <button class="btn-sm btn-primary" onclick="updateBoatInfo()">Mettre à jour</button>
             </div>
         </div>
     </div>
@@ -475,7 +501,6 @@
                 return alert("Aucun travail à prévoir renseigné pour être archivé.");
             }
 
-            // Création d'une nouvelle entrée de maintenance basée sur les travaux réalisés
             const newLog = {
                 date: new Date().toLocaleDateString('fr-FR'),
                 desc: `[Travaux réalisés] ${worksText}`,
@@ -488,7 +513,7 @@
             try {
                 await updateDoc(doc(db, "boats", boat.id), {
                     logs: updatedLogs,
-                    upcomingWorks: "" // On vide le champ des travaux à prévoir
+                    upcomingWorks: ""
                 });
                 document.getElementById('boat-upcoming-works').value = "";
                 alert("Travaux terminés et archivés dans l'historique avec succès !");
@@ -504,6 +529,42 @@
                 });
             } catch (e) {
                 console.error("Erreur mise à jour statut:", e);
+            }
+        }
+
+        window.openEditBoatModal = function() {
+            const boat = boats.find(b => b.id === activeBoatId);
+            if(!boat) return;
+            document.getElementById('edit-b-name').value = boat.name || '';
+            document.getElementById('edit-b-model').value = boat.model || '';
+            document.getElementById('edit-b-owner').value = boat.owner || '';
+            document.getElementById('edit-b-immat').value = boat.immat || '';
+            document.getElementById('edit-b-engine-sn').value = boat.engineSn || '';
+            document.getElementById('edit-b-fuel').value = boat.fuel || 'Essence';
+            document.getElementById('edit-b-notes').value = boat.notes || '';
+            document.getElementById('edit-boat-modal').classList.add('active');
+        }
+
+        window.updateBoatInfo = async function() {
+            if(!activeBoatId) return;
+            const name = document.getElementById('edit-b-name').value;
+            const model = document.getElementById('edit-b-model').value;
+            if(!name || !model) return alert('Le nom et le modèle sont obligatoires.');
+
+            try {
+                await updateDoc(doc(db, "boats", activeBoatId), {
+                    name: name,
+                    model: model,
+                    owner: document.getElementById('edit-b-owner').value,
+                    immat: document.getElementById('edit-b-immat').value,
+                    engineSn: document.getElementById('edit-b-engine-sn').value,
+                    fuel: document.getElementById('edit-b-fuel').value,
+                    notes: document.getElementById('edit-b-notes').value
+                });
+                closeModals();
+                alert("Informations mises à jour avec succès !");
+            } catch (e) {
+                console.error("Erreur mise à jour informations bateau:", e);
             }
         }
 
