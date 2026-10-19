@@ -118,6 +118,7 @@
 
         <section class="items-list" id="boats-view"></section>
         <section class="items-list" id="stock-view" style="display: none;"></section>
+        <section class="items-list" id="kits-view" style="display: none;"></section>
     </div>
 
     <!-- VUE FICHE BATEAU INDIVIDUELLE -->
@@ -139,10 +140,10 @@
         <div class="maintenance-box">
             <h3 style="font-size: 1rem; color: #00b4d8;">🛠️ Saisie Entretien & Checklist</h3>
             
-            <div style="display: flex; gap: 8px;">
-                <button class="btn-sm btn-warning" onclick="generateKit('100h')">📋 Kit Révision 100h</button>
-                <button class="btn-sm btn-warning" style="background:#e63946;" onclick="generateKit('300h')">📋 Kit Révision 300h</button>
-            </div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary);">Charger un Kit Révision enregistré :</label>
+            <select id="select-engine-kit" class="modal-select" onchange="applyCustomKit(this.value)">
+                <option value="">-- Sélectionner un Kit Moteur --</option>
+            </select>
 
             <input type="text" id="m-desc" class="modal-input" placeholder="Description de l'intervention (ex: Révision 100h complète)">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -152,7 +153,7 @@
 
             <label style="font-size: 0.85rem; font-weight:700; color: #2ec4b6; margin-top:5px;">Checklist pièces & travaux à valider :</label>
             <div id="checklist-container" style="display: flex; flex-direction: column; gap: 6px;">
-                <span style="font-size:0.8rem; color:var(--text-secondary);">Cliquez sur un Kit ci-dessus ou sélectionnez vos pièces en stock.</span>
+                <span style="font-size:0.8rem; color:var(--text-secondary);">Sélectionnez un Kit ci-dessus ou cochez vos pièces manuellement.</span>
             </div>
 
             <button class="btn-sm btn-primary" style="padding: 12px; margin-top: 10px;" onclick="saveMaintenanceWithChecklist()">Valider l'entretien & Mettre à jour le stock</button>
@@ -174,7 +175,28 @@
             <span class="nav-icon">📦</span>
             <span>Stock Pièces</span>
         </button>
+        <button class="nav-item" id="nav-kits" onclick="switchTab('kits')">
+            <span class="nav-icon">⚙️</span>
+            <span>Kits Moteurs</span>
+        </button>
     </nav>
+
+    <!-- MODAL CREATION KIT MOTEUR -->
+    <div class="modal" id="kit-modal">
+        <div class="modal-content">
+            <h2>Nouveau Kit Moteur / Révision</h2>
+            <input type="text" id="k-name" class="modal-input" placeholder="Nom du kit (ex: Kit 100h Yamaha F150) *">
+            <input type="number" step="0.5" id="k-labor" class="modal-input" placeholder="Heures Main d'œuvre estimées (ex: 2.5)">
+            
+            <label style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Cochez les pièces incluses dans ce kit :</label>
+            <div id="kit-stock-selection" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
+
+            <div class="modal-buttons">
+                <button class="btn-sm btn-secondary" onclick="closeModals()">Annuler</button>
+                <button class="btn-sm btn-primary" onclick="saveCustomKit()">Créer le Kit</button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL AJOUT BATEAU -->
     <div class="modal" id="boat-modal">
@@ -274,6 +296,7 @@
 
         let boats = [];
         let stock = [];
+        let kits = [];
 
         let currentTab = 'flotte';
         let activeBoatId = null;
@@ -313,6 +336,17 @@
             }
         });
 
+        onSnapshot(collection(db, "kits"), (snapshot) => {
+            kits = [];
+            snapshot.forEach((docSnap) => {
+                kits.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            populateKitSelect();
+            if (currentTab === 'kits') {
+                renderKits();
+            }
+        });
+
         window.renderMetrics = function() {
             const container = document.getElementById('metrics-container');
             if (currentTab === 'flotte') {
@@ -321,11 +355,16 @@
                     <div class="metric-card"><div class="metric-title">AU HANGAR 🏠</div><div class="metric-value" style="color:#00b4d8;">${boats.filter(b => b.status === 'hangar').length}</div></div>
                     <button class="btn-add" onclick="openBoatModal()">+ Ajouter Un Bateau</button>
                 `;
-            } else {
+            } else if (currentTab === 'stock') {
                 container.innerHTML = `
                     <div class="metric-card"><div class="metric-title">RÉFÉRENCES 📦</div><div class="metric-value">${stock.length}</div></div>
                     <div class="metric-card"><div class="metric-title">ALERTE STOCK ⚠️</div><div class="metric-value" style="color:${stock.filter(s => s.qty <= s.min).length > 0 ? '#ff4d6d' : '#2ec4b6'}">${stock.filter(s => s.qty <= s.min).length}</div></div>
                     <button class="btn-add" style="background:#2ec4b6;" onclick="openStockModal()">+ Ajouter Une Pièce / Huile</button>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="metric-card" style="grid-column: span 2;"><div class="metric-title">KITS ENREGISTRÉS ⚙️</div><div class="metric-value">${kits.length}</div></div>
+                    <button class="btn-add" style="background:#f77f00;" onclick="openKitModal()">+ Créer Un Kit Moteur</button>
                 `;
             }
         }
@@ -414,6 +453,115 @@
             });
         }
 
+        window.renderKits = function() {
+            const container = document.getElementById('kits-view');
+            container.innerHTML = '';
+
+            if (kits.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary);">Aucun kit moteur enregistré. Cliquez sur "+ Créer Un Kit Moteur" pour en ajouter un.</div>`;
+                return;
+            }
+
+            kits.forEach(k => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                let partsNames = [];
+                if(k.parts) {
+                    k.parts.forEach(pId => {
+                        const item = stock.find(s => s.id === pId);
+                        if(item) partsNames.push(item.name);
+                    });
+                }
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div><div class="card-title">${k.name}</div><div class="card-sub">⏱️ MO estimée : ${k.labor || 0} h</div></div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-secondary); background:rgba(11,19,43,0.5); padding:10px; border-radius:8px;">
+                        <b>Pièces inclues :</b><br>${partsNames.length > 0 ? partsNames.join(', ') : 'Aucune pièce associée'}
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-sm btn-danger" onclick="deleteKit('${k.id}')">🗑 Supprimer ce Kit</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.populateKitSelect = function() {
+            const select = document.getElementById('select-engine-kit');
+            if(!select) return;
+            select.innerHTML = '<option value="">-- Sélectionner un Kit Moteur --</option>';
+            kits.forEach(k => {
+                select.innerHTML += `<option value="${k.id}">${k.name}</option>`;
+            });
+        }
+
+        window.applyCustomKit = function(kitId) {
+            if(!kitId) return;
+            const kit = kits.find(k => k.id === kitId);
+            if(!kit) return;
+
+            document.getElementById('m-desc').value = `Révision avec ${kit.name}`;
+            document.getElementById('m-labor-hours').value = kit.labor || '';
+
+            // Coche les pièces du kit
+            stock.forEach(s => {
+                const cb = document.querySelector(`.kit-checkbox[data-stock-id="${s.id}"]`);
+                if(cb) {
+                    cb.checked = kit.parts && kit.parts.includes(s.id);
+                }
+            });
+        }
+
+        window.openKitModal = function() {
+            const container = document.getElementById('kit-stock-selection');
+            container.innerHTML = '';
+            stock.forEach(s => {
+                container.innerHTML += `
+                    <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:white; background:var(--bg-color); padding:8px; border-radius:6px;">
+                        <input type="checkbox" class="create-kit-cb" value="${s.id}"> ${s.name} (${s.cat})
+                    </label>
+                `;
+            });
+            document.getElementById('kit-modal').classList.add('active');
+        }
+
+        window.saveCustomKit = async function() {
+            const name = document.getElementById('k-name').value;
+            const labor = parseFloat(document.getElementById('k-labor').value) || 0;
+            if(!name) return alert('Nom du kit requis.');
+
+            const selectedParts = [];
+            document.querySelectorAll('.create-kit-cb:checked').forEach(cb => {
+                selectedParts.push(cb.value);
+            });
+
+            try {
+                await addDoc(collection(db, "kits"), {
+                    name: name,
+                    labor: labor,
+                    parts: selectedParts
+                });
+                document.getElementById('k-name').value = '';
+                document.getElementById('k-labor').value = '';
+                closeModals();
+            } catch (e) {
+                console.error("Erreur création kit:", e);
+            }
+        }
+
+        window.deleteKit = async function(id) {
+            if(confirm("Supprimer ce kit ?")) {
+                try {
+                    await deleteDoc(doc(db, "kits", id));
+                } catch (e) {
+                    console.error("Erreur suppression kit:", e);
+                }
+            }
+        }
+
         window.openBoatDetail = function(id) {
             activeBoatId = id;
             document.getElementById('main-app-container').style.display = 'none';
@@ -421,6 +569,7 @@
             document.getElementById('boat-detail-view').style.display = 'flex';
             renderSingleBoatContent();
             renderDefaultChecklist();
+            populateKitSelect();
         }
 
         window.backToFlotte = function() {
@@ -493,22 +642,6 @@
                         <input type="number" step="0.1" value="1" class="kit-qty-input" data-qty-id="${s.id}">
                     </div>
                 `;
-            });
-        }
-
-        window.generateKit = function(type) {
-            document.getElementById('m-desc').value = type === '100h' ? 'Entretien Révision 100 Heures' : 'Entretien Révision 300 Heures / Annuel';
-            document.getElementById('m-labor-hours').value = type === '100h' ? '2.5' : '4.5';
-            
-            stock.forEach(s => {
-                const cb = document.querySelector(`.kit-checkbox[data-stock-id="${s.id}"]`);
-                if(cb) {
-                    if (type === '100h') {
-                        cb.checked = (s.cat === 'Huiles & Chimie' || s.cat === 'Moteur / Filtres');
-                    } else if (type === '300h') {
-                        cb.checked = true;
-                    }
-                }
             });
         }
 
@@ -788,17 +921,28 @@
             currentTab = tab;
             document.getElementById('nav-flotte').classList.toggle('active', tab === 'flotte');
             document.getElementById('nav-stock').classList.toggle('active', tab === 'stock');
+            document.getElementById('nav-kits').classList.toggle('active', tab === 'kits');
+            
             document.getElementById('boats-view').style.display = tab === 'flotte' ? 'flex' : 'none';
             document.getElementById('stock-view').style.display = tab === 'stock' ? 'flex' : 'none';
-            document.getElementById('view-subtitle').innerText = tab === 'flotte' ? 'Gestion de Flotte Bateaux' : 'Inventaire Stock & Pièces';
+            document.getElementById('kits-view').style.display = tab === 'kits' ? 'flex' : 'none';
+
+            let subtitleText = 'Gestion de Flotte Bateaux';
+            if (tab === 'stock') subtitleText = 'Inventaire Stock & Pièces';
+            if (tab === 'kits') subtitleText = 'Configuration des Kits Moteurs';
+            
+            document.getElementById('view-subtitle').innerText = subtitleText;
             document.getElementById('search-input').value = '';
             renderMetrics();
-            if(tab === 'flotte') renderBoats(); else renderStock();
+            
+            if(tab === 'flotte') renderBoats();
+            else if(tab === 'stock') renderStock();
+            else if(tab === 'kits') renderKits();
         }
 
         document.getElementById('search-input').oninput = (e) => {
             if(currentTab === 'flotte') renderBoats(e.target.value);
-            else renderStock(e.target.value);
+            else if(currentTab === 'stock') renderStock(e.target.value);
         };
     </script>
 </body>
