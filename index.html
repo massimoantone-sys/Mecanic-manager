@@ -24,7 +24,6 @@
         .app-title { display: flex; align-items: center; gap: 12px; }
         .app-icon { width: 42px; height: 42px; background: #0077b6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
         .title-text h1 { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; color: white; }
-        .tag-pro { background: #00b4d8; color: #000; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
         .subtitle { font-size: 0.8rem; color: var(--text-secondary); }
         
         .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px 20px; }
@@ -58,6 +57,7 @@
         .btn-primary { background: var(--accent-blue); color: white; }
         .btn-secondary { background: var(--border-color); color: white; }
         .btn-success { background: var(--accent-green); color: #000; }
+        .btn-warning { background: #f77f00; color: white; }
         .btn-danger { background: rgba(236, 57, 70, 0.2); color: #ff4d6d; border: 1px solid var(--accent-red); flex: 0.4; }
 
         .stock-row { display: flex; gap: 12px; align-items: center; }
@@ -72,9 +72,12 @@
         .back-btn { background: var(--border-color); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; align-self: flex-start; margin-bottom: 5px; }
         .maintenance-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         .maintenance-item { background: rgba(11, 19, 43, 0.6); padding: 10px; border-radius: 8px; border-left: 4px solid var(--accent-green); font-size: 0.85rem; margin-top: 5px; }
-        .stock-use-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; margin-bottom: 6px; }
-        .stock-use-input { width: 70px; padding: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: white; text-align: center; font-size: 0.85rem; }
         
+        /* Style checklist entretien */
+        .kit-item-row { display: flex; align-items: center; gap: 10px; background: var(--bg-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; }
+        .kit-checkbox { width: 20px; height: 20px; accent-color: var(--accent-green); cursor: pointer; }
+        .kit-qty-input { width: 60px; padding: 4px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: white; text-align: center; }
+
         .textarea-box { width: 100%; min-height: 80px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: white; font-size: 0.85rem; resize: vertical; }
         .inline-status-select { background: var(--bg-color); border: 1px solid var(--border-color); color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; width: 100%; cursor: pointer; }
 
@@ -128,20 +131,31 @@
         
         <div class="maintenance-box">
             <h3 style="font-size: 1rem; color: #ff4d6d;">📝 Travaux à Prévoir / À Faire</h3>
-            <textarea id="boat-upcoming-works" class="textarea-box" placeholder="Notez ici les prochaines interventions, pièces à commander, vérifications..." oninput="autoSaveUpcomingWorks(this.value)"></textarea>
+            <textarea id="boat-upcoming-works" class="textarea-box" placeholder="Notez ici les prochaines interventions..." oninput="autoSaveUpcomingWorks(this.value)"></textarea>
             <button class="btn-sm btn-success" style="padding: 10px; font-weight: 700;" onclick="completeUpcomingWorks()">📥 Terminer & archiver dans l'historique</button>
         </div>
 
+        <!-- MODULE ENTRETIEN KITS & CHECKLIST -->
         <div class="maintenance-box">
-            <h3 style="font-size: 1rem; color: #00b4d8;">🛠️ Enregistrer une Maintenance</h3>
-            <input type="text" id="m-desc" class="modal-input" placeholder="Description des travaux (ex: Révision, filtres...)">
+            <h3 style="font-size: 1rem; color: #00b4d8;">🛠️ Saisie Entretien & Checklist</h3>
+            
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-sm btn-warning" onclick="generateKit('100h')">📋 Kit Révision 100h</button>
+                <button class="btn-sm btn-warning" style="background:#e63946;" onclick="generateKit('300h')">📋 Kit Révision 300h</button>
+            </div>
+
+            <input type="text" id="m-desc" class="modal-input" placeholder="Description de l'intervention (ex: Révision 100h complète)">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <input type="number" id="m-new-hours" class="modal-input" placeholder="Compteur heures (ex: 365)">
+                <input type="number" id="m-new-hours" class="modal-input" placeholder="Nouv. Heures Moteur">
                 <input type="number" step="0.5" id="m-labor-hours" class="modal-input" placeholder="Main d'œuvre (ex: 2.5h)">
             </div>
-            <label style="font-size: 0.8rem; color: var(--text-secondary);">Pièces et consommables utilisés :</label>
-            <div style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;" id="stock-usage-container"></div>
-            <button class="btn-sm btn-primary" style="padding: 12px; margin-top: 5px;" onclick="saveMaintenance()">Valider & Mettre à jour</button>
+
+            <label style="font-size: 0.85rem; font-weight:700; color: #2ec4b6; margin-top:5px;">Checklist pièces & travaux à valider :</label>
+            <div id="checklist-container" style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="font-size:0.8rem; color:var(--text-secondary);">Cliquez sur un Kit ci-dessus ou sélectionnez vos pièces en stock.</span>
+            </div>
+
+            <button class="btn-sm btn-primary" style="padding: 12px; margin-top: 10px;" onclick="saveMaintenanceWithChecklist()">Valider l'entretien & Mettre à jour le stock</button>
         </div>
 
         <div class="card" style="margin-top: 10px;">
@@ -169,8 +183,8 @@
             <input type="text" id="b-name" class="modal-input" placeholder="Nom du bateau *">
             <input type="text" id="b-model" class="modal-input" placeholder="Marque & Modèle *">
             <input type="text" id="b-owner" class="modal-input" placeholder="Nom du propriétaire & Tél">
-            <input type="text" id="b-immat" class="modal-input" placeholder="Immatriculation / CIN (N° de coque)">
-            <input type="text" id="b-engine-sn" class="modal-input" placeholder="Numéro de série Moteur">
+            <input type="text" id="b-immat" class="modal-input" placeholder="Immatriculation / CIN">
+            <input type="text" id="b-engine-sn" class="modal-input" placeholder="N° Série Moteur">
             <select id="b-status" class="modal-select">
                 <option value="eau">À l'eau</option>
                 <option value="hangar">Au hangar</option>
@@ -197,9 +211,9 @@
             <h2>Modifier les infos du bateau</h2>
             <input type="text" id="edit-b-name" class="modal-input" placeholder="Nom du bateau *">
             <input type="text" id="edit-b-model" class="modal-input" placeholder="Marque & Modèle *">
-            <input type="text" id="edit-b-owner" class="modal-input" placeholder="Nom du propriétaire & Tél">
+            <input type="text" id="edit-b-owner" class="modal-input" placeholder="Propriétaire">
             <input type="text" id="edit-b-immat" class="modal-input" placeholder="Immatriculation / CIN">
-            <input type="text" id="edit-b-engine-sn" class="modal-input" placeholder="Numéro de série Moteur">
+            <input type="text" id="edit-b-engine-sn" class="modal-input" placeholder="N° Série Moteur">
             <select id="edit-b-fuel" class="modal-select">
                 <option value="Essence">Essence</option>
                 <option value="Diesel">Diesel</option>
@@ -217,8 +231,8 @@
     <div class="modal" id="stock-modal">
         <div class="modal-content">
             <h2>Nouvelle Référence Stock</h2>
-            <input type="text" id="s-name" class="modal-input" placeholder="Nom de la pièce ou Huile (ex: Huile 15W40) *">
-            <input type="text" id="s-ref" class="modal-input" placeholder="Référence / Numéro de série">
+            <input type="text" id="s-name" class="modal-input" placeholder="Nom de la pièce ou Huile *">
+            <input type="text" id="s-ref" class="modal-input" placeholder="Référence / N° série">
             <select id="s-cat" class="modal-select">
                 <option value="Moteur / Filtres">Moteur & Filtres</option>
                 <option value="Huiles & Chimie">Huiles & Lubrifiants (Litres)</option>
@@ -226,11 +240,11 @@
                 <option value="Sécurité">Sécurité & Armement</option>
                 <option value="Castillage">Accastillage</option>
             </select>
-            <input type="number" step="0.1" id="s-qty" class="modal-input" placeholder="Quantité initiale (ou Litres) *">
+            <input type="number" step="0.1" id="s-qty" class="modal-input" placeholder="Quantité (ou Litres) *">
             <input type="number" step="0.1" id="s-min" class="modal-input" placeholder="Alerte Stock Minimum">
-            <input type="text" id="s-loc" class="modal-input" placeholder="Emplacement (ex: Bidon Atelier, Rayon M1)">
+            <input type="text" id="s-loc" class="modal-input" placeholder="Emplacement">
             <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 0.8rem; color: var(--text-secondary);">Photo de la pièce (Optionnel) :</label>
+                <label style="font-size: 0.8rem; color: var(--text-secondary);">Photo (Optionnel) :</label>
                 <input type="file" id="s-img-file" accept="image/*" class="modal-input" style="padding: 6px;">
             </div>
             <div class="modal-buttons">
@@ -406,6 +420,7 @@
             document.getElementById('bottom-navigation').style.display = 'none';
             document.getElementById('boat-detail-view').style.display = 'flex';
             renderSingleBoatContent();
+            renderDefaultChecklist();
         }
 
         window.backToFlotte = function() {
@@ -450,32 +465,105 @@
                 </div>
             `;
 
-            const usageContainer = document.getElementById('stock-usage-container');
-            usageContainer.innerHTML = stock.length === 0 ? '<span style="font-size:0.8rem; color:var(--text-secondary);">Aucune pièce en stock</span>' : '';
-            
-            stock.forEach(s => {
-                let isOil = s.cat === 'Huiles & Chimie';
-                usageContainer.innerHTML += `
-                    <div class="stock-use-row">
-                        <span style="color:white; flex:1;">${s.name} (Dispo: ${s.qty} ${isOil ? 'L' : ''})</span>
-                        <input type="number" step="0.1" min="0" class="stock-use-input" data-stock-id="${s.id}" placeholder="${isOil ? 'Litres' : 'Quantité'}">
-                    </div>
-                `;
-            });
-
             const histContainer = document.getElementById('maintenance-history-list');
             histContainer.innerHTML = boat.logs.length === 0 ? '<div style="font-size:0.85rem; color:var(--text-secondary);">Aucune maintenance enregistrée.</div>' : '';
             
             boat.logs.slice().reverse().forEach(log => {
                 histContainer.innerHTML += `
                     <div class="maintenance-item">
-                        <div style="font-weight:700; color:#00b4d8; margin-bottom:2px;">📅 ${log.date} - ⏱ Index compteur : ${log.newHours}h</div>
+                        <div style="font-weight:700; color:#00b4d8; margin-bottom:2px;">📅 ${log.date} - ⏱ Index : ${log.newHours}h</div>
                         <div>${log.desc}</div>
                         ${log.laborHours ? `<div style="font-size:0.8rem; color:var(--accent-green); margin-top:3px;">⏱️ <b>Main d'œuvre :</b> ${log.laborHours} h</div>` : ''}
-                        ${log.partsUsed && log.partsUsed.length > 0 ? `<div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;">📦 Éléments utilisés : ${log.partsUsed.join(', ')}</div>` : ''}
+                        ${log.partsUsed && log.partsUsed.length > 0 ? `<div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;">📦 Éléments validés : ${log.partsUsed.join(', ')}</div>` : ''}
                     </div>
                 `;
             });
+        }
+
+        window.renderDefaultChecklist = function() {
+            const container = document.getElementById('checklist-container');
+            container.innerHTML = stock.length === 0 ? '<span style="font-size:0.8rem; color:var(--text-secondary);">Aucune pièce en stock</span>' : '';
+            
+            stock.forEach(s => {
+                let isOil = s.cat === 'Huiles & Chimie';
+                container.innerHTML += `
+                    <div class="kit-item-row">
+                        <input type="checkbox" class="kit-checkbox" data-stock-id="${s.id}">
+                        <span style="color:white; flex:1;">${s.name} (Dispo: ${s.qty} ${isOil ? 'L' : ''})</span>
+                        <input type="number" step="0.1" value="1" class="kit-qty-input" data-qty-id="${s.id}">
+                    </div>
+                `;
+            });
+        }
+
+        window.generateKit = function(type) {
+            document.getElementById('m-desc').value = type === '100h' ? 'Entretien Révision 100 Heures' : 'Entretien Révision 300 Heures / Annuel';
+            document.getElementById('m-labor-hours').value = type === '100h' ? '2.5' : '4.5';
+            
+            stock.forEach(s => {
+                const cb = document.querySelector(`.kit-checkbox[data-stock-id="${s.id}"]`);
+                if(cb) {
+                    if (type === '100h') {
+                        cb.checked = (s.cat === 'Huiles & Chimie' || s.cat === 'Moteur / Filtres');
+                    } else if (type === '300h') {
+                        cb.checked = true;
+                    }
+                }
+            });
+        }
+
+        window.saveMaintenanceWithChecklist = async function() {
+            const desc = document.getElementById('m-desc').value;
+            const newHoursInput = document.getElementById('m-new-hours').value;
+            const laborHoursInput = document.getElementById('m-labor-hours').value;
+            
+            if(!desc) return alert('Veuillez entrer une description des travaux.');
+
+            const boat = boats.find(b => b.id === activeBoatId);
+            let updatedHours = boat.hours;
+            
+            if(newHoursInput !== "") {
+                const parsedHours = parseInt(newHoursInput);
+                if(!isNaN(parsedHours)) updatedHours = parsedHours;
+            }
+
+            const laborHours = laborHoursInput !== "" ? parseFloat(laborHoursInput) : 0;
+            let partsUsedDesc = [];
+
+            const checkboxes = document.querySelectorAll('.kit-checkbox:checked');
+            
+            for(const cb of checkboxes) {
+                const stockId = cb.getAttribute('data-stock-id');
+                const qtyInput = document.querySelector(`.kit-qty-input[data-qty-id="${stockId}"]`);
+                const qtyUsed = qtyInput ? parseFloat(qtyInput.value) : 1;
+
+                const stockItem = stock.find(s => s.id === stockId);
+                if(stockItem && !isNaN(qtyUsed) && qtyUsed > 0) {
+                    const newQty = Math.max(0, parseFloat((stockItem.qty - qtyUsed).toFixed(1)));
+                    await updateDoc(doc(db, "stock", stockItem.id), { qty: newQty });
+                    let unitLabel = stockItem.cat === 'Huiles & Chimie' ? 'L' : '';
+                    partsUsedDesc.push(`${stockItem.name} (-${qtyUsed} ${unitLabel})`);
+                }
+            }
+
+            const newLogs = [...(boat.logs || []), {
+                date: new Date().toLocaleDateString('fr-FR'),
+                desc: desc,
+                newHours: updatedHours,
+                laborHours: laborHours,
+                partsUsed: partsUsedDesc
+            }];
+
+            await updateDoc(doc(db, "boats", boat.id), {
+                hours: updatedHours,
+                logs: newLogs
+            });
+
+            document.getElementById('m-desc').value = '';
+            document.getElementById('m-new-hours').value = '';
+            document.getElementById('m-labor-hours').value = '';
+            renderDefaultChecklist();
+            alert("Maintenance enregistrée et stock mis à jour !");
         }
 
         window.autoSaveUpcomingWorks = function(text) {
@@ -498,9 +586,7 @@
             if(!boat) return;
 
             const worksText = document.getElementById('boat-upcoming-works').value.trim();
-            if(!worksText) {
-                return alert("Aucun travail à prévoir renseigné pour être archivé.");
-            }
+            if(!worksText) return alert("Aucun travail à prévoir renseigné.");
 
             const newLog = {
                 date: new Date().toLocaleDateString('fr-FR'),
@@ -510,27 +596,23 @@
                 partsUsed: []
             };
 
-            const updatedLogs = [...(boat.logs || []), newLog];
-
             try {
                 await updateDoc(doc(db, "boats", boat.id), {
-                    logs: updatedLogs,
+                    logs: [...(boat.logs || []), newLog],
                     upcomingWorks: ""
                 });
                 document.getElementById('boat-upcoming-works').value = "";
-                alert("Travaux terminés et archivés dans l'historique avec succès !");
+                alert("Travaux archivés dans l'historique !");
             } catch (e) {
-                console.error("Erreur lors de l'archivage des travaux :", e);
+                console.error("Erreur archivage:", e);
             }
         }
 
         window.updateBoatStatus = async function(boatId, newStatus) {
             try {
-                await updateDoc(doc(db, "boats", boatId), {
-                    status: newStatus
-                });
+                await updateDoc(doc(db, "boats", boatId), { status: newStatus });
             } catch (e) {
-                console.error("Erreur mise à jour statut:", e);
+                console.error("Erreur statut:", e);
             }
         }
 
@@ -564,64 +646,9 @@
                     notes: document.getElementById('edit-b-notes').value
                 });
                 closeModals();
-                alert("Informations mises à jour avec succès !");
             } catch (e) {
-                console.error("Erreur mise à jour informations bateau:", e);
+                console.error("Erreur mise à jour infos:", e);
             }
-        }
-
-        window.saveMaintenance = async function() {
-            const desc = document.getElementById('m-desc').value;
-            const newHoursInput = document.getElementById('m-new-hours').value;
-            const laborHoursInput = document.getElementById('m-labor-hours').value;
-            
-            if(!desc) return alert('Veuillez entrer une description des travaux.');
-
-            const boat = boats.find(b => b.id === activeBoatId);
-            let updatedHours = boat.hours;
-            
-            if(newHoursInput !== "") {
-                const parsedHours = parseInt(newHoursInput);
-                if(!isNaN(parsedHours)) {
-                    updatedHours = parsedHours;
-                }
-            }
-
-            const laborHours = laborHoursInput !== "" ? parseFloat(laborHoursInput) : 0;
-
-            let partsUsedDesc = [];
-            const inputs = document.querySelectorAll('.stock-use-input');
-            
-            for(const input of inputs) {
-                const qtyUsed = parseFloat(input.value);
-                if(!isNaN(qtyUsed) && qtyUsed > 0) {
-                    const stockId = input.getAttribute('data-stock-id');
-                    const stockItem = stock.find(s => s.id === stockId);
-                    if(stockItem) {
-                        const newQty = Math.max(0, parseFloat((stockItem.qty - qtyUsed).toFixed(1)));
-                        await updateDoc(doc(db, "stock", stockItem.id), { qty: newQty });
-                        let unitLabel = stockItem.cat === 'Huiles & Chimie' ? 'L' : '';
-                        partsUsedDesc.push(`${stockItem.name} (-${qtyUsed} ${unitLabel})`);
-                    }
-                }
-            }
-
-            const newLogs = [...(boat.logs || []), {
-                date: new Date().toLocaleDateString('fr-FR'),
-                desc: desc,
-                newHours: updatedHours,
-                laborHours: laborHours,
-                partsUsed: partsUsedDesc
-            }];
-
-            await updateDoc(doc(db, "boats", boat.id), {
-                hours: updatedHours,
-                logs: newLogs
-            });
-
-            document.getElementById('m-desc').value = '';
-            document.getElementById('m-new-hours').value = '';
-            document.getElementById('m-labor-hours').value = '';
         }
 
         window.openBoatModal = function() { document.getElementById('boat-modal').classList.add('active'); }
@@ -702,14 +729,10 @@
                         const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
                         finishSaveStock(name, compressedBase64, qty);
                     };
-                    img.onerror = function() {
-                        finishSaveStock(name, "", qty);
-                    };
+                    img.onerror = function() { finishSaveStock(name, "", qty); };
                     img.src = e.target.result;
                 };
-                reader.onerror = function() {
-                    finishSaveStock(name, "", qty);
-                };
+                reader.onerror = function() { finishSaveStock(name, "", qty); };
                 reader.readAsDataURL(file);
             } else {
                 finishSaveStock(name, "", qty);
@@ -736,7 +759,6 @@
                 closeModals();
             } catch (e) {
                 console.error("Erreur ajout stock:", e);
-                alert("Erreur lors de l'enregistrement dans la base de données.");
             }
         }
 
