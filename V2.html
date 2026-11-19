@@ -23,7 +23,7 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .metric-t{font-size:.7rem;font-weight:700;color:var(--sec);margin-bottom:4px}
 .metric-v{font-size:1.45rem;font-weight:800;color:var(--cy)}
 .btn-add{grid-column:span 2;background:var(--blue);color:#fff;border:none;padding:14px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer}
-.alert{margin:0 16px 12px;background:rgba(230,57,70,.15);border:1px solid var(--red);color:#ff8d99;padding:10px 12px;border-radius:10px;font-size:.82rem}
+.alert{margin:0 16px 12px;background:rgba(230,57,70,.15);border:1px solid var(--red);color:#ff8d99;padding:10px 12px;border-radius:10px;font-size:.82rem;line-height:1.45}
 .search{padding:0 16px 12px}
 .search input{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--bd);border-radius:10px;color:#fff;font-size:.9rem}
 .filters{display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto}
@@ -73,9 +73,9 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 details summary{font-size:.82rem;color:var(--sec);padding:8px 0;cursor:pointer}
 textarea,.inp,select{width:100%;padding:10px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:#fff;font-size:.88rem}
 textarea{min-height:80px;resize:vertical}
-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 10px);backdrop-filter:blur(10px);z-index:50}
-.nav{display:flex;flex-direction:column;align-items:center;color:var(--sec);font-size:.75rem;gap:3px;background:none;border:none;cursor:pointer;flex:1}
-.nav.active{color:var(--cy);font-weight:700}.nav span:first-child{font-size:20px}
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:10px 0 calc(env(safe-area-inset-top,0px) + 10px);backdrop-filter:blur(10px);z-index:50}
+.nav{display:flex;flex-direction:column;align-items:center;color:var(--sec);font-size:.72rem;gap:3px;background:none;border:none;cursor:pointer;flex:1}
+.nav.active{color:var(--cy);font-weight:700}.nav span:first-child{font-size:19px}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;align-items:center;justify-content:center;padding:16px}
 .modal.active{display:flex}
 .mc{background:var(--card);width:100%;max-width:460px;padding:20px;border-radius:16px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:10px;max-height:92vh;overflow-y:auto}
@@ -146,6 +146,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
     <button class="fchip" data-f="annulee" onclick="setInvFilter('annulee')">⚪ Annulées</button>
   </div>
   <section class="list" id="v-flotte"></section>
+  <section class="list hide" id="v-planning"></section>
   <section class="list hide" id="v-stock"></section>
   <section class="list hide" id="v-factures"></section>
 </div>
@@ -216,9 +217,31 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 
 <nav id="nav">
   <button class="nav active" id="n-flotte" onclick="switchTab('flotte')"><span>⛵</span><span>Flotte</span></button>
+  <button class="nav" id="n-planning" onclick="switchTab('planning')"><span>📅</span><span>Planning</span></button>
   <button class="nav" id="n-stock" onclick="switchTab('stock')"><span>📦</span><span>Stock</span></button>
   <button class="nav" id="n-factures" onclick="switchTab('factures')"><span>🧾</span><span>Factures</span></button>
 </nav>
+
+<div class="modal" id="planning-modal"><div class="mc">
+  <h2>📅 Programmer un entretien / intervention</h2>
+  <label class="lbl">Date de l'intervention *</label>
+  <input id="p-date" type="date" class="inp" onchange="previewPlanningStock()">
+  <label class="lbl">Bateau *</label>
+  <select id="p-boat" class="inp" onchange="previewPlanningStock()"></select>
+  <label class="lbl">Type de maintenance</label>
+  <select id="p-type" class="inp" onchange="toggleCustomType(); previewPlanningStock()">
+    <option value="Maintenance 100h">Maintenance 100h</option>
+    <option value="Maintenance 300h">Maintenance 300h</option>
+    <option value="Autre">Autre</option>
+  </select>
+  <input id="p-custom" class="inp hide" placeholder="Préciser l'intervention (ex : Hivernage, Turbine, Diagnostic...)" oninput="previewPlanningStock()">
+  <input id="p-note" class="inp" placeholder="Note / détail (optionnel)">
+  <div id="p-stock-check"></div>
+  <div class="mb">
+    <button class="btn b-s" onclick="closeModals()">Annuler</button>
+    <button class="btn b-g" onclick="savePlanningItem()">Enregistrer au planning</button>
+  </div>
+</div></div>
 
 <div class="modal" id="boat-modal"><div class="mc">
   <h2>Nouveau bateau</h2>
@@ -466,11 +489,12 @@ const MARINE_PARTS_DB = [
   { type: 'Bougie allumage BPR6ES / BPR6EFS', brands: ['mercruiser', 'volvo penta'], models: ['3.0', '4.3', '5.0', '5.7', '7.4', 'GL', 'GS'], refs: ['BPR6ES', 'BPR6EFS', '33-862029', '3851857', 'TR55', 'IT16'] }
 ];
 
-let boats = [], stock = [], unsubs = [];
+let boats = [], stock = [], planning = [], unsubs = [];
 let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bizLegal: 'TVA non applicable, art. 293 B du CGI', nextInvNum: 1 };
 let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null;
 let invFilter = 'all', currentInvRef = null;
 let checklistState = {};
+let planningDay = new Date().toISOString().slice(0, 10);
 
 function toast(msg, err) {
   const t = $('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
@@ -492,7 +516,7 @@ onAuthStateChanged(auth, user => {
   if (user) startListeners();
   else {
     unsubs.forEach(u => u()); unsubs = [];
-    boats = []; stock = []; activeBoatId = null; checklistState = {};
+    boats = []; stock = []; planning = []; activeBoatId = null; checklistState = {};
     $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
   }
 });
@@ -507,6 +531,10 @@ function startListeners() {
     stock = s.docs.map(d => ({ id: d.id, ...d.data() }));
     renderAll(); if (activeBoatId) { renderChecklist(); renderBoatDetail(); }
   }, e => console.error('stock', e)));
+  unsubs.push(onSnapshot(collection(db, 'planning'), s => {
+    planning = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+  }, e => console.error('planning', e)));
   unsubs.push(onSnapshot(doc(db, 'settings', 'general'), d => {
     if (d.exists()) cfg = { ...cfg, ...d.data() };
     if (activeBoatId && !$('m-rate').value) $('m-rate').value = cfg.hourlyRate;
@@ -699,9 +727,41 @@ function invStatusLabel(st) {
   return { payee: 'Payée', impayee: 'Non payée', relance: 'Relancée', annulee: 'Annulée' }[st] || 'Non payée';
 }
 
+function getNeededPartsForBoat(boat, maintType) {
+  const oilSpec = getEngineOilSpec(boat);
+  const typeNorm = norm(maintType);
+  const is100 = typeNorm.includes('100');
+  const is300 = typeNorm.includes('300');
+
+  const candidates = stock.filter(s => {
+    const matchRes = autoMatchPart(s, boat);
+    if (matchRes.tier === 'match') return true;
+    if ((is100 || is300) && (isEngineOil(s) || isGearOil(s))) return true;
+    if (is300 && isFilter(s) && !getPartKnowledge(s).brands.length) return true;
+    return false;
+  });
+
+  return candidates.map(s => {
+    const neededQty = getSuggestedQty(s, oilSpec);
+    const availQty = Number(s.qty) || 0;
+    const missingQty = Math.max(0, fmt(neededQty - availQty));
+    const unit = isOil(s) ? 'L' : 'u';
+    return {
+      stockId: s.id,
+      name: s.name,
+      ref: s.ref || 'Réf. non renseignée',
+      neededQty,
+      availQty,
+      missingQty,
+      unit,
+      ok: missingQty <= 0
+    };
+  });
+}
+
 function renderAll() {
   renderMetrics();
-  if (!activeBoatId) { renderBoats(); renderStock(); renderInvoices(); }
+  if (!activeBoatId) { renderBoats(); renderPlanning(); renderStock(); renderInvoices(); }
 }
 
 function renderMetrics() {
@@ -715,6 +775,18 @@ function renderMetrics() {
       <div class="metric"><div class="metric-t">FLOTTE ⛵</div><div class="metric-v">${boats.length}</div></div>
       <div class="metric"><div class="metric-t">RÉVISIONS EN RETARD 🔧</div><div class="metric-v" style="color:${late ? '#ff4d6d' : '#2ec4b6'}">${late}</div></div>
       <button class="btn-add" onclick="openBoatModal()">+ Ajouter un bateau</button>`;
+  } else if (tab === 'planning') {
+    const selDate = planningDay || new Date().toISOString().slice(0, 10);
+    const dayItems = planning.filter(p => p.date === selDate && !p.done);
+    let missingCount = 0;
+    dayItems.forEach(p => {
+      const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName, engineBrand: p.engineLabel, engineModel: '' };
+      missingCount += getNeededPartsForBoat(b, p.maintType).filter(c => !c.ok).length;
+    });
+    $('metrics').innerHTML = `
+      <div class="metric"><div class="metric-t">INTERVENTIONS DU JOUR 📅</div><div class="metric-v">${dayItems.length}</div></div>
+      <div class="metric"><div class="metric-t">PIÈCES À COMMANDER 🛒</div><div class="metric-v" style="color:${missingCount ? '#ff4d6d' : '#2ec4b6'}">${missingCount}</div></div>
+      <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openPlanningModal('${esc(selDate)}')">+ Planifier un entretien / intervention</button>`;
   } else if (tab === 'stock') {
     const valAchat = stock.reduce((acc, s) => acc + (Number(s.qty) || 0) * (Number(s.buyPrice) || 0), 0);
     $('metrics').innerHTML = `
@@ -753,6 +825,141 @@ function renderBoats() {
         <button class="btn b-d" onclick="deleteBoat('${b.id}')">🗑</button></div>
     </div>`;
   }).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucun bateau trouvé.</div>`;
+}
+
+window.openPlanningModal = (presetDate) => {
+  $('p-date').value = presetDate || planningDay || new Date().toISOString().slice(0, 10);
+  const sortedBoats = boats.slice().sort(byName);
+  $('p-boat').innerHTML = sortedBoats.length
+    ? sortedBoats.map(b => `<option value="${esc(b.id)}">${esc(b.name)} (${esc(engineTxt(b))})</option>`).join('')
+    : `<option value="">Aucun bateau en flotte</option>`;
+  $('p-type').value = 'Maintenance 100h';
+  $('p-custom').value = '';
+  $('p-note').value = '';
+  toggleCustomType();
+  previewPlanningStock();
+  $('planning-modal').classList.add('active');
+};
+
+window.toggleCustomType = () => {
+  $('p-custom').classList.toggle('hide', $('p-type').value !== 'Autre');
+};
+
+window.previewPlanningStock = () => {
+  const box = $('p-stock-check');
+  if (!box) return;
+  const b = boats.find(x => x.id === $('p-boat').value);
+  if (!b) { box.innerHTML = `<div class="lbl">Sélectionne un bateau pour vérifier le stock.</div>`; return; }
+  const labelType = $('p-type').value === 'Autre' ? ($('p-custom').value.trim() || 'Autre intervention') : $('p-type').value;
+  const checks = getNeededPartsForBoat(b, labelType);
+  if (!checks.length) {
+    box.innerHTML = `<div class="equiv-box">ℹ️ Aucune pièce/huile associée automatiquement à ce moteur dans le stock.</div>`;
+    return;
+  }
+  const missing = checks.filter(c => !c.ok);
+  const okHtml = `<div class="oil-banner">✅ <b>${checks.length - missing.length} / ${checks.length}</b> référence(s) disponible(s) en stock.</div>`;
+  const missHtml = missing.length
+    ? `<div class="alert" style="margin:6px 0 0"><b>⚠️ À commander :</b><br>${missing.map(m => `• <b>${esc(m.name)}</b> — Réf : <b>${esc(m.ref)}</b> (manque ${fmt(m.missingQty)} ${m.unit}, dispo ${fmt(m.availQty)} ${m.unit})`).join('<br>')}</div>`
+    : '';
+  box.innerHTML = okHtml + missHtml;
+};
+
+window.savePlanningItem = () => {
+  const date = $('p-date').value;
+  const boatId = $('p-boat').value;
+  const b = boats.find(x => x.id === boatId);
+  if (!date || !b) return alert('Choisis une date et un bateau.');
+  const rawType = $('p-type').value;
+  const customLabel = $('p-custom').value.trim();
+  if (rawType === 'Autre' && !customLabel) return alert("Précise le type d'intervention.");
+  const maintType = rawType === 'Autre' ? customLabel : rawType;
+
+  safe(async () => {
+    await addDoc(collection(db, 'planning'), {
+      date,
+      boatId: b.id,
+      boatName: b.name,
+      engineLabel: engineTxt(b),
+      maintType,
+      maintCategory: rawType,
+      note: $('p-note').value.trim(),
+      done: false,
+      createdAt: new Date().toISOString()
+    });
+    planningDay = date;
+    closeModals();
+  }, 'Intervention ajoutée au planning');
+};
+
+window.togglePlanningDone = (id, done) => safe(() => updateDoc(doc(db, 'planning', id), { done }));
+window.deletePlanningItem = (id) => {
+  if (confirm('Supprimer cette intervention du planning ?')) safe(() => deleteDoc(doc(db, 'planning', id)));
+};
+
+window.changePlanningDay = (deltaDays) => {
+  const d = new Date((planningDay || new Date().toISOString().slice(0, 10)) + 'T12:00:00');
+  d.setDate(d.getDate() + deltaDays);
+  planningDay = d.toISOString().slice(0, 10);
+  renderAll();
+};
+
+function renderPlanning() {
+  const selDate = planningDay || new Date().toISOString().slice(0, 10);
+  const q = query();
+  const dayItems = planning
+    .filter(p => p.date === selDate)
+    .filter(p => !q || match(q, p.boatName, p.engineLabel, p.maintType, p.note));
+
+  const prettyDate = new Date(selDate + 'T12:00:00').toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+
+  const headerBar = `<div class="card" style="grid-column:1/-1">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <button class="btn b-s hbtn" onclick="changePlanningDay(-1)">← Jour préc.</button>
+      <div style="text-align:center">
+        <div style="font-weight:800;color:var(--cy);text-transform:capitalize">${esc(prettyDate)}</div>
+        <input type="date" class="inp" style="margin-top:6px;width:auto" value="${esc(selDate)}" onchange="planningDay=this.value;renderAll()">
+      </div>
+      <button class="btn b-s hbtn" onclick="changePlanningDay(1)">Jour suiv. →</button>
+    </div>
+    <button class="btn b-p" style="margin-top:6px" onclick="openPlanningModal('${esc(selDate)}')">+ Planifier une intervention ce jour</button>
+  </div>`;
+
+  if (!dayItems.length) {
+    $('v-planning').innerHTML = headerBar + `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--sec)">Aucune intervention prévue ce jour.</div>`;
+    return;
+  }
+
+  const cardsHtml = dayItems.map(p => {
+    const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName, engineBrand: p.engineLabel, engineModel: '' };
+    const checks = getNeededPartsForBoat(b, p.maintType);
+    const missing = checks.filter(c => !c.ok);
+
+    return `<div class="card" style="${p.done ? 'opacity:.65' : ''}">
+      <div class="ch">
+        <div>
+          <div class="ct">⛵ ${esc(b.name || p.boatName)}</div>
+          <div class="cs">${esc(p.maintType)} • ⚙️ ${esc(engineTxt(b))}</div>
+        </div>
+        <span class="badge ${p.done ? 's-eau' : 's-atelier'}">${p.done ? 'Terminé' : 'À faire'}</span>
+      </div>
+      ${p.note ? `<div style="font-size:.82rem;color:var(--sec)">📝 ${esc(p.note)}</div>` : ''}
+      ${missing.length
+        ? `<div class="alert" style="margin:0">
+            <b>🛒 Commander :</b><br>
+            ${missing.map(m => `• <b>${esc(m.name)}</b> (Réf : <b>${esc(m.ref)}</b>) — manque ${fmt(m.missingQty)} ${m.unit}`).join('<br>')}
+          </div>`
+        : `<div class="oil-banner">✅ Stock complet (${checks.length} réf. vérifiées)</div>`}
+      <div class="actions">
+        <button class="btn ${p.done ? 'b-s' : 'b-g'}" onclick="togglePlanningDone('${p.id}', ${!p.done})">${p.done ? 'Réouvrir' : 'Marquer fait'}</button>
+        ${b.id ? `<button class="btn b-p hbtn" onclick="openBoatDetail('${b.id}')">Fiche</button>` : ''}
+        <button class="btn b-d hbtn" onclick="deletePlanningItem('${p.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  $('v-planning').innerHTML = headerBar + cardsHtml;
 }
 
 function stockCard(s) {
@@ -860,20 +1067,24 @@ window.deleteInvoice = (boatId, logIdx) => {
 
 $('search').oninput = () => {
   if (tab === 'flotte') renderBoats();
+  else if (tab === 'planning') renderPlanning();
   else if (tab === 'stock') renderStock();
   else renderInvoices();
 };
 
 window.switchTab = t => {
   tab = t;
-  ['flotte', 'stock', 'factures'].forEach(x => {
+  ['flotte', 'planning', 'stock', 'factures'].forEach(x => {
     $('n-' + x).classList.toggle('active', x === t);
     $('v-' + x).classList.toggle('hide', x !== t);
   });
   $('inv-filters').classList.toggle('hide', t !== 'factures');
-  $('sub').textContent = t === 'flotte' ? 'Gestion de flotte' : t === 'stock' ? 'Stock & Base OEM/Équiv.' : 'Suivi des factures';
+  $('sub').textContent = t === 'flotte' ? 'Gestion de flotte'
+    : t === 'planning' ? 'Planning entretiens & stock'
+    : t === 'stock' ? 'Stock & Base OEM/Équiv.'
+    : 'Suivi des factures';
   $('search').value = '';
-  renderMetrics(); renderBoats(); renderStock(); renderInvoices();
+  renderMetrics(); renderBoats(); renderPlanning(); renderStock(); renderInvoices();
 };
 
 window.openBoatDetail = id => {
@@ -891,7 +1102,10 @@ window.openBoatDetail = id => {
 window.backToFlotte = () => {
   activeBoatId = null; checklistState = {};
   $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
-  $('sub').textContent = tab === 'flotte' ? 'Gestion de flotte' : tab === 'stock' ? 'Stock & Base OEM/Équiv.' : 'Suivi des factures';
+  $('sub').textContent = tab === 'flotte' ? 'Gestion de flotte'
+    : tab === 'planning' ? 'Planning entretiens & stock'
+    : tab === 'stock' ? 'Stock & Base OEM/Équiv.'
+    : 'Suivi des factures';
   renderAll();
 };
 
@@ -1529,7 +1743,7 @@ window.deleteStock = id => {
 };
 
 window.backup = () => {
-  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), cfg, boats, stock }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), cfg, boats, stock, planning }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'meca-manager-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
