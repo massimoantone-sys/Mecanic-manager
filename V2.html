@@ -29,6 +29,12 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .filters{display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto}
 .fchip{padding:7px 12px;border-radius:20px;background:var(--card);border:1px solid var(--bd);color:var(--sec);font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap}
 .fchip.active{background:var(--cy);color:#000;border-color:var(--cy)}
+.days-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 0 6px}
+.day-pill{min-width:58px;padding:8px 6px;border-radius:12px;background:var(--bg);border:1px solid var(--bd);color:var(--sec);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;flex-shrink:0}
+.day-pill.active{background:var(--cy);color:#000;border-color:var(--cy);font-weight:800}
+.day-pill .d-wk{font-size:.68rem;text-transform:uppercase}
+.day-pill .d-num{font-size:1rem;font-weight:800}
+.day-pill .d-dot{font-size:.68rem}
 .list{padding:0 16px;display:flex;flex-direction:column;gap:14px}
 @media(min-width:768px){.list{display:grid;grid-template-columns:1fr 1fr;align-items:start}.list.hide{display:none!important}}
 .gh{grid-column:1/-1;font-size:.95rem;font-weight:800;color:var(--cy);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--bd);padding:10px 2px 6px;margin-top:6px}
@@ -404,6 +410,7 @@ const isEngineOil = s => !isFilter(s) && !isGearOil(s) && (s.cat === 'Huiles & C
 const isOil = s => isGearOil(s) || isEngineOil(s) || (!isFilter(s) && /\b(2t|graisse|grease|liquide|antigel|refroidissement)\b/i.test(s.name || ''));
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
 const NOBRAND = 'Détection auto / Universel';
+const toISODay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 const ENGINE_OIL_CAPACITIES = [
   { brands: ['yamaha'], models: ['F15', 'F20'], engineL: 1.6, gearL: 0.25 },
@@ -494,7 +501,7 @@ let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bi
 let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null;
 let invFilter = 'all', currentInvRef = null;
 let checklistState = {};
-let planningDay = new Date().toISOString().slice(0, 10);
+let planningDay = toISODay(new Date());
 
 function toast(msg, err) {
   const t = $('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
@@ -776,7 +783,7 @@ function renderMetrics() {
       <div class="metric"><div class="metric-t">RÉVISIONS EN RETARD 🔧</div><div class="metric-v" style="color:${late ? '#ff4d6d' : '#2ec4b6'}">${late}</div></div>
       <button class="btn-add" onclick="openBoatModal()">+ Ajouter un bateau</button>`;
   } else if (tab === 'planning') {
-    const selDate = planningDay || new Date().toISOString().slice(0, 10);
+    const selDate = planningDay || toISODay(new Date());
     const dayItems = planning.filter(p => p.date === selDate && !p.done);
     let missingCount = 0;
     dayItems.forEach(p => {
@@ -786,7 +793,7 @@ function renderMetrics() {
     $('metrics').innerHTML = `
       <div class="metric"><div class="metric-t">INTERVENTIONS DU JOUR 📅</div><div class="metric-v">${dayItems.length}</div></div>
       <div class="metric"><div class="metric-t">PIÈCES À COMMANDER 🛒</div><div class="metric-v" style="color:${missingCount ? '#ff4d6d' : '#2ec4b6'}">${missingCount}</div></div>
-      <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openPlanningModal('${esc(selDate)}')">+ Planifier un entretien / intervention</button>`;
+      <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openPlanningModal('${esc(selDate)}')">+ Programmer une maintenance bateau</button>`;
   } else if (tab === 'stock') {
     const valAchat = stock.reduce((acc, s) => acc + (Number(s.qty) || 0) * (Number(s.buyPrice) || 0), 0);
     $('metrics').innerHTML = `
@@ -828,7 +835,7 @@ function renderBoats() {
 }
 
 window.openPlanningModal = (presetDate) => {
-  $('p-date').value = presetDate || planningDay || new Date().toISOString().slice(0, 10);
+  $('p-date').value = presetDate || planningDay || toISODay(new Date());
   const sortedBoats = boats.slice().sort(byName);
   $('p-boat').innerHTML = sortedBoats.length
     ? sortedBoats.map(b => `<option value="${esc(b.id)}">${esc(b.name)} (${esc(engineTxt(b))})</option>`).join('')
@@ -897,14 +904,14 @@ window.deletePlanningItem = (id) => {
 };
 
 window.changePlanningDay = (deltaDays) => {
-  const d = new Date((planningDay || new Date().toISOString().slice(0, 10)) + 'T12:00:00');
+  const d = new Date((planningDay || toISODay(new Date())) + 'T12:00:00');
   d.setDate(d.getDate() + deltaDays);
-  planningDay = d.toISOString().slice(0, 10);
+  planningDay = toISODay(d);
   renderAll();
 };
 
 function renderPlanning() {
-  const selDate = planningDay || new Date().toISOString().slice(0, 10);
+  const selDate = planningDay || toISODay(new Date());
   const q = query();
   const dayItems = planning
     .filter(p => p.date === selDate)
@@ -913,6 +920,22 @@ function renderPlanning() {
   const prettyDate = new Date(selDate + 'T12:00:00').toLocaleDateString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
+
+  const base = new Date(selDate + 'T12:00:00');
+  const daysStripHtml = Array.from({ length: 14 }, (_, idx) => {
+    const d = new Date(base);
+    d.setDate(base.getDate() - 3 + idx);
+    const iso = toISODay(d);
+    const wk = d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '');
+    const num = d.getDate();
+    const count = planning.filter(p => p.date === iso && !p.done).length;
+    const isAct = iso === selDate;
+    return `<button type="button" class="day-pill ${isAct ? 'active' : ''}" onclick="planningDay='${iso}';renderAll()">
+      <span class="d-wk">${esc(wk)}</span>
+      <span class="d-num">${num}</span>
+      <span class="d-dot">${count ? `• ${count}` : '·'}</span>
+    </button>`;
+  }).join('');
 
   const headerBar = `<div class="card" style="grid-column:1/-1">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
@@ -923,7 +946,8 @@ function renderPlanning() {
       </div>
       <button class="btn b-s hbtn" onclick="changePlanningDay(1)">Jour suiv. →</button>
     </div>
-    <button class="btn b-p" style="margin-top:6px" onclick="openPlanningModal('${esc(selDate)}')">+ Planifier une intervention ce jour</button>
+    <div class="days-strip">${daysStripHtml}</div>
+    <button class="btn b-p" style="margin-top:4px" onclick="openPlanningModal('${esc(selDate)}')">+ Programmer une maintenance bateau</button>
   </div>`;
 
   if (!dayItems.length) {
