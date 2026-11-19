@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V8</title>
+<title>Meca Manager V9</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -64,6 +64,7 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .hist{background:rgba(11,19,43,.6);padding:12px;border-radius:8px;border-left:4px solid var(--green);font-size:.85rem;margin-top:8px;display:flex;flex-direction:column;gap:6px}
 .sec-t{font-size:.82rem;font-weight:800;color:var(--green);margin-top:8px}
 .auto-tag{display:inline-block;font-size:.68rem;padding:2px 6px;border-radius:6px;background:rgba(46,196,182,.15);color:var(--green);border:1px solid rgba(46,196,182,.4);margin-left:4px;font-weight:700}
+.equiv-box{font-size:.72rem;color:#90e0ef;background:rgba(0,180,216,.1);border:1px solid rgba(0,180,216,.3);padding:5px 8px;border-radius:6px}
 .row{display:flex;align-items:center;gap:8px;background:var(--bg);padding:9px 10px;border-radius:8px;border:1px solid var(--bd);font-size:.83rem;margin-top:6px;flex-wrap:wrap}
 .row input[type=checkbox]{width:20px;height:20px;accent-color:var(--green);flex-shrink:0}
 .qin{width:58px;padding:6px 4px;background:var(--card);border:1px solid var(--bd);border-radius:6px;color:#fff;text-align:center;font-size:.82rem}
@@ -114,7 +115,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <datalist id="brands">
   <option value="Yamaha"><option value="Mercury"><option value="Suzuki"><option value="Honda">
   <option value="Volvo Penta"><option value="Yanmar"><option value="Tohatsu"><option value="Evinrude">
-  <option value="Johnson"><option value="Mercruiser"><option value="BMW"><option value="Selva"><option value="Vetus">
+  <option value="Johnson"><option value="Mercruiser"><option value="BMW Marine"><option value="Selva"><option value="Vetus">
 </datalist>
 
 <div id="login" style="position:fixed;inset:0;z-index:200;background:#0b132b;display:flex;align-items:center;justify-content:center;padding:20px">
@@ -139,7 +140,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <div id="main" class="wrap">
   <section class="metrics" id="metrics"></section>
   <div id="stock-alert"></div>
-  <div class="search"><input id="search" placeholder="Rechercher..."></div>
+  <div class="search"><input id="search" placeholder="Rechercher (nom, réf OEM, équivalence Sierra/NGK/Mann...)"></div>
   <div class="filters hide" id="inv-filters">
     <button class="fchip active" data-f="all" onclick="setInvFilter('all')">Toutes</button>
     <button class="fchip" data-f="impayee" onclick="setInvFilter('impayee')">🔴 Non payées</button>
@@ -190,7 +191,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
     </div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-      <label class="lbl" style="color:var(--green);font-weight:700">Pièces détectées automatiquement :</label>
+      <label class="lbl" style="color:var(--green);font-weight:700">Pièces & équivalences détectées :</label>
       <button class="btn b-s hbtn" onclick="checkEngineParts()">Cocher auto</button>
     </div>
     <div id="checklist"></div>
@@ -270,8 +271,9 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <!-- Modal stock (ajout + modif) -->
 <div class="modal" id="stock-modal"><div class="mc">
   <h2 id="s-title">Nouvelle référence</h2>
-  <input id="s-name" class="inp" placeholder="Nom ou réf. de la pièce * (l'appli détecte le moteur)">
-  <input id="s-ref" class="inp" placeholder="Référence constructeur">
+  <input id="s-name" class="inp" placeholder="Nom de la pièce *" oninput="previewPartMatch()">
+  <input id="s-ref" class="inp" placeholder="Réf OEM ou adaptable (ex: 69J-13440, 18-7911, OC606...)" oninput="previewPartMatch()">
+  <div id="s-auto-preview"></div>
   <select id="s-cat"><option value="Moteur / Filtres">Moteur & filtres</option><option value="Huiles & Chimie">Huiles & lubrifiants (L)</option><option value="Électricité">Électricité & batterie</option><option value="Sécurité">Sécurité</option><option value="Castillage">Accastillage</option></select>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
     <div>
@@ -430,13 +432,255 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const fmt = n => Math.round((Number(n) || 0) * 10) / 10;
 const eur = n => (Number(n) || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const norm = s => String(s || '').trim().toLowerCase();
+const cleanRef = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 const isOil = s => s.cat === 'Huiles & Chimie' || /\b(huile|oil|10w|5w|15w|20w|80w|90|2t|4t|graisse|grease|liquide|antigel|refroidissement)\b/i.test(s.name || '');
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
 const NOBRAND = 'Détection auto / Universel';
 
-const KNOWN_BRANDS = [
-  'yamaha', 'mercury', 'mariner', 'suzuki', 'honda', 'volvo penta', 'volvo',
-  'yanmar', 'tohatsu', 'evinrude', 'johnson', 'mercruiser', 'bmw', 'selva', 'vetus', 'cummins', 'kohler', 'onan'
+/* ============================================================================
+   BASE DE DONNÉES EMBARQUÉE : COMPATIBILITÉS MOTEURS & ÉQUIVALENCES INTER-MARQUES
+   (OEM + Sierra + Quicksilver + Recmar + NGK + Mann + Mahle + Hiflofiltro)
+   ============================================================================ */
+const MARINE_PARTS_DB = [
+  // --- YAMAHA ---
+  {
+    type: 'Filtre à huile',
+    brands: ['yamaha'],
+    models: ['F15', 'F20', 'F25', 'F30', 'F40', 'F50', 'F60', 'F70', 'FT50', 'FT60'],
+    refs: ['5GH-13440-00', '5GH-13440-10', '5GH-13440-20', '5GH-13440-30', '5GH-13440-50', '5GH-13440-60', '5GH-13440-70', '18-7911', '18-7911-1', 'HF204', 'MW64', 'OC575']
+  },
+  {
+    type: 'Filtre à huile',
+    brands: ['yamaha', 'mercury'],
+    models: ['F75', 'F80', 'F90', 'F100', 'F115', 'FL115', '75', '80', '90', '100', '115'],
+    refs: ['5GH-13440-30', '69J-13440-00', '35-822626Q04', '35-822626K04', '18-7914', 'HF303']
+  },
+  {
+    type: 'Filtre à huile',
+    brands: ['yamaha'],
+    models: ['F150', 'F175', 'F200', 'F225', 'F250', 'F300', 'F350', 'LF150', 'LF200', 'LF225', 'LF250', 'LF300'],
+    refs: ['69J-13440-00', '69J-13440-01', '69J-13440-02', '69J-13440-03', '69J-13440-04', '18-7906', '18-7906-1', 'REC69J-13440-03']
+  },
+  {
+    type: 'Filtre carburant / décanteur',
+    brands: ['yamaha'],
+    models: ['F150', 'F175', 'F200', 'F225', 'F250', 'F300', 'Z150', 'Z200', 'Z250', 'Z300', 'HPDI'],
+    refs: ['6P3-WS24A-00', '6P3-WS24A-01', '6P3-24563-00', '6P3-24563-01', '18-79809', 'REC6P3-WS24A-01']
+  },
+  {
+    type: 'Filtre carburant',
+    brands: ['yamaha'],
+    models: ['F30', 'F40', 'F50', 'F60', 'F70', 'F75', 'F80', 'F90', 'F100', 'F115'],
+    refs: ['6D8-WS24A-00', '6D8-24563-00', '18-79799', 'REC6D8-WS24A-00']
+  },
+  {
+    type: 'Turbine / Kit pompe à eau',
+    brands: ['yamaha'],
+    models: ['F40', 'F50', 'F60', 'F70', 'FT50', 'FT60'],
+    refs: ['6H3-44352-00', '6H3-W0078-02', '63D-W0078-01', '18-3069', '18-3434']
+  },
+  {
+    type: 'Turbine / Kit pompe à eau',
+    brands: ['yamaha'],
+    models: ['F75', 'F80', 'F90', 'F100', 'F115', 'FL115'],
+    refs: ['6E5-44352-00', '6E5-44352-01', '68V-W0078-00', '61A-W0078-A2', '18-3071', '18-3396-1']
+  },
+  {
+    type: 'Turbine / Kit pompe à eau',
+    brands: ['yamaha'],
+    models: ['F150', 'F175', 'F200', 'F225', 'F250', 'F300'],
+    refs: ['6E5-44352-01', '6P2-W0078-00', '6CE-W0078-00', '18-3071', '18-3517']
+  },
+
+  // --- MERCURY / MARINER / MERCRUISER ---
+  {
+    type: 'Filtre à huile',
+    brands: ['mercury', 'mariner'],
+    models: ['F25', 'F30', 'F40', 'F50', 'F60', 'F75', 'F80', 'F90', 'F100', 'F115', 'EFI'],
+    refs: ['35-8M0065103', '35-8M0065104', '35-822626Q05', '35-822626K04', '18-7914', '18-7921']
+  },
+  {
+    type: 'Filtre à huile',
+    brands: ['mercury', 'mariner'],
+    models: ['F135', 'F150', 'F175', 'F200', 'F225', 'F250', 'F300', 'VERADO', 'V6', 'V8'],
+    refs: ['35-877761K01', '35-877761Q01', '35-877767K01', '35-877767Q01', '18-7758', '18-7920']
+  },
+  {
+    type: 'Filtre à huile In-bord V6/V8',
+    brands: ['mercruiser', 'volvo penta', 'mercury'],
+    models: ['4.3', '5.0', '5.7', '6.2', '7.4', '8.2', 'MPI', 'MAG', 'GXI', 'GL', '350', '496'],
+    refs: ['35-866340K01', '35-866340Q03', '35-802885Q', '3850559', '835440', '18-7824', '18-7879', 'PH30', 'W930/20']
+  },
+  {
+    type: 'Filtre à huile In-bord 3.0L',
+    brands: ['mercruiser', 'volvo penta'],
+    models: ['3.0', '3.0L', '3.0LX', '140', 'GS', 'GL'],
+    refs: ['35-802885T', '35-866340Q02', '835440', '18-7875', 'PH5']
+  },
+  {
+    type: 'Séparateur eau / carburant',
+    brands: ['mercruiser', 'mercury', 'yamaha', 'suzuki', 'honda', 'volvo penta'],
+    models: ['MPI', 'EFI', 'VERADO', 'GXI', '3.0', '4.3', '5.0', '5.7', '6.2'],
+    refs: ['35-802893Q01', '35-802893T', '35-60494-1', '3862228', '3851218', '18-7844', '18-7845', '18-7945', 'S3213', 'S3227']
+  },
+  {
+    type: 'Kit turbine pompe à eau',
+    brands: ['mercruiser', 'mercury'],
+    models: ['ALPHA ONE', 'ALPHA', 'GEN 2', 'GEN II', 'F40', 'F50', 'F60', 'F75', 'F90', 'F115', 'F150'],
+    refs: ['47-43026Q06', '47-43026K06', '47-43026T2', '47-8M0100526', '18-3214', '18-3265', '18-3056']
+  },
+  {
+    type: 'Kit turbine Alpha One Gen 1',
+    brands: ['mercruiser', 'mercury'],
+    models: ['ALPHA ONE', 'GEN 1', 'GEN I', 'MR', 'R'],
+    refs: ['46-96148A8', '46-96148Q8', '47-89984T4', '18-3320', '18-3217']
+  },
+  {
+    type: 'Turbine pompe à eau Bravo / In-bord',
+    brands: ['mercruiser', 'volvo penta'],
+    models: ['BRAVO', '4.3', '5.0', '5.7', '6.2', '7.4', 'GXI', 'MPI'],
+    refs: ['47-59362T1', '47-59362Q01', '47-862232A2', '21951354', '3862567', '18-3087', '18-3237']
+  },
+
+  // --- SUZUKI ---
+  {
+    type: 'Filtre à huile',
+    brands: ['suzuki'],
+    models: ['DF9.9', 'DF15', 'DF20', 'DF25', 'DF30', 'DF40', 'DF50', 'DF60', 'DF70'],
+    refs: ['16510-87J00', '16510-87J01', '16510-45H10', '18-7915', '18-7915-1']
+  },
+  {
+    type: 'Filtre à huile',
+    brands: ['suzuki', 'johnson', 'evinrude'],
+    models: ['DF70', 'DF80', 'DF90', 'DF100', 'DF115', 'DF140'],
+    refs: ['16510-61A31', '16510-61A30', '16510-61A21', '5033539', '18-7896', 'OC215']
+  },
+  {
+    type: 'Filtre à huile',
+    brands: ['suzuki'],
+    models: ['DF150', 'DF175', 'DF200', 'DF225', 'DF250', 'DF300', 'DF350'],
+    refs: ['16510-96J00', '16510-96J10', '18-7905', '18-7905-1']
+  },
+  {
+    type: 'Kit pompe à eau',
+    brands: ['suzuki'],
+    models: ['DF90', 'DF100', 'DF115', 'DF140'],
+    refs: ['17400-92J00', '17400-92J21', '17400-92J22', '18-3256']
+  },
+  {
+    type: 'Kit pompe à eau',
+    brands: ['suzuki'],
+    models: ['DF150', 'DF175', 'DF200', 'DF225', 'DF250', 'DF300'],
+    refs: ['17400-93J00', '17400-93J02', '17400-93J04', '18-3258']
+  },
+
+  // --- HONDA ---
+  {
+    type: 'Filtre à huile',
+    brands: ['honda', 'tohatsu'],
+    models: ['BF15', 'BF20', 'BF25', 'BF30', 'BF40', 'BF50', 'BF60', 'BF75', 'BF90', 'BF115', 'BF130', 'BFP60'],
+    refs: ['15400-PFB-014', '15400-PFB-004', '15400-ZW4-003', '3R0-07615-0', '18-7909', '18-7911']
+  },
+  {
+    type: 'Filtre à huile',
+    brands: ['honda'],
+    models: ['BF115', 'BF135', 'BF150', 'BF175', 'BF200', 'BF225', 'BF250'],
+    refs: ['15400-PLM-A01', '15400-PLM-A02', '15400-RBA-F01', '18-7909', 'OC617', 'W610/6']
+  },
+  {
+    type: 'Turbine pompe à eau',
+    brands: ['honda'],
+    models: ['BF75', 'BF90', 'BF115', 'BF130', 'BF135', 'BF150', 'BF175', 'BF200', 'BF225', 'BF250'],
+    refs: ['19210-ZW1-B04', '19210-ZY9-H01', '19210-ZY3-003', '18-3250', '18-3285']
+  },
+
+  // --- VOLVO PENTA DIESEL ---
+  {
+    type: 'Filtre à huile Diesel',
+    brands: ['volvo penta'],
+    models: ['D1-13', 'D1-20', 'D1-30', 'D2-40', 'D2-50', 'D2-55', 'D2-60', 'D2-75', 'MD2010', 'MD2020', 'MD2030', 'MD2040'],
+    refs: ['3840525', '861473', '18-7916', 'W712/73', 'OC295']
+  },
+  {
+    type: 'Filtre gasoil Diesel',
+    brands: ['volvo penta'],
+    models: ['D1-13', 'D1-20', 'D1-30', 'D2-40', 'D2-55', 'D2-75', 'MD2010', 'MD2020', 'MD2030', 'MD2040'],
+    refs: ['861477', '21492771', '18-7992', 'WK712/2', 'KC116']
+  },
+  {
+    type: 'Filtre à huile D4 / D6',
+    brands: ['volvo penta'],
+    models: ['D4', 'D6', 'D4-180', 'D4-225', 'D4-260', 'D4-300', 'D6-310', 'D6-330', 'D6-370', 'D6-400', 'D6-435'],
+    refs: ['22030848', '3582732', '22030852', '3582733', 'W940/69', 'OC606']
+  },
+  {
+    type: 'Filtre gasoil D4 / D6',
+    brands: ['volvo penta'],
+    models: ['D4', 'D6', 'D4-260', 'D4-300', 'D6-330', 'D6-370', 'D6-435'],
+    refs: ['21718912', '3583443', 'WK842/19', 'KC210']
+  },
+
+  // --- YANMAR ---
+  {
+    type: 'Filtre à huile Yanmar',
+    brands: ['yanmar'],
+    models: ['1GM', '2GM', '3GM', '3YM20', '3YM30', '3JH', '4JH'],
+    refs: ['119305-35150', '119305-35151', '119305-35170', '18-7901', 'W67/1', 'OC195']
+  },
+  {
+    type: 'Filtre gasoil Yanmar',
+    brands: ['yanmar'],
+    models: ['2GM', '3GM', '3YM20', '3YM30', '3JH', '4JH', '4LH'],
+    refs: ['104500-55710', '129470-55702', '129470-55810', '18-7993', 'P702', 'KX67']
+  },
+
+  // --- BMW MARINE (D636 / D530) ---
+  {
+    type: 'Filtre à huile BMW Marine',
+    brands: ['bmw', 'bmw marine', 'mercruiser'],
+    models: ['D636', 'D530', 'D190', 'D150', '3.6', '3.0', '4.2'],
+    refs: ['11421312801', '11429063138', '35-805269', 'W719/13', 'W719/5', 'OC47', 'H14W21']
+  },
+  {
+    type: 'Filtre gasoil BMW Marine',
+    brands: ['bmw', 'bmw marine', 'mercruiser'],
+    models: ['D636', 'D530', 'D190', 'D150'],
+    refs: ['13321277497', '35-805268', 'WK842/2', 'WK842', 'KC18', 'P4183']
+  },
+
+  // --- BOUGIES NGK / DENSO ---
+  {
+    type: 'Bougie allumage LFR6A-11',
+    brands: ['yamaha', 'suzuki', 'mercury'],
+    models: ['F115', 'F150', 'F200', 'F225', 'F250', 'DF90', 'DF115', 'DF140', 'DF150', 'DF175', 'DF200', 'DF250'],
+    refs: ['LFR6A-11', '69J-85640-00', '09482-00549', '33-889246Q', 'K20HR-U11']
+  },
+  {
+    type: 'Bougie allumage DPR6EA-9',
+    brands: ['yamaha', 'honda', 'mercury'],
+    models: ['F40', 'F50', 'F60', 'F75', 'F90', 'F100', 'BF40', 'BF50', 'BF75', 'BF90', 'BF115', 'BF130'],
+    refs: ['DPR6EA-9', '94702-00318', '98069-56916', '33-827858Q', 'X20EPR-U9']
+  },
+  {
+    type: 'Bougie allumage BPR6ES / BPR6EFS',
+    brands: ['mercruiser', 'volvo penta'],
+    models: ['3.0', '4.3', '5.0', '5.7', '7.4', 'GL', 'GS'],
+    refs: ['BPR6ES', 'BPR6EFS', '33-862029', '3851857', 'TR55', 'IT16']
+  },
+
+  // --- HUILES MARINES ---
+  {
+    type: 'Huile moteur 4T 10W30 / 10W40 FC-W',
+    brands: ['yamaha', 'mercury', 'suzuki', 'honda', 'tohatsu', 'selva'],
+    models: ['F15', 'F20', 'F25', 'F40', 'F50', 'F60', 'F70', 'F80', 'F100', 'F115', 'F150', 'F200', 'F225', 'F250', 'F300', 'DF40', 'DF60', 'DF90', 'DF115', 'DF140', 'DF150', 'DF200', 'BF40', 'BF50', 'BF90', 'BF115', 'BF150', 'BF200', 'BF250'],
+    refs: ['10W30', '10W40', 'FC-W', 'YAMALUBE', 'QUICKSILVER 10W30', 'ECSTAR 10W40']
+  },
+  {
+    type: 'Huile embase SAE 90 / 75W90 GL4-GL5',
+    brands: ['yamaha', 'mercury', 'mercruiser', 'suzuki', 'honda', 'volvo penta', 'tohatsu'],
+    models: ['ALPHA', 'BRAVO', 'SX', 'DP', 'F40', 'F50', 'F60', 'F80', 'F100', 'F115', 'F150', 'F200', 'F250', 'DF90', 'DF115', 'DF140', 'DF200', 'BF90', 'BF150', 'BF250'],
+    refs: ['SAE90', '80W90', '75W90', 'HIGH PERFORMANCE GEAR LUBE', '92-858064Q01', 'ACC-GEARL-UB-QT']
+  }
 ];
 
 let boats = [], stock = [], unsubs = [];
@@ -487,16 +731,78 @@ function startListeners() {
   }, e => console.error('settings', e)));
 }
 
-/* ===== MOTEUR DE DÉTECTION AUTOMATIQUE DE COMPATIBILITÉ ===== */
-function detectBrandsInText(txt) {
-  const low = norm(txt);
-  const found = new Set();
-  KNOWN_BRANDS.forEach(br => {
-    if (new RegExp(`(^|[^a-z0-9])${br.replace(/\s+/g, '\\s+')}([^a-z0-9]|$)`, 'i').test(low)) {
-      found.add(br === 'mariner' ? 'mercury' : br === 'volvo' ? 'volvo penta' : br);
+/* ============================================================================
+   MOTEUR DE RECHERCHE DANS LA BASE DE DONNÉES COMPATIBILITÉS & ÉQUIVALENCES
+   ============================================================================ */
+function lookupDbEntries(part) {
+  const rawTxt = [part.name, part.ref, part.brand, part.models].filter(Boolean).join(' ');
+  const cleanedTxt = cleanRef(rawTxt);
+  const lowTxt = norm(rawTxt);
+
+  const matches = [];
+  MARINE_PARTS_DB.forEach(entry => {
+    const matchedRefs = entry.refs.filter(r => {
+      const cr = cleanRef(r);
+      if (cr.length >= 4 && cleanedTxt.includes(cr)) return true;
+      if (r.length >= 4 && lowTxt.includes(norm(r))) return true;
+      return false;
+    });
+    if (matchedRefs.length) {
+      matches.push({ entry, matchedRefs });
     }
   });
-  return [...found];
+  return matches;
+}
+
+function getPartKnowledge(part) {
+  const dbHits = lookupDbEntries(part);
+  const brands = new Set();
+  const models = new Set();
+  const equivRefs = new Set();
+  let detectedType = '';
+
+  dbHits.forEach(({ entry }) => {
+    if (!detectedType) detectedType = entry.type;
+    entry.brands.forEach(b => brands.add(b));
+    entry.models.forEach(m => models.add(m));
+    entry.refs.forEach(r => equivRefs.add(r));
+  });
+
+  // Détection texte libre complémentaire
+  const txt = norm([part.name, part.ref, part.brand, part.models].filter(Boolean).join(' '));
+  const brandAliases = [
+    ['yamaha', /\byamaha\b/],
+    ['mercury', /\b(mercury|mariner|quicksilver)\b/],
+    ['mercruiser', /\bmercruiser\b/],
+    ['suzuki', /\bsuzuki\b/],
+    ['honda', /\bhonda\b/],
+    ['volvo penta', /\b(volvo\s*penta|volvo)\b/],
+    ['yanmar', /\byanmar\b/],
+    ['bmw marine', /\b(bmw\s*marine|bmw|d636|d530)\b/],
+    ['tohatsu', /\btohatsu\b/],
+    ['evinrude', /\b(evinrude|johnson|omc)\b/],
+    ['selva', /\bselva\b/],
+    ['vetus', /\bvetus\b/]
+  ];
+  brandAliases.forEach(([bName, re]) => { if (re.test(txt)) brands.add(bName); });
+
+  return {
+    dbHits,
+    detectedType,
+    brands: [...brands],
+    models: [...models],
+    equivRefs: [...equivRefs]
+  };
+}
+
+function normalizeBoatBrand(raw) {
+  const b = norm(raw);
+  if (!b) return '';
+  if (b.includes('mariner') || b.includes('quicksilver')) return 'mercury';
+  if (b.includes('volvo')) return 'volvo penta';
+  if (b.includes('bmw')) return 'bmw marine';
+  if (b.includes('johnson') || b.includes('omc')) return 'evinrude';
+  return b;
 }
 
 function extractModelTokens(engineModel) {
@@ -508,51 +814,86 @@ function extractModelTokens(engineModel) {
 }
 
 function autoMatchPart(part, boat) {
-  const partText = [part.name, part.ref, part.cat, part.brand, part.models].filter(Boolean).join(' ');
-  const partLow = norm(partText);
-  const detectedBrands = detectBrandsInText(partText);
-
-  const bBrand = norm(boat.engineBrand);
+  const know = getPartKnowledge(part);
+  const partText = norm([part.name, part.ref, part.cat, part.brand, part.models].filter(Boolean).join(' '));
+  const bBrand = normalizeBoatBrand(boat.engineBrand);
   const bModel = norm(boat.engineModel);
+  const bModelClean = cleanRef(boat.engineModel);
   const bFuel = norm(boat.fuel);
   const modelTokens = extractModelTokens(boat.engineModel);
 
-  // Vérifie si la pièce cible explicitement un modèle moteur du bateau
+  // Vérification carburant
+  const mentions2T = /\b(2\s*t|2-temps|deux\s*temps|optimax|etec|e-tec)\b/i.test(partText);
+  if (bFuel.includes('diesel') && (mentions2T || /\b(bougie|bobine|carburateur)\b/i.test(partText))) {
+    return { tier: 'other', reason: '', know };
+  }
+
+  // 1. Correspondance via la base de données OEM / Adaptables
+  if (know.dbHits.length) {
+    const brandOk = !bBrand || know.brands.includes(bBrand) || (bBrand === 'mercruiser' && know.brands.includes('mercury'));
+    if (brandOk) {
+      const modelHit = know.models.find(m => {
+        const cm = cleanRef(m);
+        return (bModelClean && (bModelClean.includes(cm) || cm.includes(bModelClean))) ||
+               modelTokens.some(tok => norm(m) === tok || norm(m).includes(tok));
+      });
+      if (modelHit) {
+        return { tier: 'match', reason: `Base OEM/Équiv : ${modelHit}`, know };
+      }
+      if (bBrand && know.brands.includes(bBrand)) {
+        return { tier: 'match', reason: `Base OEM/Équiv : ${boat.engineBrand}`, know };
+      }
+    } else if (bBrand) {
+      return { tier: 'other', reason: '', know };
+    }
+  }
+
+  // 2. Correspondance directe par tokens de modèle dans le nom/réf
   const matchedModelToken = modelTokens.find(tok => {
     const re = new RegExp(`(^|[^a-z0-9])${tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`, 'i');
-    return re.test(partLow);
+    return re.test(partText);
   });
-
-  // Vérifie cohérence carburant si mentionné explicitement
-  const mentions2T = /\b(2\s*t|2-temps|deux\s*temps|2stroke|optimax|etec|e-tec)\b/i.test(partLow);
-  const mentions4T = /\b(4\s*t|4-temps|quatre\s*temps|4stroke|verado|fourstroke)\b/i.test(partLow);
-  if (bFuel.includes('diesel') && (mentions2T || /\b(bougie\s*allumage|bobine\s*allumage|carburateur|essence\s*2t)\b/i.test(partLow))) {
-    return { tier: 'other', reason: '' };
+  if (matchedModelToken && (!know.brands.length || !bBrand || know.brands.includes(bBrand))) {
+    return { tier: 'match', reason: `Auto : ${boat.engineModel || matchedModelToken}`, know };
   }
 
-  // 1. Correspondance directe de modèle (ou marque + modèle)
-  if (matchedModelToken && (!detectedBrands.length || !bBrand || detectedBrands.includes(bBrand))) {
-    return { tier: 'match', reason: `Auto : ${boat.engineModel || matchedModelToken}` };
+  // 3. Correspondance de marque seule
+  if (bBrand && know.brands.includes(bBrand)) {
+    return { tier: 'match', reason: `Auto : ${boat.engineBrand}`, know };
   }
 
-  // 2. Correspondance de marque détectée automatiquement dans la pièce
-  if (bBrand && detectedBrands.includes(bBrand)) {
-    return { tier: 'match', reason: `Auto : ${boat.engineBrand}` };
+  // 4. Autre marque explicite -> non compatible
+  if (know.brands.length && bBrand && !know.brands.includes(bBrand)) {
+    return { tier: 'other', reason: '', know };
   }
 
-  // 3. Si une AUTRE marque est explicitement détectée sur la pièce, ce n'est pas pour ce moteur
-  if (detectedBrands.length && bBrand && !detectedBrands.includes(bBrand)) {
-    return { tier: 'other', reason: '' };
-  }
-
-  // 4. Consommables / pièces sans marque spécifique (huiles, filtres universels, anodes, durites, etc.)
-  const isConsumable = isOil(part) || /\b(filtre|turbine|pompe|courroie|anode|bougie|joint|durite|collier|fusible|batterie|relais|cosses|silicone|wd40|nettoyant|degrippant)\b/i.test(partLow);
+  // 5. Consommables génériques / universels
+  const isConsumable = isOil(part) || /\b(filtre|turbine|pompe|courroie|anode|bougie|joint|durite|collier|fusible|batterie|relais|cosses|silicone|wd40|nettoyant|degrippant)\b/i.test(partText);
   if (isConsumable || part.cat === 'Huiles & Chimie' || part.cat === 'Sécurité' || part.cat === 'Castillage' || part.cat === 'Électricité') {
-    return { tier: 'univ', reason: 'Auto : consommable / générique' };
+    return { tier: 'univ', reason: 'Universel / Consommable', know };
   }
 
-  return { tier: 'other', reason: '' };
+  return { tier: 'other', reason: '', know };
 }
+
+window.previewPartMatch = () => {
+  const el = $('s-auto-preview');
+  if (!el) return;
+  const fakePart = { name: $('s-name').value, ref: $('s-ref').value, cat: $('s-cat').value };
+  const know = getPartKnowledge(fakePart);
+  if (!know.brands.length && !know.models.length) {
+    el.innerHTML = '';
+    return;
+  }
+  const brTxt = know.brands.map(b => b.toUpperCase()).join(', ');
+  const modTxt = know.models.slice(0, 8).join(', ') + (know.models.length > 8 ? '...' : '');
+  const eqTxt = know.equivRefs.slice(0, 6).join(', ');
+  el.innerHTML = `<div class="equiv-box">
+    <b>🤖 Reconnaissance base pièces :</b> ${know.detectedType ? esc(know.detectedType) + ' • ' : ''}${brTxt ? 'Marques : <b>' + esc(brTxt) + '</b>' : ''}
+    ${modTxt ? `<br>Moteurs : ${esc(modTxt)}` : ''}
+    ${eqTxt ? `<br>Équivalences : ${esc(eqTxt)}` : ''}
+  </div>`;
+};
 
 /* ===== Paramètres Tarifs & Entreprise ===== */
 window.openSettingsModal = () => {
@@ -683,8 +1024,10 @@ function renderBoats() {
 }
 
 function stockCard(s) {
-  const autoBrands = detectBrandsInText([s.name, s.ref, s.brand, s.models].filter(Boolean).join(' '));
-  const tagTxt = autoBrands.length ? autoBrands.map(x => x.toUpperCase()).join(' · ') : '';
+  const know = getPartKnowledge(s);
+  const tagTxt = know.brands.length ? know.brands.map(x => x.toUpperCase()).join(' · ') : '';
+  const modPreview = know.models.length ? know.models.slice(0, 5).join(', ') + (know.models.length > 5 ? '...' : '') : '';
+  const equivPreview = know.equivRefs.filter(r => cleanRef(r) !== cleanRef(s.ref)).slice(0, 4).join(', ');
   const buy = Number(s.buyPrice) || 0;
   const sell = Number(s.sellPrice) || 0;
   const margin = sell - buy;
@@ -697,6 +1040,10 @@ function stockCard(s) {
         <div style="font-size:.75rem;color:var(--sec)">${esc(s.cat)}${tagTxt ? ' • 🤖 ' + esc(tagTxt) : ''}</div></div>
       <div class="sq ${Number(s.qty) <= Number(s.min) ? 'low' : ''}">${fmt(s.qty)}${isOil(s) ? ' L' : ''}</div>
     </div>
+    ${(modPreview || equivPreview) ? `<div class="equiv-box">
+      ${modPreview ? `⚙️ Moteurs : <b>${esc(modPreview)}</b>` : ''}
+      ${equivPreview ? `${modPreview ? '<br>' : ''}🔄 Équiv. : ${esc(equivPreview)}` : ''}
+    </div>` : ''}
     <div class="grid2">
       <div>📥 Achat : <b>${eur(buy)}</b></div>
       <div>🏷️ Vente : <b style="color:var(--cy)">${eur(sell)}</b></div>
@@ -712,12 +1059,15 @@ function stockCard(s) {
 }
 
 function renderStock() {
-  const list = stock.filter(s => match(query(), s.name, s.ref, s.cat, s.brand, s.models)).sort(byName);
+  const list = stock.filter(s => {
+    const know = getPartKnowledge(s);
+    return match(query(), s.name, s.ref, s.cat, s.brand, s.models, know.brands.join(' '), know.models.join(' '), know.equivRefs.join(' '));
+  }).sort(byName);
   if (!list.length) { $('v-stock').innerHTML = `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune pièce en stock.</div>`; return; }
   const groups = {};
   list.forEach(s => {
-    const found = detectBrandsInText([s.name, s.ref, s.brand, s.models].filter(Boolean).join(' '));
-    const k = found.length ? found[0].replace(/\b\w/g, c => c.toUpperCase()) : NOBRAND;
+    const know = getPartKnowledge(s);
+    const k = know.brands.length ? know.brands[0].replace(/\b\w/g, c => c.toUpperCase()) : NOBRAND;
     (groups[k] = groups[k] || []).push(s);
   });
   const keys = Object.keys(groups).sort((a, b) => a === NOBRAND ? 1 : b === NOBRAND ? -1 : a.localeCompare(b));
@@ -796,7 +1146,7 @@ window.switchTab = t => {
     $('v-' + x).classList.toggle('hide', x !== t);
   });
   $('inv-filters').classList.toggle('hide', t !== 'factures');
-  $('sub').textContent = t === 'flotte' ? 'Gestion de flotte' : t === 'stock' ? 'Stock (détection auto)' : 'Suivi des factures';
+  $('sub').textContent = t === 'flotte' ? 'Gestion de flotte' : t === 'stock' ? 'Stock & Base OEM/Équiv.' : 'Suivi des factures';
   $('search').value = '';
   renderMetrics(); renderBoats(); renderStock(); renderInvoices();
 };
@@ -815,7 +1165,7 @@ window.openBoatDetail = id => {
 window.backToFlotte = () => {
   activeBoatId = null;
   $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
-  $('sub').textContent = tab === 'flotte' ? 'Gestion de flotte' : tab === 'stock' ? 'Stock (détection auto)' : 'Suivi des factures';
+  $('sub').textContent = tab === 'flotte' ? 'Gestion de flotte' : tab === 'stock' ? 'Stock & Base OEM/Équiv.' : 'Suivi des factures';
   renderAll();
 };
 
@@ -896,10 +1246,10 @@ function renderChecklist() {
   };
 
   let html = '';
-  html += `<div class="sec-t">🤖 Détectées pour ${esc(engineTxt(b))} (${matched.length})</div>`;
+  html += `<div class="sec-t">🤖 Compatibles & équivalences pour ${esc(engineTxt(b))} (${matched.length})</div>`;
   html += matched.length
     ? matched.map(x => row(x, 'match')).join('')
-    : `<div class="lbl" style="margin-top:6px">Aucune pièce détectée spécifiquement pour ce moteur dans le stock.</div>`;
+    : `<div class="lbl" style="margin-top:6px">Aucune pièce spécifique détectée dans ton stock pour ce moteur.</div>`;
 
   if (uni.length) html += `<div class="sec-t">Consommables & génériques (${uni.length})</div>` + uni.map(x => row(x, 'uni')).join('');
   if (oth.length) html += `<details><summary>Autres pièces / autres moteurs (${oth.length})</summary>${oth.map(x => row(x, 'oth')).join('')}</details>`;
@@ -1473,6 +1823,7 @@ window.openStockModal = id => {
   $('s-sell').value = s && s.sellPrice != null ? s.sellPrice : '';
   $('s-qty').value = s ? s.qty : ''; $('s-min').value = s ? s.min : ''; $('s-loc').value = s ? s.loc || '' : '';
   $('s-file').value = '';
+  previewPartMatch();
   $('stock-modal').classList.add('active');
 };
 window.saveStock = async () => {
