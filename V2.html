@@ -375,10 +375,10 @@ const fmt = n => Math.round((Number(n) || 0) * 100) / 100;
 const eur = n => (Number(n) || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const norm = s => String(s || '').trim().toLowerCase();
 const cleanRef = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-const isFilterOrPart = s => /\b(filtre|filter|cartouche|crepine|crépine|turbine|bougie|joint|durite|courroie|anode)\b/i.test(`${s.name || ''} ${s.cat || ''}`);
-const isOil = s => !isFilterOrPart(s) && (s.cat === 'Huiles & Chimie' || /\b(huile|oil|10w|5w|15w|20w|80w|90|2t|4t|graisse|grease|liquide|antigel|refroidissement)\b/i.test(s.name || ''));
-const isGearOil = s => !isFilterOrPart(s) && /\b(embase|gear|80w90|75w90|sae\s*90|transmission)\b/i.test(s.name || '');
-const isEngineOil = s => !isFilterOrPart(s) && isOil(s) && !isGearOil(s) && /\b(huile|oil|10w|5w|15w|20w|4t|moteur)\b/i.test(s.name || '');
+const isFilter = s => /(filtre|filter|cartouche|crepine|crépine|turbine)/i.test(`${s.name || ''} ${s.cat || ''}`);
+const isGearOil = s => !isFilter(s) && /\b(embase|gear|80w90|75w90|sae\s*90|transmission)\b/i.test(s.name || '');
+const isEngineOil = s => !isFilter(s) && !isGearOil(s) && (s.cat === 'Huiles & Chimie' || /\b(huile|oil|10w|5w|15w|20w|4t|moteur)\b/i.test(s.name || ''));
+const isOil = s => isGearOil(s) || isEngineOil(s) || (!isFilter(s) && /\b(2t|graisse|grease|liquide|antigel|refroidissement)\b/i.test(s.name || ''));
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
 const NOBRAND = 'Détection auto / Universel';
 
