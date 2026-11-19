@@ -950,7 +950,7 @@ function renderBoatDetail() {
 }
 
 function getSuggestedQty(s, oilSpec) {
-  if (oilSpec) {
+  if (oilSpec && !isFilter(s)) {
     if (isGearOil(s) && oilSpec.gearL > 0) return oilSpec.gearL;
     if (isEngineOil(s) && oilSpec.engineL > 0) return oilSpec.engineL;
   }
@@ -1002,7 +1002,7 @@ function renderChecklist() {
     let qtyVal = suggestedQty;
     if (st) {
       if (st.manualQty && st.q !== '') qtyVal = st.q;
-      else if (oilSpec && (isGearOil(s) || isEngineOil(s))) qtyVal = suggestedQty;
+      else if (oilSpec && !isFilter(s) && (isGearOil(s) || isEngineOil(s))) qtyVal = suggestedQty;
       else if (st.q !== '') qtyVal = st.q;
     }
 
@@ -1010,8 +1010,8 @@ function renderChecklist() {
     const isChecked = st ? !!st.c : false;
     const isGearFlag = isGearOil(s) ? '1' : '0';
     const isEngFlag = isEngineOil(s) ? '1' : '0';
-    const oilBadge = (oilSpec && isGearOil(s)) ? `<span class="auto-tag">Embase : ${oilSpec.gearL} L</span>`
-      : (oilSpec && isEngineOil(s)) ? `<span class="auto-tag">Moteur : ${oilSpec.engineL} L</span>` : '';
+    const oilBadge = (!isFilter(s) && oilSpec && isGearOil(s)) ? `<span class="auto-tag">Embase : ${oilSpec.gearL} L</span>`
+      : (!isFilter(s) && oilSpec && isEngineOil(s)) ? `<span class="auto-tag">Moteur : ${oilSpec.engineL} L</span>` : '';
 
     return `<div class="row">
       <input type="checkbox" class="kit-cb" data-grp="${grp}" data-gear="${isGearFlag}" data-engine="${isEngFlag}" data-id="${s.id}" ${isChecked ? 'checked' : ''} onchange="syncChecklistStateFromDom();updateLiveTotal()">
