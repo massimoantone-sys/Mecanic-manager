@@ -233,7 +233,7 @@ async function safe(fn, okMsg) {
 window.login = async () => {
   $('l-err').textContent = '';
   try { await signInWithEmailAndPassword(auth, $('l-email').value.trim(), $('l-pass').value); $('l-pass').value = ''; }
-  catch (e) { $('l-err').textContent = "E-mail ou mot de passe incorrect."; }
+  catch (e) { console.error(e); $('l-err').textContent = "Connexion refusée : " + (e.code || e.message); }
 };
 window.logout = () => signOut(auth);
 
@@ -650,3 +650,5 @@ window.backup = () => {
   toast('Sauvegarde téléchargée');
 };
 </script>
+</body>
+</html>
