@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V7</title>
+<title>Meca Manager V8</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -62,7 +62,8 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .detail{padding:16px;display:flex;flex-direction:column;gap:14px;max-width:800px;margin:0 auto}
 .box{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:15px;display:flex;flex-direction:column;gap:10px}
 .hist{background:rgba(11,19,43,.6);padding:12px;border-radius:8px;border-left:4px solid var(--green);font-size:.85rem;margin-top:8px;display:flex;flex-direction:column;gap:6px}
-.sec-t{font-size:.82rem;font-weight:800;color:var(--green);margin-top:6px}
+.sec-t{font-size:.82rem;font-weight:800;color:var(--green);margin-top:8px}
+.auto-tag{display:inline-block;font-size:.68rem;padding:2px 6px;border-radius:6px;background:rgba(46,196,182,.15);color:var(--green);border:1px solid rgba(46,196,182,.4);margin-left:4px;font-weight:700}
 .row{display:flex;align-items:center;gap:8px;background:var(--bg);padding:9px 10px;border-radius:8px;border:1px solid var(--bd);font-size:.83rem;margin-top:6px;flex-wrap:wrap}
 .row input[type=checkbox]{width:20px;height:20px;accent-color:var(--green);flex-shrink:0}
 .qin{width:58px;padding:6px 4px;background:var(--card);border:1px solid var(--bd);border-radius:6px;color:#fff;text-align:center;font-size:.82rem}
@@ -189,8 +190,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
     </div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-      <label class="lbl" style="color:var(--green);font-weight:700">Pièces (Qté & Prix revente € ajustables) :</label>
-      <button class="btn b-s hbtn" onclick="checkEngineParts()">Cocher moteur</button>
+      <label class="lbl" style="color:var(--green);font-weight:700">Pièces détectées automatiquement :</label>
+      <button class="btn b-s hbtn" onclick="checkEngineParts()">Cocher auto</button>
     </div>
     <div id="checklist"></div>
 
@@ -269,11 +270,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <!-- Modal stock (ajout + modif) -->
 <div class="modal" id="stock-modal"><div class="mc">
   <h2 id="s-title">Nouvelle référence</h2>
-  <input id="s-name" class="inp" placeholder="Nom de la pièce ou huile *">
-  <input id="s-ref" class="inp" placeholder="Référence">
-  <label class="lbl">Marque du moteur concerné (vide = universelle) :</label>
-  <input id="s-brand" class="inp" list="brands" placeholder="Ex : Yamaha">
-  <input id="s-models" class="inp" placeholder="Modèles compatibles (ex : F115, F150) — vide = tous">
+  <input id="s-name" class="inp" placeholder="Nom ou réf. de la pièce * (l'appli détecte le moteur)">
+  <input id="s-ref" class="inp" placeholder="Référence constructeur">
   <select id="s-cat"><option value="Moteur / Filtres">Moteur & filtres</option><option value="Huiles & Chimie">Huiles & lubrifiants (L)</option><option value="Électricité">Électricité & batterie</option><option value="Sécurité">Sécurité</option><option value="Castillage">Accastillage</option></select>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
     <div>
@@ -432,9 +430,14 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const fmt = n => Math.round((Number(n) || 0) * 10) / 10;
 const eur = n => (Number(n) || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const norm = s => String(s || '').trim().toLowerCase();
-const isOil = s => s.cat === 'Huiles & Chimie';
+const isOil = s => s.cat === 'Huiles & Chimie' || /\b(huile|oil|10w|5w|15w|20w|80w|90|2t|4t|graisse|grease|liquide|antigel|refroidissement)\b/i.test(s.name || '');
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
-const NOBRAND = 'Universel / non classé';
+const NOBRAND = 'Détection auto / Universel';
+
+const KNOWN_BRANDS = [
+  'yamaha', 'mercury', 'mariner', 'suzuki', 'honda', 'volvo penta', 'volvo',
+  'yanmar', 'tohatsu', 'evinrude', 'johnson', 'mercruiser', 'bmw', 'selva', 'vetus', 'cummins', 'kohler', 'onan'
+];
 
 let boats = [], stock = [], unsubs = [];
 let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bizLegal: 'TVA non applicable, art. 293 B du CGI', nextInvNum: 1 };
@@ -484,6 +487,73 @@ function startListeners() {
   }, e => console.error('settings', e)));
 }
 
+/* ===== MOTEUR DE DÉTECTION AUTOMATIQUE DE COMPATIBILITÉ ===== */
+function detectBrandsInText(txt) {
+  const low = norm(txt);
+  const found = new Set();
+  KNOWN_BRANDS.forEach(br => {
+    if (new RegExp(`(^|[^a-z0-9])${br.replace(/\s+/g, '\\s+')}([^a-z0-9]|$)`, 'i').test(low)) {
+      found.add(br === 'mariner' ? 'mercury' : br === 'volvo' ? 'volvo penta' : br);
+    }
+  });
+  return [...found];
+}
+
+function extractModelTokens(engineModel) {
+  return String(engineModel || '')
+    .toLowerCase()
+    .split(/[\s\-_/,;()]+/)
+    .map(t => t.trim())
+    .filter(t => t.length >= 2 && /[a-z0-9]/.test(t));
+}
+
+function autoMatchPart(part, boat) {
+  const partText = [part.name, part.ref, part.cat, part.brand, part.models].filter(Boolean).join(' ');
+  const partLow = norm(partText);
+  const detectedBrands = detectBrandsInText(partText);
+
+  const bBrand = norm(boat.engineBrand);
+  const bModel = norm(boat.engineModel);
+  const bFuel = norm(boat.fuel);
+  const modelTokens = extractModelTokens(boat.engineModel);
+
+  // Vérifie si la pièce cible explicitement un modèle moteur du bateau
+  const matchedModelToken = modelTokens.find(tok => {
+    const re = new RegExp(`(^|[^a-z0-9])${tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`, 'i');
+    return re.test(partLow);
+  });
+
+  // Vérifie cohérence carburant si mentionné explicitement
+  const mentions2T = /\b(2\s*t|2-temps|deux\s*temps|2stroke|optimax|etec|e-tec)\b/i.test(partLow);
+  const mentions4T = /\b(4\s*t|4-temps|quatre\s*temps|4stroke|verado|fourstroke)\b/i.test(partLow);
+  if (bFuel.includes('diesel') && (mentions2T || /\b(bougie\s*allumage|bobine\s*allumage|carburateur|essence\s*2t)\b/i.test(partLow))) {
+    return { tier: 'other', reason: '' };
+  }
+
+  // 1. Correspondance directe de modèle (ou marque + modèle)
+  if (matchedModelToken && (!detectedBrands.length || !bBrand || detectedBrands.includes(bBrand))) {
+    return { tier: 'match', reason: `Auto : ${boat.engineModel || matchedModelToken}` };
+  }
+
+  // 2. Correspondance de marque détectée automatiquement dans la pièce
+  if (bBrand && detectedBrands.includes(bBrand)) {
+    return { tier: 'match', reason: `Auto : ${boat.engineBrand}` };
+  }
+
+  // 3. Si une AUTRE marque est explicitement détectée sur la pièce, ce n'est pas pour ce moteur
+  if (detectedBrands.length && bBrand && !detectedBrands.includes(bBrand)) {
+    return { tier: 'other', reason: '' };
+  }
+
+  // 4. Consommables / pièces sans marque spécifique (huiles, filtres universels, anodes, durites, etc.)
+  const isConsumable = isOil(part) || /\b(filtre|turbine|pompe|courroie|anode|bougie|joint|durite|collier|fusible|batterie|relais|cosses|silicone|wd40|nettoyant|degrippant)\b/i.test(partLow);
+  if (isConsumable || part.cat === 'Huiles & Chimie' || part.cat === 'Sécurité' || part.cat === 'Castillage' || part.cat === 'Électricité') {
+    return { tier: 'univ', reason: 'Auto : consommable / générique' };
+  }
+
+  return { tier: 'other', reason: '' };
+}
+
 /* ===== Paramètres Tarifs & Entreprise ===== */
 window.openSettingsModal = () => {
   $('cfg-rate').value = cfg.hourlyRate ?? 60;
@@ -510,17 +580,6 @@ window.saveSettings = () => {
     closeModals();
   }, 'Tarifs et paramètres enregistrés');
 };
-
-/* ===== Compatibilité pièce <-> moteur ===== */
-function compat(part, boat) {
-  const pb = norm(part.brand);
-  if (!pb) return 'univ';
-  if (pb !== norm(boat.engineBrand)) return false;
-  const models = String(part.models || '').split(/[,;\n]/).map(norm).filter(Boolean);
-  const bm = norm(boat.engineModel);
-  if (!models.length || !bm) return true;
-  return models.some(m => bm.includes(m) || m.includes(bm));
-}
 
 /* ===== Rappel de révision ===== */
 function reminder(b) {
@@ -624,7 +683,8 @@ function renderBoats() {
 }
 
 function stockCard(s) {
-  const eng = [s.brand, s.models].filter(Boolean).join(' · ');
+  const autoBrands = detectBrandsInText([s.name, s.ref, s.brand, s.models].filter(Boolean).join(' '));
+  const tagTxt = autoBrands.length ? autoBrands.map(x => x.toUpperCase()).join(' · ') : '';
   const buy = Number(s.buyPrice) || 0;
   const sell = Number(s.sellPrice) || 0;
   const margin = sell - buy;
@@ -634,7 +694,7 @@ function stockCard(s) {
       ${s.img ? `<img class="thumb" src="${esc(s.img)}" alt="">` : `<div class="thumb">📦</div>`}
       <div style="flex:1;overflow:hidden"><div class="ct" style="font-size:1.02rem">${esc(s.name)}</div>
         <div class="cs">Réf : ${esc(s.ref) || 'N/A'}</div>
-        <div style="font-size:.75rem;color:var(--sec)">${esc(s.cat)}${eng ? ' • 🔧 ' + esc(eng) : ''}</div></div>
+        <div style="font-size:.75rem;color:var(--sec)">${esc(s.cat)}${tagTxt ? ' • 🤖 ' + esc(tagTxt) : ''}</div></div>
       <div class="sq ${Number(s.qty) <= Number(s.min) ? 'low' : ''}">${fmt(s.qty)}${isOil(s) ? ' L' : ''}</div>
     </div>
     <div class="grid2">
@@ -655,7 +715,11 @@ function renderStock() {
   const list = stock.filter(s => match(query(), s.name, s.ref, s.cat, s.brand, s.models)).sort(byName);
   if (!list.length) { $('v-stock').innerHTML = `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune pièce en stock.</div>`; return; }
   const groups = {};
-  list.forEach(s => { const k = (s.brand || '').trim() || NOBRAND; (groups[k] = groups[k] || []).push(s); });
+  list.forEach(s => {
+    const found = detectBrandsInText([s.name, s.ref, s.brand, s.models].filter(Boolean).join(' '));
+    const k = found.length ? found[0].replace(/\b\w/g, c => c.toUpperCase()) : NOBRAND;
+    (groups[k] = groups[k] || []).push(s);
+  });
   const keys = Object.keys(groups).sort((a, b) => a === NOBRAND ? 1 : b === NOBRAND ? -1 : a.localeCompare(b));
   $('v-stock').innerHTML = keys.map(k => `<div class="gh">${esc(k)}<span>${groups[k].length} réf.</span></div>` + groups[k].map(stockCard).join('')).join('');
 }
@@ -732,7 +796,7 @@ window.switchTab = t => {
     $('v-' + x).classList.toggle('hide', x !== t);
   });
   $('inv-filters').classList.toggle('hide', t !== 'factures');
-  $('sub').textContent = t === 'flotte' ? 'Gestion de flotte' : t === 'stock' ? 'Stock par marque de moteur' : 'Suivi des factures';
+  $('sub').textContent = t === 'flotte' ? 'Gestion de flotte' : t === 'stock' ? 'Stock (détection auto)' : 'Suivi des factures';
   $('search').value = '';
   renderMetrics(); renderBoats(); renderStock(); renderInvoices();
 };
@@ -751,7 +815,7 @@ window.openBoatDetail = id => {
 window.backToFlotte = () => {
   activeBoatId = null;
   $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
-  $('sub').textContent = tab === 'flotte' ? 'Gestion de flotte' : tab === 'stock' ? 'Stock par marque de moteur' : 'Suivi des factures';
+  $('sub').textContent = tab === 'flotte' ? 'Gestion de flotte' : tab === 'stock' ? 'Stock (détection auto)' : 'Suivi des factures';
   renderAll();
 };
 
@@ -806,15 +870,22 @@ function renderChecklist() {
     const p = document.querySelector(`[data-price="${cb.dataset.id}"]`);
     keep[cb.dataset.id] = { c: cb.checked, q: q ? q.value : '1', p: p ? p.value : '' };
   });
-  const eng = [], uni = [], oth = [];
-  stock.slice().sort(byName).forEach(s => { const m = compat(s, b); (m === 'univ' ? uni : m ? eng : oth).push(s); });
-  const row = (s, grp) => {
+
+  const matched = [], uni = [], oth = [];
+  stock.slice().sort(byName).forEach(s => {
+    const res = autoMatchPart(s, b);
+    if (res.tier === 'match') matched.push({ s, reason: res.reason });
+    else if (res.tier === 'univ') uni.push({ s, reason: res.reason });
+    else oth.push({ s, reason: '' });
+  });
+
+  const row = ({ s, reason }, grp) => {
     const defaultPrice = s.sellPrice != null && s.sellPrice !== '' ? s.sellPrice : 0;
     const k = keep[s.id] || { c: false, q: 1, p: defaultPrice };
     const priceVal = k.p !== '' ? k.p : defaultPrice;
     return `<div class="row">
       <input type="checkbox" class="kit-cb" data-grp="${grp}" data-id="${s.id}" ${k.c ? 'checked' : ''} onchange="updateLiveTotal()">
-      <span style="flex:1;min-width:130px">${esc(s.name)}<br><small style="color:var(--sec)">Réf : ${esc(s.ref) || 'N/A'} • dispo : ${fmt(s.qty)}${isOil(s) ? ' L' : ''}</small></span>
+      <span style="flex:1;min-width:130px">${esc(s.name)}${reason ? `<span class="auto-tag">${esc(reason)}</span>` : ''}<br><small style="color:var(--sec)">Réf : ${esc(s.ref) || 'N/A'} • dispo : ${fmt(s.qty)}${isOil(s) ? ' L' : ''}</small></span>
       <div style="display:flex;align-items:center;gap:4px">
         <input type="number" step="0.1" value="${esc(k.q)}" class="qin" data-qty="${s.id}" title="Quantité" oninput="updateLiveTotal()">
         <span style="font-size:.75rem;color:var(--sec)">×</span>
@@ -823,21 +894,22 @@ function renderChecklist() {
       </div>
     </div>`;
   };
+
   let html = '';
-  if (!b.engineBrand) html += `<div class="note">Renseigne la marque du moteur (bouton ✏️ Modifier) pour voir ici les pièces qui lui correspondent.</div>`;
-  else {
-    html += `<div class="sec-t">Pièces pour ${esc(engineTxt(b))}</div>`;
-    html += eng.length ? eng.map(s => row(s, 'eng')).join('') : `<div class="lbl" style="margin-top:6px">Aucune pièce enregistrée pour cette marque.</div>`;
-  }
-  if (uni.length) html += `<div class="sec-t">Pièces universelles (huile, etc.)</div>` + uni.map(s => row(s, 'uni')).join('');
-  if (oth.length) html += `<details><summary>Autres marques (${oth.length})</summary>${oth.map(s => row(s, 'oth')).join('')}</details>`;
+  html += `<div class="sec-t">🤖 Détectées pour ${esc(engineTxt(b))} (${matched.length})</div>`;
+  html += matched.length
+    ? matched.map(x => row(x, 'match')).join('')
+    : `<div class="lbl" style="margin-top:6px">Aucune pièce détectée spécifiquement pour ce moteur dans le stock.</div>`;
+
+  if (uni.length) html += `<div class="sec-t">Consommables & génériques (${uni.length})</div>` + uni.map(x => row(x, 'uni')).join('');
+  if (oth.length) html += `<details><summary>Autres pièces / autres moteurs (${oth.length})</summary>${oth.map(x => row(x, 'oth')).join('')}</details>`;
   if (!stock.length) html = `<span class="lbl">Aucune pièce en stock</span>`;
   $('checklist').innerHTML = html;
   updateLiveTotal();
 }
 
 window.checkEngineParts = () => {
-  document.querySelectorAll('.kit-cb[data-grp="eng"]').forEach(cb => cb.checked = true);
+  document.querySelectorAll('.kit-cb[data-grp="match"]').forEach(cb => cb.checked = true);
   updateLiveTotal();
 };
 
@@ -1010,10 +1082,19 @@ window.cancelInvoiceFromPreview = () => {
 function populateStockDropdown() {
   const sel = $('ed-stock-pick');
   if (!sel) return;
-  const sorted = stock.slice().sort(byName);
-  sel.innerHTML = `<option value="">+ Pièce du stock...</option>` + sorted.map(s =>
-    `<option value="${esc(s.id)}">${esc(s.name)} (${eur(s.sellPrice || 0)})</option>`
-  ).join('');
+  const b = currentInvRef ? boats.find(x => x.id === currentInvRef.boatId) : null;
+  const sorted = stock.slice().sort((a, x) => {
+    if (b) {
+      const ma = autoMatchPart(a, b).tier === 'match' ? 0 : 1;
+      const mx = autoMatchPart(x, b).tier === 'match' ? 0 : 1;
+      if (ma !== mx) return ma - mx;
+    }
+    return byName(a, x);
+  });
+  sel.innerHTML = `<option value="">+ Pièce du stock...</option>` + sorted.map(s => {
+    const tag = b && autoMatchPart(s, b).tier === 'match' ? ' 🤖' : '';
+    return `<option value="${esc(s.id)}">${esc(s.name)}${tag} (${eur(s.sellPrice || 0)})</option>`;
+  }).join('');
 }
 
 window.addSelectedStockLine = sel => {
@@ -1387,7 +1468,6 @@ window.openStockModal = id => {
   const s = id ? stock.find(x => x.id === id) : null;
   $('s-title').textContent = s ? 'Modifier la référence' : 'Nouvelle référence';
   $('s-name').value = s ? s.name || '' : ''; $('s-ref').value = s ? s.ref || '' : '';
-  $('s-brand').value = s ? s.brand || '' : ''; $('s-models').value = s ? s.models || '' : '';
   $('s-cat').value = s ? s.cat || 'Moteur / Filtres' : 'Moteur / Filtres';
   $('s-buy').value = s && s.buyPrice != null ? s.buyPrice : '';
   $('s-sell').value = s && s.sellPrice != null ? s.sellPrice : '';
@@ -1400,7 +1480,7 @@ window.saveStock = async () => {
   if (!name || isNaN(qty)) return alert('Nom et quantité requis.');
   const btn = $('s-save'); btn.disabled = true;
   const data = {
-    name, ref: $('s-ref').value.trim(), brand: $('s-brand').value.trim(), models: $('s-models').value.trim(),
+    name, ref: $('s-ref').value.trim(),
     cat: $('s-cat').value,
     buyPrice: parseFloat($('s-buy').value) || 0,
     sellPrice: parseFloat($('s-sell').value) || 0,
