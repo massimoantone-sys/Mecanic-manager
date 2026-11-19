@@ -35,6 +35,9 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .day-pill .d-wk{font-size:.68rem;text-transform:uppercase}
 .day-pill .d-num{font-size:1rem;font-weight:800}
 .day-pill .d-dot{font-size:.68rem}
+.recap-boat{background:rgba(11,19,43,.55);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.recap-boat-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.recap-item{font-size:.8rem;color:#ffd6dc;padding-left:6px;border-left:2px solid var(--red)}
 .list{padding:0 16px;display:flex;flex-direction:column;gap:14px}
 @media(min-width:768px){.list{display:grid;grid-template-columns:1fr 1fr;align-items:start}.list.hide{display:none!important}}
 .gh{grid-column:1/-1;font-size:.95rem;font-weight:800;color:var(--cy);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--bd);padding:10px 2px 6px;margin-top:6px}
@@ -172,11 +175,22 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 
   <div class="box">
     <h3 style="font-size:1rem;color:var(--cy)">🛠️ Saisie entretien & facturation</h3>
-    <input id="m-desc" class="inp" placeholder="Description (ex : Révision 100h)">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div><label class="lbl">Nouv. heures moteur</label><input id="m-hours" type="number" step="0.1" class="inp" placeholder="Ex : 245.5"></div>
-      <div><label class="lbl">Prochaine révision dans (h)</label><input id="m-next" type="number" step="1" class="inp" placeholder="Ex : 100"></div>
+      <div>
+        <label class="lbl">Type de maintenance</label>
+        <select id="m-type" onchange="onBoatMaintTypeChange()">
+          <option value="Maintenance 100h">Maintenance 100h</option>
+          <option value="Maintenance 300h">Maintenance 300h</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">Nouv. heures moteur</label>
+        <input id="m-hours" type="number" step="0.1" class="inp" placeholder="Ex : 245.5">
+      </div>
     </div>
+    <input id="m-custom-type" class="inp hide" placeholder="Préciser le type d'entretien (ex : Turbine, Diagnostic...)" oninput="onBoatCustomTypeInput()">
+    <input id="m-desc" class="inp" placeholder="Description (ex : Révision 100h)">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div><label class="lbl">Main d'œuvre (heures)</label><input id="m-labor" type="number" step="0.25" class="inp" placeholder="Ex : 2.5" oninput="updateLiveTotal()"></div>
       <div><label class="lbl">Tarif horaire appliqué (€/h)</label><input id="m-rate" type="number" step="0.5" class="inp" oninput="updateLiveTotal()"></div>
@@ -881,6 +895,18 @@ function getNeededPartsForBoat(boat, maintType) {
   });
 }
 
+function getDeadlineInfo(isoDateStr) {
+  if (!isoDateStr) return { diffDays: 9999, label: 'Date non définie', cls: 'ok' };
+  const today = new Date(toISODay(new Date()) + 'T00:00:00');
+  const target = new Date(isoDateStr + 'T00:00:00');
+  const diffDays = Math.round((target - today) / 86400000);
+  if (diffDays < 0) return { diffDays, label: `En retard de ${Math.abs(diffDays)} j`, cls: 'late' };
+  if (diffDays === 0) return { diffDays, label: "Échéance aujourd'hui", cls: 'soon' };
+  if (diffDays === 1) return { diffDays, label: 'Échéance demain', cls: 'soon' };
+  if (diffDays <= 7) return { diffDays, label: `Dans ${diffDays} jours`, cls: 'soon' };
+  return { diffDays, label: `Dans ${diffDays} jours`, cls: 'ok' };
+}
+
 function renderAll() {
   renderMetrics();
   if (!activeBoatId) { renderBoats(); renderPlanning(); renderStock(); renderInvoices(); }
@@ -899,15 +925,15 @@ function renderMetrics() {
       <button class="btn-add" onclick="openBoatModal()">+ Ajouter un bateau</button>`;
   } else if (tab === 'planning') {
     const selDate = planningDay || toISODay(new Date());
-    const dayItems = planning.filter(p => p.date === selDate && !p.done);
-    let missingCount = 0;
-    dayItems.forEach(p => {
+    const openItems = planning.filter(p => !p.done);
+    let totalMissing = 0;
+    openItems.forEach(p => {
       const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName, engineBrand: p.engineLabel, engineModel: '' };
-      missingCount += getNeededPartsForBoat(b, p.maintType).filter(c => !c.ok).length;
+      totalMissing += getNeededPartsForBoat(b, p.maintType).filter(c => !c.ok).length;
     });
     $('metrics').innerHTML = `
-      <div class="metric"><div class="metric-t">INTERVENTIONS DU JOUR 📅</div><div class="metric-v">${dayItems.length}</div></div>
-      <div class="metric"><div class="metric-t">PIÈCES À COMMANDER 🛒</div><div class="metric-v" style="color:${missingCount ? '#ff4d6d' : '#2ec4b6'}">${missingCount}</div></div>
+      <div class="metric"><div class="metric-t">ENTRETIENS PLANIFIÉS 📅</div><div class="metric-v">${openItems.length}</div></div>
+      <div class="metric"><div class="metric-t">PIÈCES À COMMANDER 🛒</div><div class="metric-v" style="color:${totalMissing ? '#ff4d6d' : '#2ec4b6'}">${totalMissing}</div></div>
       <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openPlanningModal('${esc(selDate)}')">+ Programmer une maintenance bateau</button>`;
   } else if (tab === 'stock') {
     const valAchat = stock.reduce((acc, s) => acc + (Number(s.qty) || 0) * (Number(s.buyPrice) || 0), 0);
@@ -1025,6 +1051,74 @@ window.changePlanningDay = (deltaDays) => {
   renderAll();
 };
 
+function renderOrderRecapByBoat(q) {
+  const openItems = planning
+    .filter(p => !p.done && p.date)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+  const byBoat = new Map();
+  openItems.forEach(p => {
+    const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName || 'Bateau', engineBrand: p.engineLabel, engineModel: '' };
+    if (q && !match(q, b.name, p.maintType, p.engineLabel)) return;
+    const missing = getNeededPartsForBoat(b, p.maintType).filter(c => !c.ok);
+    if (!missing.length) return;
+    const key = b.id || b.name;
+    const dl = getDeadlineInfo(p.date);
+    if (!byBoat.has(key)) {
+      byBoat.set(key, { boat: b, entries: [] });
+    }
+    byBoat.get(key).entries.push({
+      planId: p.id,
+      date: p.date,
+      maintType: p.maintType,
+      dl,
+      missing
+    });
+  });
+
+  if (!byBoat.size) {
+    return `<div class="card" style="grid-column:1/-1">
+      <div style="font-weight:800;color:var(--green)">🛒 Récapitulatif pièces à commander par bateau</div>
+      <div style="font-size:.82rem;color:var(--sec)">Aucune pièce manquante sur les entretiens planifiés.</div>
+    </div>`;
+  }
+
+  const boatBlocks = [...byBoat.values()]
+    .sort((a, b) => {
+      const minA = Math.min(...a.entries.map(e => e.dl.diffDays));
+      const minB = Math.min(...b.entries.map(e => e.dl.diffDays));
+      return minA - minB || byName(a.boat, b.boat);
+    })
+    .map(({ boat, entries }) => {
+      const entryHtml = entries.map(en => {
+        const prettyD = new Date(en.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        return `<div class="recap-boat">
+          <div class="recap-boat-head">
+            <span style="font-weight:700;color:#fff">🛠️ ${esc(en.maintType)} — Prévu le <b>${esc(prettyD)}</b></span>
+            <span class="badge ${en.dl.cls === 'late' ? 's-atelier' : en.dl.cls === 'soon' ? 'st-relance' : 's-hangar'}">${esc(en.dl.label)}</span>
+          </div>
+          ${en.missing.map(m => `<div class="recap-item">• <b>${esc(m.name)}</b> (Réf : <b>${esc(m.ref)}</b>) — manque <b>${fmt(m.missingQty)} ${esc(m.unit)}</b> (dispo ${fmt(m.availQty)} ${esc(m.unit)})</div>`).join('')}
+        </div>`;
+      }).join('');
+
+      return `<div style="border-top:1px solid var(--bd);padding-top:10px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <div>
+            <span style="font-weight:800;font-size:1rem;color:var(--cy)">⛵ ${esc(boat.name)}</span>
+            <span style="font-size:.78rem;color:var(--sec);margin-left:6px">(${esc(engineTxt(boat))})</span>
+          </div>
+          ${boat.id ? `<button class="btn b-p hbtn" style="font-size:.74rem;padding:5px 9px" onclick="openBoatDetail('${boat.id}')">Fiche bateau</button>` : ''}
+        </div>
+        ${entryHtml}
+      </div>`;
+    }).join('');
+
+  return `<div class="card" style="grid-column:1/-1;border-color:var(--red)">
+    <div style="font-weight:800;color:#ff8d99;font-size:.98rem">🛒 Pièces à commander par bateau (échéance vs date d'entretien)</div>
+    ${boatBlocks}
+  </div>`;
+}
+
 function renderPlanning() {
   const selDate = planningDay || toISODay(new Date());
   const q = query();
@@ -1065,8 +1159,10 @@ function renderPlanning() {
     <button class="btn b-p" style="margin-top:4px" onclick="openPlanningModal('${esc(selDate)}')">+ Programmer une maintenance bateau</button>
   </div>`;
 
+  const recapBlock = renderOrderRecapByBoat(q);
+
   if (!dayItems.length) {
-    $('v-planning').innerHTML = headerBar + `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--sec)">Aucune intervention prévue ce jour.</div>`;
+    $('v-planning').innerHTML = headerBar + recapBlock + `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--sec)">Aucune intervention prévue ce jour.</div>`;
     return;
   }
 
@@ -1074,6 +1170,7 @@ function renderPlanning() {
     const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName, engineBrand: p.engineLabel, engineModel: '' };
     const checks = getNeededPartsForBoat(b, p.maintType);
     const missing = checks.filter(c => !c.ok);
+    const dl = getDeadlineInfo(p.date);
 
     return `<div class="card" style="${p.done ? 'opacity:.65' : ''}">
       <div class="ch">
@@ -1081,7 +1178,10 @@ function renderPlanning() {
           <div class="ct">⛵ ${esc(b.name || p.boatName)}</div>
           <div class="cs">${esc(p.maintType)} • ⚙️ ${esc(engineTxt(b))}</div>
         </div>
-        <span class="badge ${p.done ? 's-eau' : 's-atelier'}">${p.done ? 'Terminé' : 'À faire'}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span class="badge ${p.done ? 's-eau' : 's-atelier'}">${p.done ? 'Terminé' : 'À faire'}</span>
+          ${!p.done ? `<span class="badge ${dl.cls === 'late' ? 's-atelier' : dl.cls === 'soon' ? 'st-relance' : 's-hangar'}">${esc(dl.label)}</span>` : ''}
+        </div>
       </div>
       ${p.note ? `<div style="font-size:.82rem;color:var(--sec)">📝 ${esc(p.note)}</div>` : ''}
       ${missing.length
@@ -1098,7 +1198,7 @@ function renderPlanning() {
     </div>`;
   }).join('');
 
-  $('v-planning').innerHTML = headerBar + cardsHtml;
+  $('v-planning').innerHTML = headerBar + recapBlock + cardsHtml;
 }
 
 function stockCard(s) {
@@ -1226,6 +1326,27 @@ window.switchTab = t => {
   renderMetrics(); renderBoats(); renderPlanning(); renderStock(); renderInvoices();
 };
 
+window.onBoatMaintTypeChange = () => {
+  const val = $('m-type')?.value;
+  $('m-custom-type')?.classList.toggle('hide', val !== 'Autre');
+  if (val === 'Maintenance 100h') {
+    $('m-desc').value = 'Maintenance 100h';
+  } else if (val === 'Maintenance 300h') {
+    $('m-desc').value = 'Maintenance 300h';
+  } else {
+    $('m-desc').value = $('m-custom-type')?.value.trim() || '';
+  }
+  const b = boats.find(x => x.id === activeBoatId);
+  const spec = getEngineOilSpec(b);
+  applyEngineOilAndParts(spec ? spec.engineL : 0, spec ? spec.gearL : 0);
+};
+
+window.onBoatCustomTypeInput = () => {
+  if ($('m-type')?.value === 'Autre') {
+    $('m-desc').value = $('m-custom-type')?.value.trim() || '';
+  }
+};
+
 window.openBoatDetail = id => {
   activeBoatId = id;
   checklistState = {};
@@ -1233,6 +1354,12 @@ window.openBoatDetail = id => {
   const b = boats.find(x => x.id === id);
   $('upcoming').value = (b && b.upcomingWorks) || '';
   if ($('part-filter')) $('part-filter').value = '';
+  $('m-type').value = 'Maintenance 100h';
+  $('m-custom-type').value = '';
+  $('m-custom-type').classList.add('hide');
+  $('m-desc').value = 'Maintenance 100h';
+  $('m-hours').value = '';
+  $('m-labor').value = '';
   $('m-rate').value = cfg.hourlyRate ?? 60;
   $('m-disc').value = '';
   renderBoatDetail(); renderChecklist(); updateLiveTotal();
@@ -1468,7 +1595,6 @@ window.saveMaintenance = async (openInvAfter = false) => {
   }
   const labor = parseFloat($('m-labor').value) || 0;
   const hourlyRate = parseFloat($('m-rate').value) || 0;
-  const nextIn = parseFloat($('m-next').value);
 
   const batch = writeBatch(db);
   const used = [], short = [], items = [];
@@ -1509,9 +1635,7 @@ window.saveMaintenance = async (openInvAfter = false) => {
     invoice: { number: invNumber, issuedAt: now.toLocaleDateString('fr-FR'), status: 'impayee' }
   };
 
-  const upd = { hours, logs: arrayUnion(log) };
-  if (!isNaN(nextIn) && nextIn > 0) upd.nextServiceHours = hours + nextIn;
-  batch.update(doc(db, 'boats', b.id), upd);
+  batch.update(doc(db, 'boats', b.id), { hours, logs: arrayUnion(log) });
   batch.set(doc(db, 'settings', 'general'), { nextInvNum: invSeq + 1 }, { merge: true });
 
   const btn1 = $('save-maint'), btn2 = $('save-maint-inv');
@@ -1519,7 +1643,10 @@ window.saveMaintenance = async (openInvAfter = false) => {
 
   try {
     await batch.commit();
-    ['m-desc', 'm-hours', 'm-labor', 'm-next', 'm-disc'].forEach(i => $(i).value = '');
+    ['m-desc', 'm-custom-type', 'm-hours', 'm-labor', 'm-disc'].forEach(i => $(i).value = '');
+    $('m-type').value = 'Maintenance 100h';
+    $('m-custom-type').classList.add('hide');
+    $('m-desc').value = 'Maintenance 100h';
     $('m-rate').value = cfg.hourlyRate ?? 60;
     checklistState = {};
     document.querySelectorAll('.kit-cb').forEach(cb => cb.checked = false);
