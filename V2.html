@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V5</title>
+<title>Meca Manager V6</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -317,12 +317,16 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 </div></div>
 
 <!-- Modal Édition Complète d'une Facture -->
-<div class="modal" id="inv-editor-modal"><div class="mc" style="max-width:560px">
+<div class="modal" id="inv-editor-modal"><div class="mc" style="max-width:580px">
   <h2>✏️ Modifier la facture</h2>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
     <div>
       <label class="lbl">N° Facture</label>
       <input id="ed-inv-num" class="inp">
+    </div>
+    <div>
+      <label class="lbl">Date</label>
+      <input id="ed-inv-date" class="inp" placeholder="JJ/MM/AAAA">
     </div>
     <div>
       <label class="lbl">Statut</label>
@@ -349,9 +353,12 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
     </div>
   </div>
 
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">
     <label class="lbl" style="color:var(--green);font-weight:700">Lignes pièces & prestations :</label>
-    <button type="button" class="btn b-s hbtn" onclick="addEditorLine()">+ Ajouter une ligne</button>
+    <div style="display:flex;gap:6px">
+      <button type="button" class="btn b-s hbtn" onclick="addStockLinePrompt()">+ Pièce du stock</button>
+      <button type="button" class="btn b-p hbtn" onclick="addEditorLine()">+ Ligne libre</button>
+    </div>
   </div>
   <div id="ed-inv-lines" style="display:flex;flex-direction:column;gap:8px"></div>
 
@@ -775,7 +782,6 @@ function renderBoatDetail() {
   }).join('') : `<div style="font-size:.85rem;color:var(--sec);margin-top:6px">Aucune maintenance enregistrée.</div>`;
 }
 
-// Liste des pièces avec quantité ET prix de revente modifiable à la volée
 function renderChecklist() {
   const b = boats.find(x => x.id === activeBoatId); if (!b) return;
   const keep = {};
@@ -984,6 +990,7 @@ window.openEditInvoice = (boatId, logIdx) => {
   const l = b.logs[logIdx];
 
   $('ed-inv-num').value = l.invoice?.number || `FAC-${new Date().getFullYear()}-${logIdx + 1}`;
+  $('ed-inv-date').value = l.invoice?.issuedAt || l.date || new Date().toLocaleDateString('fr-FR');
   $('ed-inv-status').value = l.invoice?.status || 'impayee';
   $('ed-inv-desc').value = l.desc || '';
   $('ed-inv-labor').value = l.laborHours ?? 0;
@@ -1021,6 +1028,26 @@ function appendEditorLine(it = {}) {
 
 window.addEditorLine = () => appendEditorLine({ label: '', ref: '', qty: 1, unit: 'u', unitPrice: 0 });
 
+window.addStockLinePrompt = () => {
+  if (!stock.length) return alert('Aucune pièce en stock.');
+  const choices = stock.slice().sort(byName).map((s, idx) => `${idx + 1}. ${s.name} (${eur(s.sellPrice || 0)})`).join('\n');
+  const ans = prompt(`Numéro de la pièce à ajouter :\n${choices}`);
+  if (!ans) return;
+  const idx = parseInt(ans, 10) - 1;
+  const sorted = stock.slice().sort(byName);
+  const s = sorted[idx];
+  if (!s) return alert('Numéro invalide.');
+  appendEditorLine({
+    label: s.name,
+    ref: s.ref || '',
+    qty: 1,
+    unit: isOil(s) ? 'L' : 'u',
+    unitPrice: Number(s.sellPrice) || 0,
+    total: Number(s.sellPrice) || 0
+  });
+  recalcEditorTotals();
+};
+
 window.recalcEditorTotals = () => {
   const labor = parseFloat($('ed-inv-labor')?.value) || 0;
   const rate = parseFloat($('ed-inv-rate')?.value) || 0;
@@ -1046,6 +1073,7 @@ window.saveEditedInvoice = () => {
   if (!b || !b.logs || !b.logs[logIdx]) return;
 
   const invNumber = $('ed-inv-num').value.trim() || `FAC-${new Date().getFullYear()}-${logIdx + 1}`;
+  const issuedAt = $('ed-inv-date').value.trim() || b.logs[logIdx].invoice?.issuedAt || b.logs[logIdx].date;
   const status = $('ed-inv-status').value;
   const desc = $('ed-inv-desc').value.trim() || b.logs[logIdx].desc;
   const laborHours = parseFloat($('ed-inv-labor').value) || 0;
@@ -1098,7 +1126,7 @@ window.saveEditedInvoice = () => {
       invoice: {
         ...(l.invoice || {}),
         number: invNumber,
-        issuedAt: l.invoice?.issuedAt || l.date,
+        issuedAt,
         status,
         note
       }
@@ -1108,7 +1136,7 @@ window.saveEditedInvoice = () => {
   safe(async () => {
     await updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs });
     closeModals();
-  }, 'Facture enregistrée');
+  }, 'Facture mise à jour');
 };
 
 /* ===== Aperçu & PDF Facture ===== */
