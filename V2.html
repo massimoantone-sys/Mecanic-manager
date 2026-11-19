@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V6</title>
+<title>Meca Manager V7</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -35,6 +35,7 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .gh{grid-column:1/-1;font-size:.95rem;font-weight:800;color:var(--cy);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--bd);padding:10px 2px 6px;margin-top:6px}
 .gh span{color:var(--sec);font-weight:600;font-size:.8rem;margin-left:6px}
 .card{background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:10px}
+.card.is-cancelled{opacity:.72;border-style:dashed}
 .ch{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .ct{font-size:1.1rem;font-weight:700;word-break:break-word}
 .cs{font-size:.85rem;color:var(--cy);font-weight:600}
@@ -83,7 +84,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 .ed-line{background:rgba(11,19,43,.65);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
 
 /* ===== Style Facture (écran + PDF) ===== */
-.inv-paper{background:#fff;color:#111;padding:26px;border-radius:8px;font-size:.84rem;line-height:1.45}
+.inv-paper{background:#fff;color:#111;padding:26px;border-radius:8px;font-size:.84rem;line-height:1.45;position:relative}
 .inv-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0b132b;padding-bottom:14px;margin-bottom:16px;gap:12px}
 .inv-title{font-size:1.4rem;font-weight:800;color:#0b132b;text-transform:uppercase}
 .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
@@ -96,6 +97,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 .inv-tot div{display:flex;justify-content:space-between}
 .inv-tot .grand{font-size:1.05rem;font-weight:800;border-top:2px solid #0b132b;padding-top:6px;color:#0b132b}
 .inv-foot{margin-top:22px;padding-top:10px;border-top:1px solid #dce2ec;font-size:.72rem;color:#555;text-align:center}
+.stamp-cancel{color:#c1121f;border:2px solid #c1121f;padding:2px 8px;border-radius:4px;font-weight:800;font-size:.78rem;display:inline-block;margin-top:4px;text-transform:uppercase}
 
 @media print{
   body *{visibility:hidden}
@@ -142,6 +144,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
     <button class="fchip" data-f="impayee" onclick="setInvFilter('impayee')">🔴 Non payées</button>
     <button class="fchip" data-f="relance" onclick="setInvFilter('relance')">🟠 Relancées</button>
     <button class="fchip" data-f="payee" onclick="setInvFilter('payee')">🟢 Payées</button>
+    <button class="fchip" data-f="annulee" onclick="setInvFilter('annulee')">⚪ Annulées</button>
   </div>
   <section class="list" id="v-flotte"></section>
   <section class="list hide" id="v-stock"></section>
@@ -355,8 +358,10 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 
   <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">
     <label class="lbl" style="color:var(--green);font-weight:700">Lignes pièces & prestations :</label>
-    <div style="display:flex;gap:6px">
-      <button type="button" class="btn b-s hbtn" onclick="addStockLinePrompt()">+ Pièce du stock</button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <select id="ed-stock-pick" style="width:auto;max-width:175px;padding:6px 8px;font-size:.78rem" onchange="addSelectedStockLine(this)">
+        <option value="">+ Pièce du stock...</option>
+      </select>
       <button type="button" class="btn b-p hbtn" onclick="addEditorLine()">+ Ligne libre</button>
     </div>
   </div>
@@ -395,7 +400,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <div class="mb no-print" style="margin-top:0;margin-bottom:8px;flex-wrap:wrap">
     <button class="btn b-s" onclick="closeModals()">Fermer</button>
     <button class="btn b-p" onclick="openEditInvoiceFromPreview()">✏️ Modifier</button>
-    <button class="btn b-g" onclick="downloadInvoicePDF()">⬇️ Télécharger PDF</button>
+    <button class="btn b-o" onclick="cancelInvoiceFromPreview()">🚫 Annuler</button>
+    <button class="btn b-g" onclick="downloadInvoicePDF()">⬇️ PDF</button>
   </div>
   <div id="invoice-render"></div>
 </div></div>
@@ -666,7 +672,7 @@ function renderInvoices() {
   if (invFilter !== 'all') list = list.filter(i => i.status === invFilter);
 
   $('v-factures').innerHTML = list.length ? list.map(i => `
-    <div class="card">
+    <div class="card ${i.status === 'annulee' ? 'is-cancelled' : ''}">
       <div class="ch">
         <div>
           <div class="ct">${esc(i.number)} <span style="font-size:.8rem;color:var(--sec);font-weight:400">• ${esc(i.date)}</span></div>
@@ -680,14 +686,15 @@ function renderInvoices() {
         <div>${i.log.discountAmount > 0 ? `🏷️ Remise : <b>-${eur(i.log.discountAmount)}</b>` : '🏷️ Sans remise'}</div>
       </div>
       <div class="actions">
-        <select style="flex:1;padding:8px;font-size:.78rem" onchange="changeInvoiceStatus('${i.boatId}', ${i.logIdx}, this.value)">
+        <select style="flex:1;min-width:120px;padding:8px;font-size:.78rem" onchange="changeInvoiceStatus('${i.boatId}', ${i.logIdx}, this.value)">
           <option value="impayee" ${i.status === 'impayee' ? 'selected' : ''}>🔴 Non payée</option>
           <option value="relance" ${i.status === 'relance' ? 'selected' : ''}>🟠 Relancée</option>
           <option value="payee" ${i.status === 'payee' ? 'selected' : ''}>🟢 Payée</option>
           <option value="annulee" ${i.status === 'annulee' ? 'selected' : ''}>⚪ Annulée</option>
         </select>
-        <button class="btn b-s hbtn" onclick="openEditInvoice('${i.boatId}', ${i.logIdx})">✏️</button>
-        <button class="btn b-p hbtn" onclick="openInvoice('${i.boatId}', ${i.logIdx})">🧾 PDF</button>
+        <button class="btn b-s hbtn" title="Modifier" onclick="openEditInvoice('${i.boatId}', ${i.logIdx})">✏️ Modifier</button>
+        <button class="btn b-p hbtn" title="Aperçu / PDF" onclick="openInvoice('${i.boatId}', ${i.logIdx})">🧾 PDF</button>
+        <button class="btn b-d hbtn" title="Supprimer" onclick="deleteInvoice('${i.boatId}', ${i.logIdx})">🗑</button>
       </div>
     </div>`).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune facture correspondante.</div>`;
 }
@@ -701,6 +708,15 @@ window.changeInvoiceStatus = (boatId, logIdx, newStatus) => {
     return { ...l, invoice: { ...inv, status: newStatus, updatedAt: new Date().toLocaleDateString('fr-FR') } };
   });
   safe(() => updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs }), `Statut : ${invStatusLabel(newStatus)}`);
+};
+
+window.deleteInvoice = (boatId, logIdx) => {
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs || !b.logs[logIdx]) return;
+  const num = b.logs[logIdx].invoice?.number || 'cette facture';
+  if (!confirm(`Supprimer définitivement ${num} de l'historique ?`)) return;
+  const updatedLogs = b.logs.filter((_, idx) => idx !== logIdx);
+  safe(() => updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs }), 'Facture supprimée');
 };
 
 $('search').oninput = () => {
@@ -983,11 +999,47 @@ window.openEditInvoiceFromPreview = () => {
   openEditInvoice(boatId, logIdx);
 };
 
+window.cancelInvoiceFromPreview = () => {
+  if (!currentInvRef) return;
+  const { boatId, logIdx } = currentInvRef;
+  if (!confirm('Passer cette facture au statut Annulée ?')) return;
+  changeInvoiceStatus(boatId, logIdx, 'annulee');
+  closeModals();
+};
+
+function populateStockDropdown() {
+  const sel = $('ed-stock-pick');
+  if (!sel) return;
+  const sorted = stock.slice().sort(byName);
+  sel.innerHTML = `<option value="">+ Pièce du stock...</option>` + sorted.map(s =>
+    `<option value="${esc(s.id)}">${esc(s.name)} (${eur(s.sellPrice || 0)})</option>`
+  ).join('');
+}
+
+window.addSelectedStockLine = sel => {
+  const id = sel.value;
+  if (!id) return;
+  const s = stock.find(x => x.id === id);
+  sel.value = '';
+  if (!s) return;
+  appendEditorLine({
+    label: s.name,
+    ref: s.ref || '',
+    qty: 1,
+    unit: isOil(s) ? 'L' : 'u',
+    unitPrice: Number(s.sellPrice) || 0,
+    total: Number(s.sellPrice) || 0
+  });
+  recalcEditorTotals();
+};
+
 window.openEditInvoice = (boatId, logIdx) => {
   const b = boats.find(x => x.id === boatId);
   if (!b || !b.logs || !b.logs[logIdx]) return;
   currentInvRef = { boatId, logIdx };
   const l = b.logs[logIdx];
+
+  populateStockDropdown();
 
   $('ed-inv-num').value = l.invoice?.number || `FAC-${new Date().getFullYear()}-${logIdx + 1}`;
   $('ed-inv-date').value = l.invoice?.issuedAt || l.date || new Date().toLocaleDateString('fr-FR');
@@ -1027,26 +1079,6 @@ function appendEditorLine(it = {}) {
 }
 
 window.addEditorLine = () => appendEditorLine({ label: '', ref: '', qty: 1, unit: 'u', unitPrice: 0 });
-
-window.addStockLinePrompt = () => {
-  if (!stock.length) return alert('Aucune pièce en stock.');
-  const choices = stock.slice().sort(byName).map((s, idx) => `${idx + 1}. ${s.name} (${eur(s.sellPrice || 0)})`).join('\n');
-  const ans = prompt(`Numéro de la pièce à ajouter :\n${choices}`);
-  if (!ans) return;
-  const idx = parseInt(ans, 10) - 1;
-  const sorted = stock.slice().sort(byName);
-  const s = sorted[idx];
-  if (!s) return alert('Numéro invalide.');
-  appendEditorLine({
-    label: s.name,
-    ref: s.ref || '',
-    qty: 1,
-    unit: isOil(s) ? 'L' : 'u',
-    unitPrice: Number(s.sellPrice) || 0,
-    total: Number(s.sellPrice) || 0
-  });
-  recalcEditorTotals();
-};
 
 window.recalcEditorTotals = () => {
   const labor = parseFloat($('ed-inv-labor')?.value) || 0;
@@ -1150,6 +1182,7 @@ window.openInvoice = (boatId, logIdx) => {
 function renderInvoiceModal(b, l) {
   const invNum = l.invoice?.number || `FAC-${new Date().getFullYear()}-PROV`;
   const invDate = l.invoice?.issuedAt || l.date || new Date().toLocaleDateString('fr-FR');
+  const isCancelled = l.invoice?.status === 'annulee';
   const rows = [];
 
   if (l.laborHours > 0) {
@@ -1203,6 +1236,7 @@ function renderInvoiceModal(b, l) {
           <div class="inv-title">FACTURE</div>
           <div style="font-weight:700;margin-top:4px">N° ${esc(invNum)}</div>
           <div style="color:#555;font-size:.8rem">Date : ${esc(invDate)}</div>
+          ${isCancelled ? `<div class="stamp-cancel">Annulée</div>` : ''}
         </div>
       </div>
 
