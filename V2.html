@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V2</title>
+<title>Meca Manager V3</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -20,7 +20,7 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:15px 16px}
 .metric{background:var(--card);padding:12px 15px;border-radius:12px;border:1px solid var(--bd)}
 .metric-t{font-size:.7rem;font-weight:700;color:var(--sec);margin-bottom:4px}
-.metric-v{font-size:1.6rem;font-weight:800;color:var(--cy)}
+.metric-v{font-size:1.5rem;font-weight:800;color:var(--cy)}
 .btn-add{grid-column:span 2;background:var(--blue);color:#fff;border:none;padding:14px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer}
 .alert{margin:0 16px 12px;background:rgba(230,57,70,.15);border:1px solid var(--red);color:#ff8d99;padding:10px 12px;border-radius:10px;font-size:.82rem}
 .note{background:rgba(247,127,0,.15);border:1px solid var(--or);color:#ffb366;padding:10px 12px;border-radius:10px;font-size:.82rem}
@@ -55,24 +55,49 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .bq{width:34px;height:34px;border-radius:8px;background:var(--bd);color:#fff;border:none;font-size:1.1rem;font-weight:700;cursor:pointer}
 .detail{padding:16px;display:flex;flex-direction:column;gap:14px;max-width:800px;margin:0 auto}
 .box{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:15px;display:flex;flex-direction:column;gap:10px}
-.hist{background:rgba(11,19,43,.6);padding:10px;border-radius:8px;border-left:4px solid var(--green);font-size:.85rem;margin-top:6px}
+.hist{background:rgba(11,19,43,.6);padding:12px;border-radius:8px;border-left:4px solid var(--green);font-size:.85rem;margin-top:8px;display:flex;flex-direction:column;gap:6px}
 .sec-t{font-size:.82rem;font-weight:800;color:var(--green);margin-top:6px}
-.row{display:flex;align-items:center;gap:10px;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--bd);font-size:.85rem;margin-top:6px}
-.row input[type=checkbox]{width:20px;height:20px;accent-color:var(--green)}
-.qin{width:64px;padding:5px;background:var(--card);border:1px solid var(--bd);border-radius:6px;color:#fff;text-align:center}
+.row{display:flex;align-items:center;gap:8px;background:var(--bg);padding:9px 10px;border-radius:8px;border:1px solid var(--bd);font-size:.83rem;margin-top:6px;flex-wrap:wrap}
+.row input[type=checkbox]{width:20px;height:20px;accent-color:var(--green);flex-shrink:0}
+.qin{width:58px;padding:6px 4px;background:var(--card);border:1px solid var(--bd);border-radius:6px;color:#fff;text-align:center;font-size:.82rem}
+.pin{width:72px;padding:6px 4px;background:var(--card);border:1px solid var(--cy);border-radius:6px;color:var(--cy);text-align:right;font-weight:700;font-size:.82rem}
+.tot-bar{background:rgba(0,180,216,.12);border:1px solid var(--cy);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;font-size:.9rem}
 details summary{font-size:.82rem;color:var(--sec);padding:8px 0;cursor:pointer}
 textarea,.inp,select{width:100%;padding:10px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:#fff;font-size:.88rem}
 textarea{min-height:80px;resize:vertical}
 nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 10px);backdrop-filter:blur(10px);z-index:50}
 .nav{display:flex;flex-direction:column;align-items:center;color:var(--sec);font-size:.75rem;gap:3px;background:none;border:none;cursor:pointer;flex:1}
 .nav.active{color:var(--cy);font-weight:700}.nav span:first-child{font-size:20px}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;align-items:center;justify-content:center;padding:16px}
 .modal.active{display:flex}
-.mc{background:var(--card);width:100%;max-width:440px;padding:20px;border-radius:16px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:10px;max-height:90vh;overflow-y:auto}
+.mc{background:var(--card);width:100%;max-width:460px;padding:20px;border-radius:16px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:10px;max-height:92vh;overflow-y:auto}
 .mc h2{font-size:1.1rem}.mb{display:flex;gap:10px;margin-top:8px}
-.lbl{font-size:.8rem;color:var(--sec)}
+.lbl{font-size:.78rem;color:var(--sec)}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);z-index:300;background:#12805c;color:#fff;padding:12px 14px;border-radius:12px;font-size:.85rem;font-weight:600}
 .toast.err{background:#c1121f}
+
+/* ===== Style Facture (écran + impression PDF) ===== */
+.inv-paper{background:#fff;color:#111;padding:28px;border-radius:8px;font-size:.85rem;line-height:1.45}
+.inv-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0b132b;padding-bottom:14px;margin-bottom:16px;gap:12px}
+.inv-title{font-size:1.4rem;font-weight:800;color:#0b132b;text-transform:uppercase}
+.inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.inv-box{background:#f4f6fa;padding:10px 12px;border-radius:6px;border:1px solid #dce2ec}
+.inv-tbl{width:100%;border-collapse:collapse;margin-bottom:16px}
+.inv-tbl th{background:#0b132b;color:#fff;text-align:left;padding:8px;font-size:.78rem}
+.inv-tbl td{padding:8px;border-bottom:1px solid #e2e8f0;font-size:.82rem}
+.inv-tbl .num{text-align:right;white-space:nowrap}
+.inv-tot{margin-left:auto;width:240px;display:flex;flex-direction:column;gap:5px;font-size:.88rem}
+.inv-tot div{display:flex;justify-content:space-between}
+.inv-tot .grand{font-size:1.05rem;font-weight:800;border-top:2px solid #0b132b;padding-top:6px;color:#0b132b}
+.inv-foot{margin-top:22px;padding-top:10px;border-top:1px solid #dce2ec;font-size:.72rem;color:#555;text-align:center}
+
+@media print{
+  body *{visibility:hidden}
+  #invoice-modal, #invoice-modal *{visibility:visible}
+  #invoice-modal{position:fixed;inset:0;background:#fff;padding:0;display:block!important}
+  #invoice-modal .mc{max-width:100%;max-height:none;border:none;padding:0;background:#fff;box-shadow:none}
+  .no-print{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -96,7 +121,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <header>
   <div class="app-title"><div class="app-icon">⚓</div><div><h1>Meca Manager</h1><div class="subtitle" id="sub">Gestion de flotte</div></div></div>
   <div style="display:flex;gap:6px">
-    <button class="btn b-s hbtn" onclick="backup()">💾</button>
+    <button class="btn b-s hbtn" title="Tarifs & Infos Facture" onclick="openSettingsModal()">⚙️</button>
+    <button class="btn b-s hbtn" title="Sauvegarde JSON" onclick="backup()">💾</button>
     <button class="btn b-s hbtn" onclick="logout()">Quitter</button>
   </div>
 </header>
@@ -123,22 +149,53 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   </div>
 
   <div class="box">
-    <h3 style="font-size:1rem;color:var(--cy)">🛠️ Saisie entretien</h3>
+    <h3 style="font-size:1rem;color:var(--cy)">🛠️ Saisie entretien & facturation</h3>
     <input id="m-desc" class="inp" placeholder="Description (ex : Révision 100h)">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <input id="m-hours" type="number" step="0.1" class="inp" placeholder="Nouv. heures moteur">
-      <input id="m-labor" type="number" step="0.5" class="inp" placeholder="Main d'œuvre (h)">
+      <div>
+        <label class="lbl">Nouv. heures moteur</label>
+        <input id="m-hours" type="number" step="0.1" class="inp" placeholder="Ex : 245.5">
+      </div>
+      <div>
+        <label class="lbl">Prochaine révision dans (h)</label>
+        <input id="m-next" type="number" step="1" class="inp" placeholder="Ex : 100">
+      </div>
     </div>
-    <input id="m-next" type="number" step="1" class="inp" placeholder="Prochaine révision dans (h) — ex : 100">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <label class="lbl" style="color:var(--green);font-weight:700">Pièces utilisées :</label>
-      <button class="btn b-s hbtn" onclick="checkEngineParts()">Cocher les pièces du moteur</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div>
+        <label class="lbl">Main d'œuvre (heures)</label>
+        <input id="m-labor" type="number" step="0.25" class="inp" placeholder="Ex : 2.5" oninput="updateLiveTotal()">
+      </div>
+      <div>
+        <label class="lbl">Tarif horaire appliqué (€/h)</label>
+        <input id="m-rate" type="number" step="0.5" class="inp" oninput="updateLiveTotal()">
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+      <label class="lbl" style="color:var(--green);font-weight:700">Pièces (Qté & Prix revente € ajustables) :</label>
+      <button class="btn b-s hbtn" onclick="checkEngineParts()">Cocher moteur</button>
     </div>
     <div id="checklist"></div>
-    <button id="save-maint" class="btn b-p" style="padding:12px" onclick="saveMaintenance()">Valider l'entretien & mettre à jour le stock</button>
+
+    <div class="tot-bar">
+      <div>
+        <div style="font-size:.75rem;color:var(--sec)">Total intervention estimé</div>
+        <div style="font-size:.75rem;color:var(--green)" id="live-margin">Marge brute : 0,00 €</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:1.15rem;font-weight:800;color:var(--cy)" id="live-total">0,00 €</div>
+        <div style="font-size:.72rem;color:var(--sec)" id="live-ttc"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button id="save-maint" class="btn b-p" style="padding:12px" onclick="saveMaintenance(false)">Valider entretien</button>
+      <button id="save-maint-inv" class="btn b-g" style="padding:12px" onclick="saveMaintenance(true)">Valider & Facturer 🧾</button>
+    </div>
   </div>
 
-  <div class="card"><h3 style="font-size:1rem">📋 Historique</h3><div id="history"></div></div>
+  <div class="card"><h3 style="font-size:1rem">📋 Historique & Factures</h3><div id="history"></div></div>
 </div>
 
 <nav id="nav">
@@ -151,7 +208,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <h2>Nouveau bateau</h2>
   <input id="b-name" class="inp" placeholder="Nom du bateau *">
   <input id="b-model" class="inp" placeholder="Marque & modèle du bateau *">
-  <input id="b-owner" class="inp" placeholder="Propriétaire & tél">
+  <input id="b-owner" class="inp" placeholder="Propriétaire, adresse & tél">
   <input id="b-immat" class="inp" placeholder="Immatriculation / CIN">
   <input id="b-ebrand" class="inp" list="brands" placeholder="Marque du moteur (ex : Yamaha)">
   <input id="b-emodel" class="inp" placeholder="Modèle du moteur (ex : F150)">
@@ -168,7 +225,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <h2>Modifier le bateau</h2>
   <input id="e-name" class="inp" placeholder="Nom *">
   <input id="e-model" class="inp" placeholder="Marque & modèle du bateau *">
-  <input id="e-owner" class="inp" placeholder="Propriétaire">
+  <input id="e-owner" class="inp" placeholder="Propriétaire, adresse & tél">
   <input id="e-immat" class="inp" placeholder="Immatriculation / CIN">
   <input id="e-ebrand" class="inp" list="brands" placeholder="Marque du moteur (ex : Yamaha)">
   <input id="e-emodel" class="inp" placeholder="Modèle du moteur (ex : F150)">
@@ -183,23 +240,68 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <h2 id="s-title">Nouvelle référence</h2>
   <input id="s-name" class="inp" placeholder="Nom de la pièce ou huile *">
   <input id="s-ref" class="inp" placeholder="Référence">
-  <label class="lbl">Marque du moteur concerné (vide = pièce universelle, ex : huile) :</label>
+  <label class="lbl">Marque du moteur concerné (vide = universelle) :</label>
   <input id="s-brand" class="inp" list="brands" placeholder="Ex : Yamaha">
   <input id="s-models" class="inp" placeholder="Modèles compatibles (ex : F115, F150) — vide = tous">
   <select id="s-cat"><option value="Moteur / Filtres">Moteur & filtres</option><option value="Huiles & Chimie">Huiles & lubrifiants (L)</option><option value="Électricité">Électricité & batterie</option><option value="Sécurité">Sécurité</option><option value="Castillage">Accastillage</option></select>
-  <input id="s-qty" type="number" step="0.1" class="inp" placeholder="Quantité *">
-  <input id="s-min" type="number" step="0.1" class="inp" placeholder="Alerte stock minimum">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div>
+      <label class="lbl">Prix d'achat unitaire (€)</label>
+      <input id="s-buy" type="number" step="0.01" class="inp" placeholder="Ex : 12.50">
+    </div>
+    <div>
+      <label class="lbl">Prix de revente (€)</label>
+      <input id="s-sell" type="number" step="0.01" class="inp" placeholder="Ex : 22.00">
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div>
+      <label class="lbl">Quantité en stock *</label>
+      <input id="s-qty" type="number" step="0.1" class="inp" placeholder="Ex : 5">
+    </div>
+    <div>
+      <label class="lbl">Alerte stock min</label>
+      <input id="s-min" type="number" step="0.1" class="inp" placeholder="Ex : 2">
+    </div>
+  </div>
   <input id="s-loc" class="inp" placeholder="Emplacement">
   <label class="lbl">Photo (optionnel, remplace l'ancienne) :</label>
   <input id="s-file" type="file" accept="image/*" class="inp">
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button id="s-save" class="btn b-p" onclick="saveStock()">Enregistrer</button></div>
 </div></div>
 
+<!-- Modal Tarifs & Paramètres entreprise -->
+<div class="modal" id="settings-modal"><div class="mc">
+  <h2>⚙️ Tarifs & Infos Facturation</h2>
+  <label class="lbl">Taux horaire main d'œuvre par défaut (€/h)</label>
+  <input id="cfg-rate" type="number" step="0.5" class="inp" placeholder="Ex : 65">
+  <label class="lbl">Taux de TVA (%) — mettre 0 si non assujetti</label>
+  <input id="cfg-vat" type="number" step="0.1" class="inp" placeholder="Ex : 0 ou 20">
+  <label class="lbl">Nom de ton entreprise</label>
+  <input id="cfg-biz" class="inp" placeholder="Ex : Meca Marine 44">
+  <label class="lbl">Adresse, Téléphone & E-mail</label>
+  <textarea id="cfg-addr" style="min-height:60px" placeholder="Adresse atelier&#10;Tél : 06...&#10;Email : ..."></textarea>
+  <label class="lbl">SIRET & Mentions légales (ex: TVA non applicable, art. 293 B du CGI)</label>
+  <textarea id="cfg-legal" style="min-height:60px" placeholder="SIRET : ...&#10;TVA non applicable, art. 293 B du CGI&#10;IBAN : ..."></textarea>
+  <label class="lbl">Prochain N° de facture</label>
+  <input id="cfg-invnum" type="number" step="1" class="inp" placeholder="1">
+  <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="saveSettings()">Enregistrer</button></div>
+</div></div>
+
+<!-- Modal Aperçu Facture -->
+<div class="modal" id="invoice-modal"><div class="mc" style="max-width:680px">
+  <div class="mb no-print" style="margin-top:0;margin-bottom:8px">
+    <button class="btn b-s" onclick="closeModals()">Fermer</button>
+    <button class="btn b-g" onclick="window.print()">🖨️ Imprimer / PDF</button>
+  </div>
+  <div id="invoice-render"></div>
+</div></div>
+
 <div id="toast" class="toast hide"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, writeBatch, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot, writeBatch, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -219,12 +321,14 @@ const auth = getAuth(app);
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => Math.round((Number(n) || 0) * 10) / 10;
+const eur = n => (Number(n) || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const norm = s => String(s || '').trim().toLowerCase();
 const isOil = s => s.cat === 'Huiles & Chimie';
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
 const NOBRAND = 'Universel / non classé';
 
 let boats = [], stock = [], unsubs = [];
+let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bizLegal: 'TVA non applicable, art. 293 B du CGI', nextInvNum: 1 };
 let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null;
 
 function toast(msg, err) {
@@ -263,10 +367,41 @@ function startListeners() {
     stock = s.docs.map(d => ({ id: d.id, ...d.data() }));
     renderAll(); if (activeBoatId) { renderChecklist(); renderBoatDetail(); }
   }, e => console.error('stock', e)));
+  unsubs.push(onSnapshot(doc(db, 'settings', 'general'), d => {
+    if (d.exists()) cfg = { ...cfg, ...d.data() };
+    if (activeBoatId && !$('m-rate').value) $('m-rate').value = cfg.hourlyRate;
+    updateLiveTotal();
+  }, e => console.error('settings', e)));
 }
 
+/* ===== Paramètres Tarifs & Entreprise ===== */
+window.openSettingsModal = () => {
+  $('cfg-rate').value = cfg.hourlyRate ?? 60;
+  $('cfg-vat').value = cfg.vatRate ?? 0;
+  $('cfg-biz').value = cfg.bizName || '';
+  $('cfg-addr').value = cfg.bizAddr || '';
+  $('cfg-legal').value = cfg.bizLegal || '';
+  $('cfg-invnum').value = cfg.nextInvNum || 1;
+  $('settings-modal').classList.add('active');
+};
+window.saveSettings = () => {
+  const data = {
+    hourlyRate: parseFloat($('cfg-rate').value) || 0,
+    vatRate: parseFloat($('cfg-vat').value) || 0,
+    bizName: $('cfg-biz').value.trim() || 'Meca Manager',
+    bizAddr: $('cfg-addr').value.trim(),
+    bizLegal: $('cfg-legal').value.trim(),
+    nextInvNum: parseInt($('cfg-invnum').value, 10) || 1
+  };
+  safe(async () => {
+    await setDoc(doc(db, 'settings', 'general'), data, { merge: true });
+    cfg = { ...cfg, ...data };
+    if (activeBoatId) { $('m-rate').value = cfg.hourlyRate; updateLiveTotal(); }
+    closeModals();
+  }, 'Tarifs et paramètres enregistrés');
+};
+
 /* ===== Compatibilité pièce <-> moteur ===== */
-// retourne 'univ' (pièce universelle), true (compatible), false (autre marque / autre modèle)
 function compat(part, boat) {
   const pb = norm(part.brand);
   if (!pb) return 'univ';
@@ -303,9 +438,10 @@ function renderMetrics() {
       <div class="metric"><div class="metric-t">RÉVISIONS EN RETARD 🔧</div><div class="metric-v" style="color:${late ? '#ff4d6d' : '#2ec4b6'}">${late}</div></div>
       <button class="btn-add" onclick="openBoatModal()">+ Ajouter un bateau</button>`;
   } else {
+    const valAchat = stock.reduce((acc, s) => acc + (Number(s.qty) || 0) * (Number(s.buyPrice) || 0), 0);
     $('metrics').innerHTML = `
-      <div class="metric"><div class="metric-t">RÉFÉRENCES 📦</div><div class="metric-v">${stock.length}</div></div>
-      <div class="metric"><div class="metric-t">STOCK BAS ⚠️</div><div class="metric-v" style="color:${low.length ? '#ff4d6d' : '#2ec4b6'}">${low.length}</div></div>
+      <div class="metric"><div class="metric-t">STOCK (VALEUR ACHAT) 💰</div><div class="metric-v" style="font-size:1.25rem">${eur(valAchat)}</div></div>
+      <div class="metric"><div class="metric-t">STOCK BAS ⚠️ (${stock.length} réf.)</div><div class="metric-v" style="color:${low.length ? '#ff4d6d' : '#2ec4b6'}">${low.length}</div></div>
       <button class="btn-add" style="background:#2ec4b6;color:#000" onclick="openStockModal()">+ Ajouter une pièce / huile</button>`;
   }
 }
@@ -335,6 +471,10 @@ function renderBoats() {
 
 function stockCard(s) {
   const eng = [s.brand, s.models].filter(Boolean).join(' · ');
+  const buy = Number(s.buyPrice) || 0;
+  const sell = Number(s.sellPrice) || 0;
+  const margin = sell - buy;
+  const pct = buy > 0 ? Math.round((margin / buy) * 100) : 0;
   return `<div class="card">
     <div class="srow">
       ${s.img ? `<img class="thumb" src="${esc(s.img)}" alt="">` : `<div class="thumb">📦</div>`}
@@ -343,7 +483,12 @@ function stockCard(s) {
         <div style="font-size:.75rem;color:var(--sec)">${esc(s.cat)}${eng ? ' • 🔧 ' + esc(eng) : ''}</div></div>
       <div class="sq ${Number(s.qty) <= Number(s.min) ? 'low' : ''}">${fmt(s.qty)}${isOil(s) ? ' L' : ''}</div>
     </div>
-    <div class="grid2"><div>📍 ${esc(s.loc) || 'Atelier'}</div><div>⚠️ Min : ${fmt(s.min)}</div></div>
+    <div class="grid2">
+      <div>📥 Achat : <b>${eur(buy)}</b></div>
+      <div>🏷️ Vente : <b style="color:var(--cy)">${eur(sell)}</b></div>
+      <div>📍 ${esc(s.loc) || 'Atelier'}</div>
+      <div>📈 Marge : <b style="color:${margin >= 0 ? 'var(--green)' : 'var(--red)'}">${eur(margin)}${buy > 0 ? ` (+${pct}%)` : ''}</b></div>
+    </div>
     <div class="actions">
       <div class="qc" style="flex:1"><button class="bq" onclick="changeQty('${s.id}',-1)">-</button><span style="font-size:.8rem;font-weight:700">Qté</span><button class="bq" onclick="changeQty('${s.id}',1)">+</button></div>
       <button class="btn b-s hbtn" onclick="openStockModal('${s.id}')">✏️</button>
@@ -352,7 +497,6 @@ function stockCard(s) {
   </div>`;
 }
 
-// Stock trié par marque de moteur
 function renderStock() {
   const list = stock.filter(s => match(query(), s.name, s.ref, s.cat, s.brand, s.models)).sort(byName);
   if (!list.length) { $('v-stock').innerHTML = `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune pièce en stock.</div>`; return; }
@@ -381,7 +525,8 @@ window.openBoatDetail = id => {
   $('main').classList.add('hide'); $('nav').classList.add('hide'); $('detail').classList.remove('hide');
   const b = boats.find(x => x.id === id);
   $('upcoming').value = (b && b.upcomingWorks) || '';
-  renderBoatDetail(); renderChecklist();
+  $('m-rate').value = cfg.hourlyRate ?? 60;
+  renderBoatDetail(); renderChecklist(); updateLiveTotal();
   window.scrollTo(0, 0);
 };
 window.backToFlotte = () => {
@@ -412,47 +557,92 @@ function renderBoatDetail() {
       </div>
       ${r ? r.html : ''}
     </div>`;
-  const logs = (b.logs || []).slice().reverse();
+
+  const logs = (b.logs || []).map((l, origIdx) => ({ ...l, origIdx })).reverse();
   $('history').innerHTML = logs.length ? logs.map(l => `
     <div class="hist">
-      <div style="font-weight:700;color:var(--cy)">📅 ${esc(l.date)} — ⏱ ${fmt(l.newHours)} h</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div style="font-weight:700;color:var(--cy)">📅 ${esc(l.date)} — ⏱ ${fmt(l.newHours)} h</div>
+        ${l.invoice ? `<button class="btn b-g hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openInvoice('${b.id}', ${l.origIdx})">🧾 ${esc(l.invoice.number)}</button>` : `<button class="btn b-s hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openInvoice('${b.id}', ${l.origIdx})">🧾 Facturer</button>`}
+      </div>
       <div>${esc(l.desc)}</div>
-      ${l.laborHours ? `<div style="font-size:.8rem;color:var(--green)">⏱ Main d'œuvre : ${fmt(l.laborHours)} h</div>` : ''}
+      ${l.laborHours ? `<div style="font-size:.8rem;color:var(--green)">⏱ MO : ${fmt(l.laborHours)} h${l.hourlyRate ? ` × ${eur(l.hourlyRate)}/h` : ''}</div>` : ''}
       ${(l.partsUsed || []).length ? `<div style="font-size:.75rem;color:var(--sec)">📦 ${l.partsUsed.map(esc).join(', ')}</div>` : ''}
+      ${l.totalHT != null ? `<div style="font-size:.82rem;font-weight:700;color:#fff">💶 Total : ${eur(l.totalTTC ?? l.totalHT)}</div>` : ''}
     </div>`).join('') : `<div style="font-size:.85rem;color:var(--sec);margin-top:6px">Aucune maintenance enregistrée.</div>`;
 }
 
-// Liste des pièces : celles du moteur du bateau d'abord, puis universelles, puis le reste
+// Liste des pièces avec quantité ET prix de revente modifiable à la volée
 function renderChecklist() {
   const b = boats.find(x => x.id === activeBoatId); if (!b) return;
   const keep = {};
   document.querySelectorAll('.kit-cb').forEach(cb => {
     const q = document.querySelector(`[data-qty="${cb.dataset.id}"]`);
-    keep[cb.dataset.id] = { c: cb.checked, q: q ? q.value : '1' };
+    const p = document.querySelector(`[data-price="${cb.dataset.id}"]`);
+    keep[cb.dataset.id] = { c: cb.checked, q: q ? q.value : '1', p: p ? p.value : '' };
   });
   const eng = [], uni = [], oth = [];
   stock.slice().sort(byName).forEach(s => { const m = compat(s, b); (m === 'univ' ? uni : m ? eng : oth).push(s); });
   const row = (s, grp) => {
-    const k = keep[s.id] || { c: false, q: 1 };
-    return `<div class="row"><input type="checkbox" class="kit-cb" data-grp="${grp}" data-id="${s.id}" ${k.c ? 'checked' : ''}>
-      <span style="flex:1">${esc(s.name)}<br><small style="color:var(--sec)">Réf : ${esc(s.ref) || 'N/A'} • <span data-avail="${s.id}">dispo : ${fmt(s.qty)}${isOil(s) ? ' L' : ''}</span></small></span>
-      <input type="number" step="0.1" value="${esc(k.q)}" class="qin" data-qty="${s.id}"></div>`;
+    const defaultPrice = s.sellPrice != null && s.sellPrice !== '' ? s.sellPrice : 0;
+    const k = keep[s.id] || { c: false, q: 1, p: defaultPrice };
+    const priceVal = k.p !== '' ? k.p : defaultPrice;
+    return `<div class="row">
+      <input type="checkbox" class="kit-cb" data-grp="${grp}" data-id="${s.id}" ${k.c ? 'checked' : ''} onchange="updateLiveTotal()">
+      <span style="flex:1;min-width:130px">${esc(s.name)}<br><small style="color:var(--sec)">Réf : ${esc(s.ref) || 'N/A'} • dispo : ${fmt(s.qty)}${isOil(s) ? ' L' : ''}</small></span>
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="number" step="0.1" value="${esc(k.q)}" class="qin" data-qty="${s.id}" title="Quantité" oninput="updateLiveTotal()">
+        <span style="font-size:.75rem;color:var(--sec)">×</span>
+        <input type="number" step="0.01" value="${esc(priceVal)}" class="pin" data-price="${s.id}" title="Prix vente unitaire €" oninput="updateLiveTotal()">
+        <span style="font-size:.75rem;color:var(--cy)">€</span>
+      </div>
+    </div>`;
   };
   let html = '';
   if (!b.engineBrand) html += `<div class="note">Renseigne la marque du moteur (bouton ✏️ Modifier) pour voir ici les pièces qui lui correspondent.</div>`;
   else {
     html += `<div class="sec-t">Pièces pour ${esc(engineTxt(b))}</div>`;
-    html += eng.length ? eng.map(s => row(s, 'eng')).join('') : `<div class="lbl" style="margin-top:6px">Aucune pièce enregistrée pour cette marque. Ajoute-la dans le Stock avec la marque « ${esc(b.engineBrand)} ».</div>`;
+    html += eng.length ? eng.map(s => row(s, 'eng')).join('') : `<div class="lbl" style="margin-top:6px">Aucune pièce enregistrée pour cette marque.</div>`;
   }
   if (uni.length) html += `<div class="sec-t">Pièces universelles (huile, etc.)</div>` + uni.map(s => row(s, 'uni')).join('');
   if (oth.length) html += `<details><summary>Autres marques (${oth.length})</summary>${oth.map(s => row(s, 'oth')).join('')}</details>`;
   if (!stock.length) html = `<span class="lbl">Aucune pièce en stock</span>`;
   $('checklist').innerHTML = html;
+  updateLiveTotal();
 }
-window.checkEngineParts = () => document.querySelectorAll('.kit-cb[data-grp="eng"]').forEach(cb => cb.checked = true);
 
-/* Entretien : une seule écriture atomique (stock + historique + heures + rappel) */
-window.saveMaintenance = async () => {
+window.checkEngineParts = () => {
+  document.querySelectorAll('.kit-cb[data-grp="eng"]').forEach(cb => cb.checked = true);
+  updateLiveTotal();
+};
+
+window.updateLiveTotal = () => {
+  const labor = parseFloat($('m-labor')?.value) || 0;
+  const rate = parseFloat($('m-rate')?.value) || 0;
+  let totalHT = labor * rate;
+  let totalCost = 0;
+
+  document.querySelectorAll('.kit-cb:checked').forEach(cb => {
+    const s = stock.find(x => x.id === cb.dataset.id);
+    const q = parseFloat(document.querySelector(`[data-qty="${cb.dataset.id}"]`)?.value) || 0;
+    const p = parseFloat(document.querySelector(`[data-price="${cb.dataset.id}"]`)?.value) || 0;
+    if (s && q > 0) {
+      totalHT += q * p;
+      totalCost += q * (Number(s.buyPrice) || 0);
+    }
+  });
+
+  const vat = Number(cfg.vatRate) || 0;
+  const totalTTC = totalHT * (1 + vat / 100);
+  const margin = totalHT - totalCost;
+
+  if ($('live-total')) $('live-total').textContent = vat > 0 ? `${eur(totalTTC)} TTC` : `${eur(totalHT)} HT`;
+  if ($('live-ttc')) $('live-ttc').textContent = vat > 0 ? `(${eur(totalHT)} HT + TVA ${vat}%)` : 'TVA non applicable (0%)';
+  if ($('live-margin')) $('live-margin').textContent = `Marge nette pièces + MO : ${eur(margin)}`;
+};
+
+/* Entretien + Facturation */
+window.saveMaintenance = async (openInvAfter = false) => {
   const b = boats.find(x => x.id === activeBoatId); if (!b) return;
   const desc = $('m-desc').value.trim();
   if (!desc) return alert('Entre une description des travaux.');
@@ -466,35 +656,190 @@ window.saveMaintenance = async () => {
     hours = h;
   }
   const labor = parseFloat($('m-labor').value) || 0;
+  const hourlyRate = parseFloat($('m-rate').value) || 0;
   const nextIn = parseFloat($('m-next').value);
 
   const batch = writeBatch(db);
-  const used = [], short = [];
+  const used = [], short = [], items = [];
+  let partsTotalHT = 0;
+
   document.querySelectorAll('.kit-cb:checked').forEach(cb => {
     const s = stock.find(x => x.id === cb.dataset.id);
     const q = parseFloat(document.querySelector(`[data-qty="${cb.dataset.id}"]`).value);
+    const unitPrice = parseFloat(document.querySelector(`[data-price="${cb.dataset.id}"]`).value) || 0;
     if (!s || !(q > 0)) return;
     if (q > Number(s.qty)) short.push(s.name);
     batch.update(doc(db, 'stock', s.id), q > Number(s.qty) ? { qty: 0 } : { qty: increment(-q) });
-    used.push(`${s.name}${s.ref ? ' [' + s.ref + ']' : ''} (-${q}${isOil(s) ? ' L' : ''})`);
+    const lineTotal = q * unitPrice;
+    partsTotalHT += lineTotal;
+    used.push(`${s.name}${s.ref ? ' [' + s.ref + ']' : ''} (x${q}${isOil(s) ? ' L' : ''} à ${eur(unitPrice)})`);
+    items.push({
+      label: s.name,
+      ref: s.ref || '',
+      qty: q,
+      unit: isOil(s) ? 'L' : 'u',
+      unitPrice,
+      total: lineTotal
+    });
   });
+
   if (short.length && !confirm(`Stock insuffisant pour : ${short.join(', ')}.\nLe stock passera à 0. Continuer ?`)) return;
 
+  const laborTotalHT = labor * hourlyRate;
+  const totalHT = partsTotalHT + laborTotalHT;
+  const vatRate = Number(cfg.vatRate) || 0;
+  const vatAmount = totalHT * (vatRate / 100);
+  const totalTTC = totalHT + vatAmount;
+
+  const invSeq = Number(cfg.nextInvNum) || 1;
   const now = new Date();
-  const log = { date: now.toLocaleDateString('fr-FR'), dateISO: now.toISOString(), desc, newHours: hours, laborHours: labor, partsUsed: used };
+  const invNumber = `FAC-${now.getFullYear()}-${String(invSeq).padStart(3, '0')}`;
+
+  const log = {
+    date: now.toLocaleDateString('fr-FR'),
+    dateISO: now.toISOString(),
+    desc,
+    newHours: hours,
+    laborHours: labor,
+    hourlyRate,
+    partsUsed: used,
+    items,
+    totalHT,
+    vatRate,
+    vatAmount,
+    totalTTC,
+    invoice: {
+      number: invNumber,
+      issuedAt: now.toLocaleDateString('fr-FR')
+    }
+  };
+
   const upd = { hours, logs: arrayUnion(log) };
   if (!isNaN(nextIn) && nextIn > 0) upd.nextServiceHours = hours + nextIn;
   batch.update(doc(db, 'boats', b.id), upd);
+  batch.set(doc(db, 'settings', 'general'), { nextInvNum: invSeq + 1 }, { merge: true });
 
-  const btn = $('save-maint'); btn.disabled = true;
+  const btn1 = $('save-maint'), btn2 = $('save-maint-inv');
+  btn1.disabled = true; btn2.disabled = true;
+
   try {
     await batch.commit();
     ['m-desc', 'm-hours', 'm-labor', 'm-next'].forEach(i => $(i).value = '');
+    $('m-rate').value = cfg.hourlyRate ?? 60;
     document.querySelectorAll('.kit-cb').forEach(cb => cb.checked = false);
-    toast('Entretien enregistré, stock mis à jour');
-  } catch (e) { console.error(e); toast("Erreur : rien n'a été enregistré.", true); }
-  btn.disabled = false;
+    updateLiveTotal();
+    toast('Entretien enregistré & stock mis à jour');
+    if (openInvAfter) {
+      renderInvoiceModal(b, log);
+    }
+  } catch (e) {
+    console.error(e);
+    toast("Erreur : rien n'a été enregistré.", true);
+  }
+  btn1.disabled = false; btn2.disabled = false;
 };
+
+/* ===== Génération Facture ===== */
+window.openInvoice = (boatId, logIdx) => {
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs || !b.logs[logIdx]) return;
+  renderInvoiceModal(b, b.logs[logIdx]);
+};
+
+function renderInvoiceModal(b, l) {
+  const invNum = l.invoice?.number || `FAC-${new Date().getFullYear()}-PROV`;
+  const invDate = l.invoice?.issuedAt || l.date || new Date().toLocaleDateString('fr-FR');
+  const rows = [];
+
+  if (l.laborHours > 0) {
+    const rate = l.hourlyRate ?? cfg.hourlyRate ?? 0;
+    rows.push(`<tr>
+      <td><b>Main d'œuvre mécanique</b><br><small style="color:#555">${esc(l.desc)}</small></td>
+      <td class="num">${fmt(l.laborHours)} h</td>
+      <td class="num">${eur(rate)}</td>
+      <td class="num">${eur(l.laborHours * rate)}</td>
+    </tr>`);
+  } else {
+    rows.push(`<tr>
+      <td><b>Intervention : ${esc(l.desc)}</b></td>
+      <td class="num">1</td>
+      <td class="num">-</td>
+      <td class="num">-</td>
+    </tr>`);
+  }
+
+  if (l.items && l.items.length) {
+    l.items.forEach(it => {
+      rows.push(`<tr>
+        <td>${esc(it.label)}${it.ref ? ` <small style="color:#555">(Réf: ${esc(it.ref)})</small>` : ''}</td>
+        <td class="num">${fmt(it.qty)} ${esc(it.unit || '')}</td>
+        <td class="num">${eur(it.unitPrice)}</td>
+        <td class="num">${eur(it.total)}</td>
+      </tr>`);
+    });
+  } else if (l.partsUsed && l.partsUsed.length) {
+    l.partsUsed.forEach(p => {
+      rows.push(`<tr><td colspan="4">${esc(p)}</td></tr>`);
+    });
+  }
+
+  const totalHT = l.totalHT ?? 0;
+  const vatRate = l.vatRate ?? cfg.vatRate ?? 0;
+  const vatAmount = l.vatAmount ?? (totalHT * vatRate / 100);
+  const totalTTC = l.totalTTC ?? (totalHT + vatAmount);
+
+  $('invoice-render').innerHTML = `
+    <div class="inv-paper">
+      <div class="inv-head">
+        <div>
+          <div style="font-size:1.15rem;font-weight:800;color:#0b132b">${esc(cfg.bizName || 'Meca Manager')}</div>
+          <div style="white-space:pre-line;color:#444;font-size:.78rem;margin-top:4px">${esc(cfg.bizAddr || '')}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="inv-title">FACTURE</div>
+          <div style="font-weight:700;margin-top:4px">N° ${esc(invNum)}</div>
+          <div style="color:#555;font-size:.8rem">Date : ${esc(invDate)}</div>
+        </div>
+      </div>
+
+      <div class="inv-grid">
+        <div class="inv-box">
+          <div style="font-size:.7rem;text-transform:uppercase;color:#666;font-weight:700">Client</div>
+          <div style="font-weight:700;margin-top:3px;white-space:pre-line">${esc(b.owner || 'Client comptoir')}</div>
+        </div>
+        <div class="inv-box">
+          <div style="font-size:.7rem;text-transform:uppercase;color:#666;font-weight:700">Navire & Motorisation</div>
+          <div style="font-weight:700;margin-top:3px">${esc(b.name)} (${esc(b.model)})</div>
+          <div style="font-size:.78rem;color:#444">Moteur : ${esc(engineTxt(b))} • Index : ${fmt(l.newHours)} h</div>
+          ${b.immat ? `<div style="font-size:.78rem;color:#444">Immat : ${esc(b.immat)}</div>` : ''}
+        </div>
+      </div>
+
+      <table class="inv-tbl">
+        <thead>
+          <tr>
+            <th>Désignation</th>
+            <th class="num">Qté</th>
+            <th class="num">P.U. HT</th>
+            <th class="num">Total HT</th>
+          </tr>
+        </thead>
+        <tbody>${rows.join('')}</tbody>
+      </table>
+
+      <div class="inv-tot">
+        <div><span>Total HT :</span><b>${eur(totalHT)}</b></div>
+        ${vatRate > 0 ? `<div><span>TVA (${vatRate}%) :</span><span>${eur(vatAmount)}</span></div>` : ''}
+        <div class="grand"><span>NET À PAYER ${vatRate > 0 ? 'TTC' : ''} :</span><span>${eur(totalTTC)}</span></div>
+      </div>
+
+      <div class="inv-foot">
+        <div style="white-space:pre-line">${esc(cfg.bizLegal || '')}</div>
+        <div style="margin-top:4px">Merci de votre confiance.</div>
+      </div>
+    </div>`;
+  $('invoice-modal').classList.add('active');
+}
 
 window.autoSaveWorks = text => {
   if (!activeBoatId) return;
@@ -581,6 +926,8 @@ window.openStockModal = id => {
   $('s-name').value = s ? s.name || '' : ''; $('s-ref').value = s ? s.ref || '' : '';
   $('s-brand').value = s ? s.brand || '' : ''; $('s-models').value = s ? s.models || '' : '';
   $('s-cat').value = s ? s.cat || 'Moteur / Filtres' : 'Moteur / Filtres';
+  $('s-buy').value = s && s.buyPrice != null ? s.buyPrice : '';
+  $('s-sell').value = s && s.sellPrice != null ? s.sellPrice : '';
   $('s-qty').value = s ? s.qty : ''; $('s-min').value = s ? s.min : ''; $('s-loc').value = s ? s.loc || '' : '';
   $('s-file').value = '';
   $('stock-modal').classList.add('active');
@@ -591,7 +938,10 @@ window.saveStock = async () => {
   const btn = $('s-save'); btn.disabled = true;
   const data = {
     name, ref: $('s-ref').value.trim(), brand: $('s-brand').value.trim(), models: $('s-models').value.trim(),
-    cat: $('s-cat').value, qty, min: parseFloat($('s-min').value) || 2, loc: $('s-loc').value.trim()
+    cat: $('s-cat').value,
+    buyPrice: parseFloat($('s-buy').value) || 0,
+    sellPrice: parseFloat($('s-sell').value) || 0,
+    qty, min: parseFloat($('s-min').value) || 2, loc: $('s-loc').value.trim()
   };
   const f = $('s-file').files[0];
   if (f) { const img = await compress(f); if (img) data.img = img; }
@@ -614,7 +964,7 @@ window.deleteStock = id => {
 
 /* ===== Sauvegarde JSON ===== */
 window.backup = () => {
-  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), boats, stock }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), cfg, boats, stock }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'meca-manager-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
