@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Meca Manager V2</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MecaManager">
+<style>
+:root{--bg:#0b132b;--card:#1c2541;--blue:#007bff;--green:#2ec4b6;--red:#e63946;--sec:#8d99ae;--bd:#2a3a5e;--cy:#00b4d8;--or:#f77f00}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:#fff;padding-bottom:100px}
+.hide{display:none!important}
+header{padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 12px;background:rgba(11,19,43,.95);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.app-title{display:flex;align-items:center;gap:10px}
+.app-icon{width:40px;height:40px;background:#0077b6;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:21px}
+h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
+.wrap{max-width:1000px;margin:0 auto}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:15px 16px}
+.metric{background:var(--card);padding:12px 15px;border-radius:12px;border:1px solid var(--bd)}
+.metric-t{font-size:.7rem;font-weight:700;color:var(--sec);margin-bottom:4px}
+.metric-v{font-size:1.6rem;font-weight:800;color:var(--cy)}
+.btn-add{grid-column:span 2;background:var(--blue);color:#fff;border:none;padding:14px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer}
+.alert{margin:0 16px 12px;background:rgba(230,57,70,.15);border:1px solid var(--red);color:#ff8d99;padding:10px 12px;border-radius:10px;font-size:.82rem}
+.search{padding:0 16px 14px}
+.search input{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--bd);border-radius:10px;color:#fff;font-size:.9rem}
+.list{padding:0 16px;display:flex;flex-direction:column;gap:14px}
+@media(min-width:768px){.list{display:grid;grid-template-columns:1fr 1fr;align-items:start}.list.hide{display:none!important}}
+.card{background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:10px}
+.ch{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.ct{font-size:1.1rem;font-weight:700;word-break:break-word}
+.cs{font-size:.85rem;color:var(--cy);font-weight:600}
+.badge{font-size:.68rem;padding:3px 8px;border-radius:12px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.s-eau{background:rgba(46,196,182,.2);color:#2ec4b6;border:1px solid #2ec4b6}
+.s-hangar{background:rgba(0,180,216,.2);color:#00b4d8;border:1px solid #00b4d8}
+.s-atelier{background:rgba(230,57,70,.2);color:#ff4d6d;border:1px solid #e63946}
+.s-hivernage{background:rgba(141,153,174,.2);color:#8d99ae;border:1px solid #8d99ae}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.8rem;color:var(--sec);background:rgba(11,19,43,.5);padding:10px;border-radius:8px}
+.full{grid-column:span 2}
+.rem{font-size:.78rem;font-weight:700;padding:6px 10px;border-radius:8px}
+.rem.late{background:rgba(230,57,70,.2);color:#ff4d6d}.rem.soon{background:rgba(247,127,0,.2);color:#ffa94d}.rem.ok{background:rgba(141,153,174,.15);color:var(--sec)}
+.actions{display:flex;gap:8px;border-top:1px solid var(--bd);padding-top:12px}
+.btn{padding:9px 12px;border-radius:8px;font-weight:700;font-size:.8rem;border:none;cursor:pointer;flex:1;text-align:center;color:#fff}
+.b-p{background:var(--blue)}.b-s{background:var(--bd)}.b-g{background:var(--green);color:#000}.b-o{background:var(--or)}
+.b-d{background:rgba(236,57,70,.2);color:#ff4d6d;border:1px solid var(--red);flex:.4}
+.hbtn{flex:unset;padding:8px 10px}
+.srow{display:flex;gap:12px;align-items:center}
+.thumb{width:60px;height:60px;border-radius:8px;object-fit:cover;background:var(--bg);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.sq{font-size:1.2rem;font-weight:800;color:var(--green)}.sq.low{color:var(--red)}
+.qc{display:flex;align-items:center;gap:10px}
+.bq{width:34px;height:34px;border-radius:8px;background:var(--bd);color:#fff;border:none;font-size:1.1rem;font-weight:700;cursor:pointer}
+.detail{padding:16px;display:flex;flex-direction:column;gap:14px;max-width:800px;margin:0 auto}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:15px;display:flex;flex-direction:column;gap:10px}
+.hist{background:rgba(11,19,43,.6);padding:10px;border-radius:8px;border-left:4px solid var(--green);font-size:.85rem;margin-top:6px}
+.row{display:flex;align-items:center;gap:10px;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--bd);font-size:.85rem}
+.row input[type=checkbox]{width:20px;height:20px;accent-color:var(--green)}
+.qin{width:64px;padding:5px;background:var(--card);border:1px solid var(--bd);border-radius:6px;color:#fff;text-align:center}
+textarea,.inp,select{width:100%;padding:10px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:#fff;font-size:.88rem}
+textarea{min-height:80px;resize:vertical}
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 10px);backdrop-filter:blur(10px);z-index:50}
+.nav{display:flex;flex-direction:column;align-items:center;color:var(--sec);font-size:.75rem;gap:3px;background:none;border:none;cursor:pointer}
+.nav.active{color:var(--cy);font-weight:700}.nav span:first-child{font-size:20px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal.active{display:flex}
+.mc{background:var(--card);width:100%;max-width:440px;padding:20px;border-radius:16px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:10px;max-height:90vh;overflow-y:auto}
+.mc h2{font-size:1.1rem}.mb{display:flex;gap:10px;margin-top:8px}
+.lbl{font-size:.8rem;color:var(--sec)}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);z-index:300;background:#12805c;color:#fff;padding:12px 14px;border-radius:12px;font-size:.85rem;font-weight:600}
+.toast.err{background:#c1121f}
+</style>
+</head>
+<body>
+
+<div id="login" style="position:fixed;inset:0;z-index:200;background:#0b132b;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="mc">
+    <h2>⚓ Meca Manager</h2>
+    <input id="l-email" type="email" class="inp" placeholder="E-mail" autocomplete="username">
+    <input id="l-pass" type="password" class="inp" placeholder="Mot de passe" autocomplete="current-password">
+    <div id="l-err" style="color:#ff4d6d;font-size:.8rem;min-height:1em"></div>
+    <button class="btn b-p" style="padding:12px" onclick="login()">Se connecter</button>
+  </div>
+</div>
+
+<header>
+  <div class="app-title"><div class="app-icon">⚓</div><div><h1>Meca Manager</h1><div class="subtitle" id="sub">Gestion de flotte</div></div></div>
+  <div style="display:flex;gap:6px">
+    <button class="btn b-s hbtn" onclick="backup()">💾</button>
+    <button class="btn b-s hbtn" onclick="logout()">Quitter</button>
+  </div>
+</header>
+
+<div id="main" class="wrap">
+  <section class="metrics" id="metrics"></section>
+  <div id="stock-alert"></div>
+  <div class="search"><input id="search" placeholder="Rechercher..."></div>
+  <section class="list" id="v-flotte"></section>
+  <section class="list hide" id="v-stock"></section>
+  <section class="list hide" id="v-kits"></section>
+</div>
+
+<div class="detail hide" id="detail">
+  <div style="display:flex;justify-content:space-between;gap:8px">
+    <button class="btn b-s hbtn" onclick="backToFlotte()">← Flotte</button>
+    <button class="btn b-p hbtn" onclick="openEditBoat()">✏️ Modifier</button>
+  </div>
+  <div id="boat-content"></div>
+
+  <div class="box">
+    <h3 style="font-size:1rem;color:#ff4d6d">📝 Travaux à prévoir</h3>
+    <textarea id="upcoming" placeholder="Prochaines interventions..." oninput="autoSaveWorks(this.value)"></textarea>
+    <button class="btn b-g" onclick="completeWorks()">📥 Terminer & archiver</button>
+  </div>
+
+  <div class="box">
+    <h3 style="font-size:1rem;color:var(--cy)">🛠️ Saisie entretien</h3>
+    <label class="lbl">Charger un kit :</label>
+    <select id="kit-select" onchange="applyKit(this.value)"><option value="">-- Aucun kit --</option></select>
+    <input id="m-desc" class="inp" placeholder="Description (ex : Révision 100h)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <input id="m-hours" type="number" step="0.1" class="inp" placeholder="Nouv. heures moteur">
+      <input id="m-labor" type="number" step="0.5" class="inp" placeholder="Main d'œuvre (h)">
+    </div>
+    <label class="lbl" style="color:var(--green);font-weight:700">Pièces utilisées :</label>
+    <div id="checklist" style="display:flex;flex-direction:column;gap:6px"></div>
+    <button id="save-maint" class="btn b-p" style="padding:12px" onclick="saveMaintenance()">Valider l'entretien & mettre à jour le stock</button>
+  </div>
+
+  <div class="card"><h3 style="font-size:1rem">📋 Historique</h3><div id="history"></div></div>
+</div>
+
+<nav id="nav">
+  <button class="nav active" id="n-flotte" onclick="switchTab('flotte')"><span>⛵</span><span>Flotte</span></button>
+  <button class="nav" id="n-stock" onclick="switchTab('stock')"><span>📦</span><span>Stock</span></button>
+  <button class="nav" id="n-kits" onclick="switchTab('kits')"><span>⚙️</span><span>Kits</span></button>
+</nav>
+
+<!-- Modal bateau (ajout) -->
+<div class="modal" id="boat-modal"><div class="mc">
+  <h2>Nouveau bateau</h2>
+  <input id="b-name" class="inp" placeholder="Nom du bateau *">
+  <input id="b-model" class="inp" placeholder="Marque & modèle *">
+  <input id="b-owner" class="inp" placeholder="Propriétaire & tél">
+  <input id="b-immat" class="inp" placeholder="Immatriculation / CIN">
+  <input id="b-sn" class="inp" placeholder="N° série moteur">
+  <select id="b-status"><option value="eau">À l'eau</option><option value="hangar">Au hangar</option><option value="atelier">En atelier</option><option value="hivernage">Hivernage</option></select>
+  <input id="b-hours" type="number" step="0.1" class="inp" placeholder="Heures moteur initiales">
+  <select id="b-fuel"><option>Essence</option><option>Diesel</option><option>Électrique</option></select>
+  <input id="b-notes" class="inp" placeholder="Notes">
+  <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="saveBoat()">Enregistrer</button></div>
+</div></div>
+
+<!-- Modal bateau (modif) -->
+<div class="modal" id="edit-modal"><div class="mc">
+  <h2>Modifier le bateau</h2>
+  <input id="e-name" class="inp" placeholder="Nom *">
+  <input id="e-model" class="inp" placeholder="Marque & modèle *">
+  <input id="e-owner" class="inp" placeholder="Propriétaire">
+  <input id="e-immat" class="inp" placeholder="Immatriculation / CIN">
+  <input id="e-sn" class="inp" placeholder="N° série moteur">
+  <select id="e-fuel"><option>Essence</option><option>Diesel</option><option>Électrique</option></select>
+  <input id="e-notes" class="inp" placeholder="Notes">
+  <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="updateBoat()">Mettre à jour</button></div>
+</div></div>
+
+<!-- Modal stock (ajout + modif) -->
+<div class="modal" id="stock-modal"><div class="mc">
+  <h2 id="s-title">Nouvelle référence</h2>
+  <input id="s-name" class="inp" placeholder="Nom de la pièce ou huile *">
+  <input id="s-ref" class="inp" placeholder="Référence">
+  <select id="s-cat"><option value="Moteur / Filtres">Moteur & filtres</option><option value="Huiles & Chimie">Huiles & lubrifiants (L)</option><option value="Électricité">Électricité & batterie</option><option value="Sécurité">Sécurité</option><option value="Castillage">Accastillage</option></select>
+  <input id="s-qty" type="number" step="0.1" class="inp" placeholder="Quantité *">
+  <input id="s-min" type="number" step="0.1" class="inp" placeholder="Alerte stock minimum">
+  <input id="s-loc" class="inp" placeholder="Emplacement">
+  <label class="lbl">Photo (optionnel, remplace l'ancienne) :</label>
+  <input id="s-file" type="file" accept="image/*" class="inp">
+  <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button id="s-save" class="btn b-p" onclick="saveStock()">Enregistrer</button></div>
+</div></div>
+
+<!-- Modal kit (ajout + modif) -->
+<div class="modal" id="kit-modal"><div class="mc">
+  <h2 id="k-title">Nouveau kit</h2>
+  <input id="k-name" class="inp" placeholder="Nom du kit (ex : Kit 100h Yamaha F150) *">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <input id="k-labor" type="number" step="0.5" class="inp" placeholder="Main d'œuvre (h)">
+    <input id="k-interval" type="number" step="1" class="inp" placeholder="Rappel tous les (h)">
+  </div>
+  <label class="lbl">Pièces du kit et quantités :</label>
+  <div id="k-parts" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+  <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="saveKit()">Enregistrer</button></div>
+</div></div>
+
+<div id="toast" class="toast hide"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, writeBatch, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+// ⚠️ Remets ici TA vraie configuration Firebase complète
+const firebaseConfig = {
+  apiKey: "AIzaSyBpJHdSdSimVx_SIAke",
+  authDomain: "mecanic-manager.firebaseapp.com",
+  projectId: "mecanic-manager",
+  storageBucket: "mecanic-manager.appspot.com",
+  messagingSenderId: "305702049718",
+  appId: "1:305702049718:web:077474c...",
+  measurementId: "G-WNYD05J1GF"
+};
+
+const app = initializeApp(firebaseConfig);
+// Cache hors-ligne : l'app marche au hangar sans réseau, et se synchronise au retour
+const db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+const auth = getAuth(app);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Math.round((Number(n) || 0) * 10) / 10;
+const isOil = s => s.cat === 'Huiles & Chimie';
+const kitItems = k => k.items || (k.parts || []).map(id => ({ id, qty: 1 }));
+
+let boats = [], stock = [], kits = [], unsubs = [];
+let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null, editKitId = null;
+
+function toast(msg, err) {
+  const t = $('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
+  clearTimeout(window._tt); window._tt = setTimeout(() => t.classList.add('hide'), 3000);
+}
+async function safe(fn, okMsg) {
+  try { await fn(); if (okMsg) toast(okMsg); } catch (e) { console.error(e); toast("Erreur : l'action n'a pas été enregistrée.", true); }
+}
+
+/* ===== Connexion ===== */
+window.login = async () => {
+  $('l-err').textContent = '';
+  try { await signInWithEmailAndPassword(auth, $('l-email').value.trim(), $('l-pass').value); $('l-pass').value = ''; }
+  catch (e) { $('l-err').textContent = "E-mail ou mot de passe incorrect."; }
+};
+window.logout = () => signOut(auth);
+
+onAuthStateChanged(auth, user => {
+  $('login').style.display = user ? 'none' : 'flex';
+  if (user) startListeners();
+  else {
+    unsubs.forEach(u => u()); unsubs = [];
+    boats = []; stock = []; kits = []; activeBoatId = null;
+    $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
+  }
+});
+
+function startListeners() {
+  unsubs.forEach(u => u()); unsubs = [];
+  const snap = (name, set, after) => onSnapshot(collection(db, name), s => {
+    set(s.docs.map(d => ({ id: d.id, ...d.data() }))); after();
+  }, e => console.error(name, e));
+  unsubs.push(snap('boats', v => boats = v, () => { renderAll(); if (activeBoatId) renderBoatDetail(); }));
+  unsubs.push(snap('stock', v => stock = v, () => { renderAll(); updateChecklistAvail(); if (activeBoatId) renderBoatDetail(); }));
+  unsubs.push(snap('kits', v => kits = v, () => { renderAll(); fillKitSelect(); if (activeBoatId) renderBoatDetail(); }));
+}
+
+/* ===== Rappels d'entretien ===== */
+function reminders(b) {
+  const out = [];
+  kits.forEach(k => {
+    if (!k.interval) return;
+    const done = (b.logs || []).filter(l => l.kitId === k.id);
+    if (!done.length) return;
+    const last = Math.max(...done.map(l => Number(l.newHours) || 0));
+    out.push({ name: k.name, left: fmt(last + Number(k.interval) - Number(b.hours || 0)) });
+  });
+  return out.sort((a, b) => a.left - b.left);
+}
+function remHtml(r) {
+  const cls = r.left <= 0 ? 'late' : r.left <= 10 ? 'soon' : 'ok';
+  const txt = r.left <= 0 ? `⚠️ ${esc(r.name)} : en retard de ${Math.abs(r.left)} h` : `🔧 ${esc(r.name)} : dans ${r.left} h`;
+  return `<div class="rem ${cls}">${txt}</div>`;
+}
+
+/* ===== Rendu ===== */
+function renderAll() {
+  renderMetrics();
+  if (!activeBoatId) { renderBoats(); renderStock(); renderKits(); }
+}
+
+function renderMetrics() {
+  const low = stock.filter(s => Number(s.qty) <= Number(s.min));
+  $('stock-alert').innerHTML = (tab === 'flotte' && low.length)
+    ? `<div class="alert">⚠️ Stock bas : ${low.map(s => esc(s.name)).join(', ')}</div>` : '';
+  if (tab === 'flotte') {
+    const late = boats.filter(b => reminders(b).some(r => r.left <= 0)).length;
+    $('metrics').innerHTML = `
+      <div class="metric"><div class="metric-t">FLOTTE ⛵</div><div class="metric-v">${boats.length}</div></div>
+      <div class="metric"><div class="metric-t">ENTRETIEN EN RETARD 🔧</div><div class="metric-v" style="color:${late ? '#ff4d6d' : '#2ec4b6'}">${late}</div></div>
+      <button class="btn-add" onclick="openBoatModal()">+ Ajouter un bateau</button>`;
+  } else if (tab === 'stock') {
+    $('metrics').innerHTML = `
+      <div class="metric"><div class="metric-t">RÉFÉRENCES 📦</div><div class="metric-v">${stock.length}</div></div>
+      <div class="metric"><div class="metric-t">STOCK BAS ⚠️</div><div class="metric-v" style="color:${low.length ? '#ff4d6d' : '#2ec4b6'}">${low.length}</div></div>
+      <button class="btn-add" style="background:#2ec4b6;color:#000" onclick="openStockModal()">+ Ajouter une pièce / huile</button>`;
+  } else {
+    $('metrics').innerHTML = `
+      <div class="metric" style="grid-column:span 2"><div class="metric-t">KITS ⚙️</div><div class="metric-v">${kits.length}</div></div>
+      <button class="btn-add" style="background:var(--or)" onclick="openKitModal()">+ Créer un kit</button>`;
+  }
+}
+
+function match(q, ...fields) { q = q.toLowerCase(); return fields.some(f => String(f || '').toLowerCase().includes(q)); }
+const query = () => $('search').value;
+
+function renderBoats() {
+  const list = boats.filter(b => match(query(), b.name, b.model, b.owner)).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  $('v-flotte').innerHTML = list.length ? list.map(b => {
+    const rems = reminders(b).filter(r => r.left <= 10);
+    return `<div class="card">
+      <div class="ch"><div><div class="ct">${esc(b.name)}</div><div class="cs">${esc(b.model)}</div></div>
+        <span class="badge s-${esc(b.status || 'eau')}">${statusLabel(b.status)}</span></div>
+      <div class="grid2">
+        <div>👤 ${esc(b.owner) || 'N/C'}</div><div>⏱ ${fmt(b.hours)} h</div>
+        <div>⚓ ${esc(b.immat) || 'N/C'}</div><div>⚙️ ${esc(b.engineSn) || 'N/C'}</div>
+      </div>
+      ${rems.map(remHtml).join('')}
+      <div class="actions"><button class="btn b-p" onclick="openBoatDetail('${b.id}')">Fiche & entretien 🛠️</button>
+        <button class="btn b-d" onclick="deleteBoat('${b.id}')">🗑</button></div>
+    </div>`;
+  }).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucun bateau trouvé.</div>`;
+}
+function statusLabel(s) { return { eau: "À l'eau", hangar: 'Au hangar', atelier: 'En atelier', hivernage: 'Hivernage' }[s] || "À l'eau"; }
+
+function renderStock() {
+  const list = stock.filter(s => match(query(), s.name, s.ref, s.cat)).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  $('v-stock').innerHTML = list.length ? list.map(s => `
+    <div class="card">
+      <div class="srow">
+        ${s.img ? `<img class="thumb" src="${esc(s.img)}" alt="">` : `<div class="thumb">📦</div>`}
+        <div style="flex:1;overflow:hidden"><div class="ct" style="font-size:1.02rem">${esc(s.name)}</div>
+          <div class="cs">Réf : ${esc(s.ref) || 'N/A'}</div>
+          <div style="font-size:.75rem;color:var(--sec)">${esc(s.cat)}</div></div>
+        <div class="sq ${Number(s.qty) <= Number(s.min) ? 'low' : ''}">${fmt(s.qty)}${isOil(s) ? ' L' : ''}</div>
+      </div>
+      <div class="grid2"><div>📍 ${esc(s.loc) || 'Atelier'}</div><div>⚠️ Min : ${fmt(s.min)}</div></div>
+      <div class="actions">
+        <div class="qc" style="flex:1"><button class="bq" onclick="changeQty('${s.id}',-1)">-</button><span style="font-size:.8rem;font-weight:700">Qté</span><button class="bq" onclick="changeQty('${s.id}',1)">+</button></div>
+        <button class="btn b-s hbtn" onclick="openStockModal('${s.id}')">✏️</button>
+        <button class="btn b-d" onclick="deleteStock('${s.id}')">🗑</button>
+      </div>
+    </div>`).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune pièce en stock.</div>`;
+}
+
+function renderKits() {
+  const list = kits.filter(k => match(query(), k.name));
+  $('v-kits').innerHTML = list.length ? list.map(k => {
+    const parts = kitItems(k).map(it => { const s = stock.find(x => x.id === it.id); return s ? `${esc(s.name)} ×${fmt(it.qty)}${isOil(s) ? ' L' : ''}` : null; }).filter(Boolean);
+    return `<div class="card">
+      <div class="ch"><div><div class="ct">${esc(k.name)}</div>
+        <div class="cs">⏱ MO ${fmt(k.labor)} h${k.interval ? ` • rappel tous les ${fmt(k.interval)} h` : ''}</div></div></div>
+      <div class="grid2"><div class="full"><b>Pièces :</b> ${parts.length ? parts.join(', ') : 'Aucune'}</div></div>
+      <div class="actions"><button class="btn b-p" onclick="openKitModal('${k.id}')">✏️ Modifier</button>
+        <button class="btn b-d" onclick="deleteKit('${k.id}')">🗑</button></div>
+    </div>`;
+  }).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucun kit.</div>`;
+}
+
+$('search').oninput = () => { if (tab === 'flotte') renderBoats(); else if (tab === 'stock') renderStock(); else renderKits(); };
+
+window.switchTab = t => {
+  tab = t;
+  ['flotte', 'stock', 'kits'].forEach(x => {
+    $('n-' + x).classList.toggle('active', x === t);
+    $('v-' + x).classList.toggle('hide', x !== t);
+  });
+  $('sub').textContent = { flotte: 'Gestion de flotte', stock: 'Stock & pièces', kits: 'Kits moteurs' }[t];
+  $('search').value = '';
+  renderMetrics(); renderBoats(); renderStock(); renderKits();
+};
+
+/* ===== Fiche bateau ===== */
+window.openBoatDetail = id => {
+  activeBoatId = id;
+  $('main').classList.add('hide'); $('nav').classList.add('hide'); $('detail').classList.remove('hide');
+  const b = boats.find(x => x.id === id);
+  $('upcoming').value = (b && b.upcomingWorks) || '';
+  renderBoatDetail(); renderChecklist(); fillKitSelect();
+  window.scrollTo(0, 0);
+};
+window.backToFlotte = () => {
+  activeBoatId = null;
+  $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
+  $('sub').textContent = 'Gestion de flotte';
+  renderAll();
+};
+
+function renderBoatDetail() {
+  const b = boats.find(x => x.id === activeBoatId);
+  if (!b) return;
+  $('sub').textContent = 'Fiche : ' + (b.name || '');
+  if (document.activeElement !== $('upcoming')) $('upcoming').value = b.upcomingWorks || '';
+  const rems = reminders(b);
+  $('boat-content').innerHTML = `
+    <div class="card">
+      <div class="ch"><div><div class="ct">${esc(b.name)}</div><div class="cs">${esc(b.model)}</div></div>
+        <select style="width:auto" onchange="updateStatus('${b.id}',this.value)">
+          ${['eau', 'hangar', 'atelier', 'hivernage'].map(s => `<option value="${s}" ${b.status === s ? 'selected' : ''}>${statusLabel(s)}</option>`).join('')}
+        </select></div>
+      <div class="grid2">
+        <div>👤 ${esc(b.owner) || 'N/C'}</div><div>⏱ ${fmt(b.hours)} h</div>
+        <div>⚓ ${esc(b.immat) || 'N/C'}</div><div>⚙️ ${esc(b.engineSn) || 'N/C'}</div>
+        <div>⛽ ${esc(b.fuel)}</div>
+        ${b.notes ? `<div class="full">📝 ${esc(b.notes)}</div>` : ''}
+      </div>
+      ${rems.map(remHtml).join('')}
+    </div>`;
+  const logs = (b.logs || []).slice().reverse();
+  $('history').innerHTML = logs.length ? logs.map(l => `
+    <div class="hist">
+      <div style="font-weight:700;color:var(--cy)">📅 ${esc(l.date)} — ⏱ ${fmt(l.newHours)} h</div>
+      <div>${esc(l.desc)}</div>
+      ${l.laborHours ? `<div style="font-size:.8rem;color:var(--green)">⏱ Main d'œuvre : ${fmt(l.laborHours)} h</div>` : ''}
+      ${(l.partsUsed || []).length ? `<div style="font-size:.75rem;color:var(--sec)">📦 ${l.partsUsed.map(esc).join(', ')}</div>` : ''}
+    </div>`).join('') : `<div style="font-size:.85rem;color:var(--sec);margin-top:6px">Aucune maintenance enregistrée.</div>`;
+}
+
+function renderChecklist() {
+  $('checklist').innerHTML = stock.length ? stock.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(s => `
+    <div class="row"><input type="checkbox" class="kit-cb" data-id="${s.id}">
+      <span style="flex:1">${esc(s.name)} <small style="color:var(--sec)" data-avail="${s.id}">(dispo : ${fmt(s.qty)}${isOil(s) ? ' L' : ''})</small></span>
+      <input type="number" step="0.1" value="1" class="qin" data-qty="${s.id}"></div>`).join('')
+    : `<span class="lbl">Aucune pièce en stock</span>`;
+}
+// Met à jour les quantités « dispo » sans toucher à ce qui est coché
+function updateChecklistAvail() {
+  stock.forEach(s => { const el = document.querySelector(`[data-avail="${s.id}"]`); if (el) el.textContent = `(dispo : ${fmt(s.qty)}${isOil(s) ? ' L' : ''})`; });
+}
+function fillKitSelect() {
+  const sel = $('kit-select'); if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Aucun kit --</option>' + kits.map(k => `<option value="${k.id}">${esc(k.name)}</option>`).join('');
+  sel.value = cur;
+}
+window.applyKit = id => {
+  document.querySelectorAll('.kit-cb').forEach(cb => cb.checked = false);
+  if (!id) return;
+  const k = kits.find(x => x.id === id); if (!k) return;
+  $('m-desc').value = 'Révision : ' + k.name;
+  $('m-labor').value = k.labor || '';
+  kitItems(k).forEach(it => {
+    const cb = document.querySelector(`.kit-cb[data-id="${it.id}"]`);
+    const q = document.querySelector(`[data-qty="${it.id}"]`);
+    if (cb) cb.checked = true;
+    if (q) q.value = it.qty;
+  });
+};
+
+/* Entretien : une seule écriture atomique (stock + historique + heures) */
+window.saveMaintenance = async () => {
+  const b = boats.find(x => x.id === activeBoatId); if (!b) return;
+  const desc = $('m-desc').value.trim();
+  if (!desc) return alert('Entre une description des travaux.');
+
+  let hours = Number(b.hours || 0);
+  const hIn = $('m-hours').value;
+  if (hIn !== '') {
+    const h = parseFloat(hIn);
+    if (isNaN(h)) return alert('Heures moteur invalides.');
+    if (h < hours && !confirm(`${h} h est inférieur à l'index actuel (${fmt(hours)} h). Continuer ?`)) return;
+    hours = h;
+  }
+  const labor = parseFloat($('m-labor').value) || 0;
+
+  const batch = writeBatch(db);
+  const used = [], short = [];
+  document.querySelectorAll('.kit-cb:checked').forEach(cb => {
+    const s = stock.find(x => x.id === cb.dataset.id);
+    const q = parseFloat(document.querySelector(`[data-qty="${cb.dataset.id}"]`).value);
+    if (!s || !(q > 0)) return;
+    if (q > Number(s.qty)) short.push(s.name);
+    batch.update(doc(db, 'stock', s.id), q > Number(s.qty) ? { qty: 0 } : { qty: increment(-q) });
+    used.push(`${s.name} (-${q}${isOil(s) ? ' L' : ''})`);
+  });
+  if (short.length && !confirm(`Stock insuffisant pour : ${short.join(', ')}.\nLe stock passera à 0. Continuer ?`)) return;
+
+  const now = new Date();
+  const log = { date: now.toLocaleDateString('fr-FR'), dateISO: now.toISOString(), desc, newHours: hours, laborHours: labor, partsUsed: used, kitId: $('kit-select').value || '' };
+  batch.update(doc(db, 'boats', b.id), { hours, logs: arrayUnion(log) });
+
+  const btn = $('save-maint'); btn.disabled = true;
+  try {
+    await batch.commit();
+    ['m-desc', 'm-hours', 'm-labor'].forEach(i => $(i).value = '');
+    $('kit-select').value = '';
+    renderChecklist();
+    toast('Entretien enregistré, stock mis à jour');
+  } catch (e) { console.error(e); toast("Erreur : rien n'a été enregistré.", true); }
+  btn.disabled = false;
+};
+
+window.autoSaveWorks = text => {
+  if (!activeBoatId) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => safe(() => updateDoc(doc(db, 'boats', activeBoatId), { upcomingWorks: text })), 600);
+};
+window.completeWorks = () => {
+  const b = boats.find(x => x.id === activeBoatId); if (!b) return;
+  const txt = $('upcoming').value.trim();
+  if (!txt) return alert('Aucun travail renseigné.');
+  const now = new Date();
+  const log = { date: now.toLocaleDateString('fr-FR'), dateISO: now.toISOString(), desc: '[Travaux réalisés] ' + txt, newHours: Number(b.hours || 0), laborHours: 0, partsUsed: [], kitId: '' };
+  safe(async () => {
+    await updateDoc(doc(db, 'boats', b.id), { logs: arrayUnion(log), upcomingWorks: '' });
+    $('upcoming').value = '';
+  }, 'Travaux archivés');
+};
+window.updateStatus = (id, status) => safe(() => updateDoc(doc(db, 'boats', id), { status }));
+
+/* ===== Bateaux ===== */
+window.openBoatModal = () => $('boat-modal').classList.add('active');
+window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+
+window.saveBoat = () => {
+  const name = $('b-name').value.trim(), model = $('b-model').value.trim();
+  if (!name || !model) return alert('Remplis le nom et le modèle.');
+  safe(async () => {
+    await addDoc(collection(db, 'boats'), {
+      name, model, owner: $('b-owner').value.trim(), immat: $('b-immat').value.trim(), engineSn: $('b-sn').value.trim(),
+      status: $('b-status').value, hours: parseFloat($('b-hours').value) || 0, fuel: $('b-fuel').value,
+      notes: $('b-notes').value.trim(), upcomingWorks: '', logs: []
+    });
+    ['b-name', 'b-model', 'b-owner', 'b-immat', 'b-sn', 'b-hours', 'b-notes'].forEach(i => $(i).value = '');
+    closeModals();
+  }, 'Bateau ajouté');
+};
+window.openEditBoat = () => {
+  const b = boats.find(x => x.id === activeBoatId); if (!b) return;
+  $('e-name').value = b.name || ''; $('e-model').value = b.model || ''; $('e-owner').value = b.owner || '';
+  $('e-immat').value = b.immat || ''; $('e-sn').value = b.engineSn || ''; $('e-fuel').value = b.fuel || 'Essence'; $('e-notes').value = b.notes || '';
+  $('edit-modal').classList.add('active');
+};
+window.updateBoat = () => {
+  const name = $('e-name').value.trim(), model = $('e-model').value.trim();
+  if (!name || !model) return alert('Nom et modèle obligatoires.');
+  safe(async () => {
+    await updateDoc(doc(db, 'boats', activeBoatId), {
+      name, model, owner: $('e-owner').value.trim(), immat: $('e-immat').value.trim(),
+      engineSn: $('e-sn').value.trim(), fuel: $('e-fuel').value, notes: $('e-notes').value.trim()
+    });
+    closeModals();
+  }, 'Bateau mis à jour');
+};
+window.deleteBoat = id => {
+  const b = boats.find(x => x.id === id);
+  if (confirm(`Supprimer « ${b ? b.name : 'ce bateau'} » et tout son historique ?`)) safe(() => deleteDoc(doc(db, 'boats', id)));
+};
+
+/* ===== Stock ===== */
+function compress(file) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const M = 300; let w = img.width, h = img.height;
+        if (w > h) { if (w > M) { h *= M / w; w = M; } } else if (h > M) { w *= M / h; h = M; }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        res(c.toDataURL('image/jpeg', 0.6));
+      };
+      img.onerror = () => res(null); img.src = e.target.result;
+    };
+    r.onerror = () => res(null); r.readAsDataURL(file);
+  });
+}
+window.openStockModal = id => {
+  editStockId = id || null;
+  const s = id ? stock.find(x => x.id === id) : null;
+  $('s-title').textContent = s ? 'Modifier la référence' : 'Nouvelle référence';
+  $('s-name').value = s ? s.name || '' : ''; $('s-ref').value = s ? s.ref || '' : '';
+  $('s-cat').value = s ? s.cat || 'Moteur / Filtres' : 'Moteur / Filtres';
+  $('s-qty').value = s ? s.qty : ''; $('s-min').value = s ? s.min : ''; $('s-loc').value = s ? s.loc || '' : '';
+  $('s-file').value = '';
+  $('stock-modal').classList.add('active');
+};
+window.saveStock = async () => {
+  const name = $('s-name').value.trim(), qty = parseFloat($('s-qty').value);
+  if (!name || isNaN(qty)) return alert('Nom et quantité requis.');
+  const btn = $('s-save'); btn.disabled = true;
+  const data = {
+    name, ref: $('s-ref').value.trim(), cat: $('s-cat').value, qty,
+    min: parseFloat($('s-min').value) || 2, loc: $('s-loc').value.trim()
+  };
+  const f = $('s-file').files[0];
+  if (f) { const img = await compress(f); if (img) data.img = img; }
+  await safe(async () => {
+    if (editStockId) await updateDoc(doc(db, 'stock', editStockId), data);
+    else await addDoc(collection(db, 'stock'), { ...data, img: data.img || '' });
+    closeModals();
+  }, editStockId ? 'Pièce modifiée' : 'Pièce ajoutée');
+  btn.disabled = false;
+};
+window.changeQty = (id, d) => {
+  const s = stock.find(x => x.id === id); if (!s) return;
+  if (Number(s.qty) + d < 0) return;
+  safe(() => updateDoc(doc(db, 'stock', id), { qty: increment(d) }));
+};
+window.deleteStock = id => {
+  const s = stock.find(x => x.id === id);
+  if (confirm(`Supprimer « ${s ? s.name : 'cette référence'} » ?`)) safe(() => deleteDoc(doc(db, 'stock', id)));
+};
+
+/* ===== Kits ===== */
+window.openKitModal = id => {
+  editKitId = id || null;
+  const k = id ? kits.find(x => x.id === id) : null;
+  const items = k ? kitItems(k) : [];
+  $('k-title').textContent = k ? 'Modifier le kit' : 'Nouveau kit';
+  $('k-name').value = k ? k.name || '' : ''; $('k-labor').value = k ? k.labor || '' : ''; $('k-interval').value = k ? k.interval || '' : '';
+  $('k-parts').innerHTML = stock.length ? stock.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(s => {
+    const it = items.find(x => x.id === s.id);
+    return `<div class="row"><input type="checkbox" class="kp-cb" data-id="${s.id}" ${it ? 'checked' : ''}>
+      <span style="flex:1">${esc(s.name)}</span>
+      <input type="number" step="0.1" class="qin" data-kq="${s.id}" value="${it ? it.qty : 1}"></div>`;
+  }).join('') : `<span class="lbl">Ajoute d'abord des pièces au stock.</span>`;
+  $('kit-modal').classList.add('active');
+};
+window.saveKit = () => {
+  const name = $('k-name').value.trim();
+  if (!name) return alert('Nom du kit requis.');
+  const items = [];
+  document.querySelectorAll('.kp-cb:checked').forEach(cb => {
+    const q = parseFloat(document.querySelector(`[data-kq="${cb.dataset.id}"]`).value) || 1;
+    items.push({ id: cb.dataset.id, qty: q });
+  });
+  const data = { name, labor: parseFloat($('k-labor').value) || 0, interval: parseFloat($('k-interval').value) || 0, items, parts: items.map(i => i.id) };
+  safe(async () => {
+    if (editKitId) await updateDoc(doc(db, 'kits', editKitId), data);
+    else await addDoc(collection(db, 'kits'), data);
+    closeModals();
+  }, 'Kit enregistré');
+};
+window.deleteKit = id => {
+  const k = kits.find(x => x.id === id);
+  if (confirm(`Supprimer le kit « ${k ? k.name : ''} » ?`)) safe(() => deleteDoc(doc(db, 'kits', id)));
+};
+
+/* ===== Sauvegarde JSON ===== */
+window.backup = () => {
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), boats, stock, kits }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'meca-manager-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('Sauvegarde téléchargée');
+};
+</script>
+</body>
+  </html>
