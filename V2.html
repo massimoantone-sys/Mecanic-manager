@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V3</title>
+<title>Meca Manager V4</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{--bg:#0b132b;--card:#1c2541;--blue:#007bff;--green:#2ec4b6;--red:#e63946;--sec:#8d99ae;--bd:#2a3a5e;--cy:#00b4d8;--or:#f77f00}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;-webkit-tap-highlight-color:transparent}
@@ -20,12 +21,15 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:15px 16px}
 .metric{background:var(--card);padding:12px 15px;border-radius:12px;border:1px solid var(--bd)}
 .metric-t{font-size:.7rem;font-weight:700;color:var(--sec);margin-bottom:4px}
-.metric-v{font-size:1.5rem;font-weight:800;color:var(--cy)}
+.metric-v{font-size:1.45rem;font-weight:800;color:var(--cy)}
 .btn-add{grid-column:span 2;background:var(--blue);color:#fff;border:none;padding:14px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer}
 .alert{margin:0 16px 12px;background:rgba(230,57,70,.15);border:1px solid var(--red);color:#ff8d99;padding:10px 12px;border-radius:10px;font-size:.82rem}
 .note{background:rgba(247,127,0,.15);border:1px solid var(--or);color:#ffb366;padding:10px 12px;border-radius:10px;font-size:.82rem}
-.search{padding:0 16px 14px}
+.search{padding:0 16px 12px}
 .search input{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--bd);border-radius:10px;color:#fff;font-size:.9rem}
+.filters{display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto}
+.fchip{padding:7px 12px;border-radius:20px;background:var(--card);border:1px solid var(--bd);color:var(--sec);font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.fchip.active{background:var(--cy);color:#000;border-color:var(--cy)}
 .list{padding:0 16px;display:flex;flex-direction:column;gap:14px}
 @media(min-width:768px){.list{display:grid;grid-template-columns:1fr 1fr;align-items:start}.list.hide{display:none!important}}
 .gh{grid-column:1/-1;font-size:.95rem;font-weight:800;color:var(--cy);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--bd);padding:10px 2px 6px;margin-top:6px}
@@ -35,17 +39,18 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .ct{font-size:1.1rem;font-weight:700;word-break:break-word}
 .cs{font-size:.85rem;color:var(--cy);font-weight:600}
 .badge{font-size:.68rem;padding:3px 8px;border-radius:12px;font-weight:700;text-transform:uppercase;white-space:nowrap}
-.s-eau{background:rgba(46,196,182,.2);color:#2ec4b6;border:1px solid #2ec4b6}
+.s-eau,.st-payee{background:rgba(46,196,182,.2);color:#2ec4b6;border:1px solid #2ec4b6}
 .s-hangar{background:rgba(0,180,216,.2);color:#00b4d8;border:1px solid #00b4d8}
-.s-atelier{background:rgba(230,57,70,.2);color:#ff4d6d;border:1px solid #e63946}
-.s-hivernage{background:rgba(141,153,174,.2);color:#8d99ae;border:1px solid #8d99ae}
+.s-atelier,.st-impayee{background:rgba(230,57,70,.2);color:#ff4d6d;border:1px solid #e63946}
+.st-relance{background:rgba(247,127,0,.22);color:#ffa94d;border:1px solid #f77f00}
+.s-hivernage,.st-annulee{background:rgba(141,153,174,.2);color:#8d99ae;border:1px solid #8d99ae}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.8rem;color:var(--sec);background:rgba(11,19,43,.5);padding:10px;border-radius:8px}
 .full{grid-column:span 2}
 .rem{font-size:.78rem;font-weight:700;padding:6px 10px;border-radius:8px}
 .rem.late{background:rgba(230,57,70,.2);color:#ff4d6d}.rem.soon{background:rgba(247,127,0,.2);color:#ffa94d}.rem.ok{background:rgba(141,153,174,.15);color:var(--sec)}
-.actions{display:flex;gap:8px;border-top:1px solid var(--bd);padding-top:12px}
+.actions{display:flex;gap:8px;border-top:1px solid var(--bd);padding-top:12px;align-items:center}
 .btn{padding:9px 12px;border-radius:8px;font-weight:700;font-size:.8rem;border:none;cursor:pointer;flex:1;text-align:center;color:#fff}
-.b-p{background:var(--blue)}.b-s{background:var(--bd)}.b-g{background:var(--green);color:#000}
+.b-p{background:var(--blue)}.b-s{background:var(--bd)}.b-g{background:var(--green);color:#000}.b-o{background:var(--or);color:#000}
 .b-d{background:rgba(236,57,70,.2);color:#ff4d6d;border:1px solid var(--red);flex:.4}
 .hbtn{flex:unset;padding:8px 10px}
 .srow{display:flex;gap:12px;align-items:center}
@@ -76,8 +81,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 .toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);z-index:300;background:#12805c;color:#fff;padding:12px 14px;border-radius:12px;font-size:.85rem;font-weight:600}
 .toast.err{background:#c1121f}
 
-/* ===== Style Facture (écran + impression PDF) ===== */
-.inv-paper{background:#fff;color:#111;padding:28px;border-radius:8px;font-size:.85rem;line-height:1.45}
+/* ===== Style Facture (écran + PDF) ===== */
+.inv-paper{background:#fff;color:#111;padding:26px;border-radius:8px;font-size:.84rem;line-height:1.45}
 .inv-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0b132b;padding-bottom:14px;margin-bottom:16px;gap:12px}
 .inv-title{font-size:1.4rem;font-weight:800;color:#0b132b;text-transform:uppercase}
 .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
@@ -86,7 +91,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 .inv-tbl th{background:#0b132b;color:#fff;text-align:left;padding:8px;font-size:.78rem}
 .inv-tbl td{padding:8px;border-bottom:1px solid #e2e8f0;font-size:.82rem}
 .inv-tbl .num{text-align:right;white-space:nowrap}
-.inv-tot{margin-left:auto;width:240px;display:flex;flex-direction:column;gap:5px;font-size:.88rem}
+.inv-tot{margin-left:auto;width:260px;display:flex;flex-direction:column;gap:5px;font-size:.88rem}
 .inv-tot div{display:flex;justify-content:space-between}
 .inv-tot .grand{font-size:1.05rem;font-weight:800;border-top:2px solid #0b132b;padding-top:6px;color:#0b132b}
 .inv-foot{margin-top:22px;padding-top:10px;border-top:1px solid #dce2ec;font-size:.72rem;color:#555;text-align:center}
@@ -131,8 +136,15 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <section class="metrics" id="metrics"></section>
   <div id="stock-alert"></div>
   <div class="search"><input id="search" placeholder="Rechercher..."></div>
+  <div class="filters hide" id="inv-filters">
+    <button class="fchip active" data-f="all" onclick="setInvFilter('all')">Toutes</button>
+    <button class="fchip" data-f="impayee" onclick="setInvFilter('impayee')">🔴 Non payées</button>
+    <button class="fchip" data-f="relance" onclick="setInvFilter('relance')">🟠 Relancées</button>
+    <button class="fchip" data-f="payee" onclick="setInvFilter('payee')">🟢 Payées</button>
+  </div>
   <section class="list" id="v-flotte"></section>
   <section class="list hide" id="v-stock"></section>
+  <section class="list hide" id="v-factures"></section>
 </div>
 
 <div class="detail hide" id="detail">
@@ -178,10 +190,25 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
     </div>
     <div id="checklist"></div>
 
+    <!-- Remise commerciale -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+      <div>
+        <label class="lbl">Remise commerciale</label>
+        <input id="m-disc" type="number" step="0.5" min="0" class="inp" placeholder="0" oninput="updateLiveTotal()">
+      </div>
+      <div>
+        <label class="lbl">Type de remise</label>
+        <select id="m-disctype" onchange="updateLiveTotal()">
+          <option value="eur">Montant (€ HT)</option>
+          <option value="pct">Pourcentage (%)</option>
+        </select>
+      </div>
+    </div>
+
     <div class="tot-bar">
       <div>
-        <div style="font-size:.75rem;color:var(--sec)">Total intervention estimé</div>
-        <div style="font-size:.75rem;color:var(--green)" id="live-margin">Marge brute : 0,00 €</div>
+        <div style="font-size:.75rem;color:var(--sec)">Total intervention</div>
+        <div style="font-size:.75rem;color:var(--green)" id="live-margin">Marge nette : 0,00 €</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:1.15rem;font-weight:800;color:var(--cy)" id="live-total">0,00 €</div>
@@ -201,6 +228,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <nav id="nav">
   <button class="nav active" id="n-flotte" onclick="switchTab('flotte')"><span>⛵</span><span>Flotte</span></button>
   <button class="nav" id="n-stock" onclick="switchTab('stock')"><span>📦</span><span>Stock</span></button>
+  <button class="nav" id="n-factures" onclick="switchTab('factures')"><span>🧾</span><span>Factures</span></button>
 </nav>
 
 <!-- Modal bateau (ajout) -->
@@ -288,11 +316,26 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="saveSettings()">Enregistrer</button></div>
 </div></div>
 
-<!-- Modal Aperçu Facture -->
+<!-- Modal Aperçu Facture + Ajustement remise & statut -->
 <div class="modal" id="invoice-modal"><div class="mc" style="max-width:680px">
-  <div class="mb no-print" style="margin-top:0;margin-bottom:8px">
+  <div class="mb no-print" style="margin-top:0;margin-bottom:6px;flex-wrap:wrap">
     <button class="btn b-s" onclick="closeModals()">Fermer</button>
-    <button class="btn b-g" onclick="window.print()">🖨️ Imprimer / PDF</button>
+    <button class="btn b-p" onclick="window.print()">🖨️ Imprimer</button>
+    <button class="btn b-g" onclick="downloadInvoicePDF()">⬇️ Télécharger PDF</button>
+  </div>
+  <!-- Barre rapide statut & remise sur facture existante -->
+  <div class="no-print" id="inv-edit-bar" style="background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+    <select id="inv-modal-status" style="width:auto;flex:1;min-width:130px" onchange="updateInvoiceFromModal()">
+      <option value="impayee">🔴 Non payée</option>
+      <option value="relance">🟠 Relancée</option>
+      <option value="payee">🟢 Payée</option>
+      <option value="annulee">⚪ Annulée</option>
+    </select>
+    <input id="inv-modal-disc" type="number" step="0.5" min="0" class="inp" style="width:90px" placeholder="Remise" onchange="updateInvoiceFromModal()">
+    <select id="inv-modal-disctype" style="width:auto" onchange="updateInvoiceFromModal()">
+      <option value="eur">€</option>
+      <option value="pct">%</option>
+    </select>
   </div>
   <div id="invoice-render"></div>
 </div></div>
@@ -330,6 +373,7 @@ const NOBRAND = 'Universel / non classé';
 let boats = [], stock = [], unsubs = [];
 let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bizLegal: 'TVA non applicable, art. 293 B du CGI', nextInvNum: 1 };
 let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null;
+let invFilter = 'all', currentInvRef = null;
 
 function toast(msg, err) {
   const t = $('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
@@ -421,28 +465,72 @@ function reminder(b) {
   return { left, html: `<div class="rem ${cls}">${txt}</div>` };
 }
 
+/* ===== Extraction de toutes les factures ===== */
+function getAllInvoices() {
+  const list = [];
+  boats.forEach(b => {
+    (b.logs || []).forEach((l, logIdx) => {
+      if (l.invoice || (l.totalHT != null && l.totalHT > 0)) {
+        const status = l.invoice?.status || 'impayee';
+        list.push({
+          boatId: b.id,
+          boatName: b.name || 'Bateau',
+          boatModel: b.model || '',
+          owner: b.owner || 'Client comptoir',
+          logIdx,
+          log: l,
+          number: l.invoice?.number || `INT-${logIdx + 1}`,
+          date: l.invoice?.issuedAt || l.date || '',
+          dateISO: l.dateISO || '',
+          status,
+          totalTTC: Number(l.totalTTC ?? l.totalHT ?? 0),
+          totalHT: Number(l.totalHT ?? 0)
+        });
+      }
+    });
+  });
+  return list.sort((a, b) => (b.dateISO || '').localeCompare(a.dateISO || ''));
+}
+
+function invStatusLabel(st) {
+  return { payee: 'Payée', impayee: 'Non payée', relance: 'Relancée', annulee: 'Annulée' }[st] || 'Non payée';
+}
+
 /* ===== Rendu ===== */
 function renderAll() {
   renderMetrics();
-  if (!activeBoatId) { renderBoats(); renderStock(); }
+  if (!activeBoatId) {
+    renderBoats();
+    renderStock();
+    renderInvoices();
+  }
 }
 
 function renderMetrics() {
   const low = stock.filter(s => Number(s.qty) <= Number(s.min));
   $('stock-alert').innerHTML = (tab === 'flotte' && low.length)
     ? `<div class="alert">⚠️ Stock bas : ${low.map(s => esc(s.name)).join(', ')}</div>` : '';
+
   if (tab === 'flotte') {
     const late = boats.filter(b => { const r = reminder(b); return r && r.left <= 0; }).length;
     $('metrics').innerHTML = `
       <div class="metric"><div class="metric-t">FLOTTE ⛵</div><div class="metric-v">${boats.length}</div></div>
       <div class="metric"><div class="metric-t">RÉVISIONS EN RETARD 🔧</div><div class="metric-v" style="color:${late ? '#ff4d6d' : '#2ec4b6'}">${late}</div></div>
       <button class="btn-add" onclick="openBoatModal()">+ Ajouter un bateau</button>`;
-  } else {
+  } else if (tab === 'stock') {
     const valAchat = stock.reduce((acc, s) => acc + (Number(s.qty) || 0) * (Number(s.buyPrice) || 0), 0);
     $('metrics').innerHTML = `
       <div class="metric"><div class="metric-t">STOCK (VALEUR ACHAT) 💰</div><div class="metric-v" style="font-size:1.25rem">${eur(valAchat)}</div></div>
       <div class="metric"><div class="metric-t">STOCK BAS ⚠️ (${stock.length} réf.)</div><div class="metric-v" style="color:${low.length ? '#ff4d6d' : '#2ec4b6'}">${low.length}</div></div>
       <button class="btn-add" style="background:#2ec4b6;color:#000" onclick="openStockModal()">+ Ajouter une pièce / huile</button>`;
+  } else if (tab === 'factures') {
+    const invs = getAllInvoices();
+    const encaisse = invs.filter(i => i.status === 'payee').reduce((a, b) => a + b.totalTTC, 0);
+    const enAttente = invs.filter(i => i.status === 'impayee' || i.status === 'relance').reduce((a, b) => a + b.totalTTC, 0);
+    const nbRelance = invs.filter(i => i.status === 'relance').length;
+    $('metrics').innerHTML = `
+      <div class="metric"><div class="metric-t">ENCAISSÉ 🟢</div><div class="metric-v" style="font-size:1.2rem;color:#2ec4b6">${eur(encaisse)}</div></div>
+      <div class="metric"><div class="metric-t">À ENCAISSER 🔴${nbRelance ? ` (${nbRelance} relance)` : ''}</div><div class="metric-v" style="font-size:1.2rem;color:${enAttente > 0 ? '#ff4d6d' : '#8d99ae'}">${eur(enAttente)}</div></div>`;
   }
 }
 
@@ -506,17 +594,70 @@ function renderStock() {
   $('v-stock').innerHTML = keys.map(k => `<div class="gh">${esc(k)}<span>${groups[k].length} réf.</span></div>` + groups[k].map(stockCard).join('')).join('');
 }
 
-$('search').oninput = () => { if (tab === 'flotte') renderBoats(); else renderStock(); };
+/* ===== Onglet Factures ===== */
+window.setInvFilter = f => {
+  invFilter = f;
+  document.querySelectorAll('#inv-filters .fchip').forEach(c => c.classList.toggle('active', c.dataset.f === f));
+  renderInvoices();
+};
+
+function renderInvoices() {
+  let list = getAllInvoices().filter(i => match(query(), i.number, i.owner, i.boatName, i.log.desc));
+  if (invFilter !== 'all') list = list.filter(i => i.status === invFilter);
+
+  $('v-factures').innerHTML = list.length ? list.map(i => `
+    <div class="card">
+      <div class="ch">
+        <div>
+          <div class="ct">${esc(i.number)} <span style="font-size:.8rem;color:var(--sec);font-weight:400">• ${esc(i.date)}</span></div>
+          <div class="cs">⛵ ${esc(i.boatName)} — 👤 ${esc(i.owner)}</div>
+        </div>
+        <span class="badge st-${esc(i.status)}">${invStatusLabel(i.status)}</span>
+      </div>
+      <div class="grid2">
+        <div class="full">🛠️ ${esc(i.log.desc)}</div>
+        <div>💶 Montant : <b style="color:#fff">${eur(i.totalTTC)}</b></div>
+        <div>${i.log.discountAmount > 0 ? `🏷️ Remise : <b>-${eur(i.log.discountAmount)}</b>` : '🏷️ Sans remise'}</div>
+      </div>
+      <div class="actions">
+        <select style="flex:1.1;padding:8px;font-size:.78rem" onchange="changeInvoiceStatus('${i.boatId}', ${i.logIdx}, this.value)">
+          <option value="impayee" ${i.status === 'impayee' ? 'selected' : ''}>🔴 Non payée</option>
+          <option value="relance" ${i.status === 'relance' ? 'selected' : ''}>🟠 Relancée</option>
+          <option value="payee" ${i.status === 'payee' ? 'selected' : ''}>🟢 Payée</option>
+          <option value="annulee" ${i.status === 'annulee' ? 'selected' : ''}>⚪ Annulée</option>
+        </select>
+        <button class="btn b-p" onclick="openInvoice('${i.boatId}', ${i.logIdx})">🧾 Ouvrir / PDF</button>
+      </div>
+    </div>`).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune facture correspondante.</div>`;
+}
+
+window.changeInvoiceStatus = (boatId, logIdx, newStatus) => {
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs || !b.logs[logIdx]) return;
+  const updatedLogs = b.logs.map((l, idx) => {
+    if (idx !== logIdx) return l;
+    const inv = l.invoice || { number: `FAC-${new Date().getFullYear()}-${idx + 1}`, issuedAt: l.date };
+    return { ...l, invoice: { ...inv, status: newStatus, updatedAt: new Date().toLocaleDateString('fr-FR') } };
+  });
+  safe(() => updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs }), `Statut : ${invStatusLabel(newStatus)}`);
+};
+
+$('search').oninput = () => {
+  if (tab === 'flotte') renderBoats();
+  else if (tab === 'stock') renderStock();
+  else renderInvoices();
+};
 
 window.switchTab = t => {
   tab = t;
-  ['flotte', 'stock'].forEach(x => {
+  ['flotte', 'stock', 'factures'].forEach(x => {
     $('n-' + x).classList.toggle('active', x === t);
     $('v-' + x).classList.toggle('hide', x !== t);
   });
-  $('sub').textContent = t === 'flotte' ? 'Gestion de flotte' : 'Stock par marque de moteur';
+  $('inv-filters').classList.toggle('hide', t !== 'factures');
+  $('sub').textContent = t === 'flotte' ? 'Gestion de flotte' : t === 'stock' ? 'Stock par marque de moteur' : 'Suivi des factures';
   $('search').value = '';
-  renderMetrics(); renderBoats(); renderStock();
+  renderMetrics(); renderBoats(); renderStock(); renderInvoices();
 };
 
 /* ===== Fiche bateau ===== */
@@ -526,13 +667,14 @@ window.openBoatDetail = id => {
   const b = boats.find(x => x.id === id);
   $('upcoming').value = (b && b.upcomingWorks) || '';
   $('m-rate').value = cfg.hourlyRate ?? 60;
+  $('m-disc').value = '';
   renderBoatDetail(); renderChecklist(); updateLiveTotal();
   window.scrollTo(0, 0);
 };
 window.backToFlotte = () => {
   activeBoatId = null;
   $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
-  $('sub').textContent = tab === 'flotte' ? 'Gestion de flotte' : 'Stock par marque de moteur';
+  $('sub').textContent = tab === 'flotte' ? 'Gestion de flotte' : tab === 'stock' ? 'Stock par marque de moteur' : 'Suivi des factures';
   renderAll();
 };
 
@@ -559,17 +701,23 @@ function renderBoatDetail() {
     </div>`;
 
   const logs = (b.logs || []).map((l, origIdx) => ({ ...l, origIdx })).reverse();
-  $('history').innerHTML = logs.length ? logs.map(l => `
+  $('history').innerHTML = logs.length ? logs.map(l => {
+    const st = l.invoice?.status || 'impayee';
+    return `
     <div class="hist">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
         <div style="font-weight:700;color:var(--cy)">📅 ${esc(l.date)} — ⏱ ${fmt(l.newHours)} h</div>
-        ${l.invoice ? `<button class="btn b-g hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openInvoice('${b.id}', ${l.origIdx})">🧾 ${esc(l.invoice.number)}</button>` : `<button class="btn b-s hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openInvoice('${b.id}', ${l.origIdx})">🧾 Facturer</button>`}
+        <div style="display:flex;gap:6px;align-items:center">
+          ${l.invoice ? `<span class="badge st-${esc(st)}">${invStatusLabel(st)}</span>` : ''}
+          <button class="btn b-g hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openInvoice('${b.id}', ${l.origIdx})">🧾 ${l.invoice ? esc(l.invoice.number) : 'Facturer'}</button>
+        </div>
       </div>
       <div>${esc(l.desc)}</div>
       ${l.laborHours ? `<div style="font-size:.8rem;color:var(--green)">⏱ MO : ${fmt(l.laborHours)} h${l.hourlyRate ? ` × ${eur(l.hourlyRate)}/h` : ''}</div>` : ''}
       ${(l.partsUsed || []).length ? `<div style="font-size:.75rem;color:var(--sec)">📦 ${l.partsUsed.map(esc).join(', ')}</div>` : ''}
-      ${l.totalHT != null ? `<div style="font-size:.82rem;font-weight:700;color:#fff">💶 Total : ${eur(l.totalTTC ?? l.totalHT)}</div>` : ''}
-    </div>`).join('') : `<div style="font-size:.85rem;color:var(--sec);margin-top:6px">Aucune maintenance enregistrée.</div>`;
+      ${l.totalHT != null ? `<div style="font-size:.82rem;font-weight:700;color:#fff">💶 Total : ${eur(l.totalTTC ?? l.totalHT)}${l.discountAmount > 0 ? ` (dont remise -${eur(l.discountAmount)})` : ''}</div>` : ''}
+    </div>`;
+  }).join('') : `<div style="font-size:.85rem;color:var(--sec);margin-top:6px">Aucune maintenance enregistrée.</div>`;
 }
 
 // Liste des pièces avec quantité ET prix de revente modifiable à la volée
@@ -616,10 +764,17 @@ window.checkEngineParts = () => {
   updateLiveTotal();
 };
 
+function calcDiscount(subtotal, discVal, discType) {
+  const val = Math.max(0, parseFloat(discVal) || 0);
+  if (!val || subtotal <= 0) return 0;
+  const amount = discType === 'pct' ? subtotal * (Math.min(val, 100) / 100) : Math.min(val, subtotal);
+  return Math.round(amount * 100) / 100;
+}
+
 window.updateLiveTotal = () => {
   const labor = parseFloat($('m-labor')?.value) || 0;
   const rate = parseFloat($('m-rate')?.value) || 0;
-  let totalHT = labor * rate;
+  let subtotalHT = labor * rate;
   let totalCost = 0;
 
   document.querySelectorAll('.kit-cb:checked').forEach(cb => {
@@ -627,18 +782,26 @@ window.updateLiveTotal = () => {
     const q = parseFloat(document.querySelector(`[data-qty="${cb.dataset.id}"]`)?.value) || 0;
     const p = parseFloat(document.querySelector(`[data-price="${cb.dataset.id}"]`)?.value) || 0;
     if (s && q > 0) {
-      totalHT += q * p;
+      subtotalHT += q * p;
       totalCost += q * (Number(s.buyPrice) || 0);
     }
   });
+
+  const discVal = $('m-disc')?.value;
+  const discType = $('m-disctype')?.value || 'eur';
+  const discountAmount = calcDiscount(subtotalHT, discVal, discType);
+  const totalHT = Math.max(0, subtotalHT - discountAmount);
 
   const vat = Number(cfg.vatRate) || 0;
   const totalTTC = totalHT * (1 + vat / 100);
   const margin = totalHT - totalCost;
 
   if ($('live-total')) $('live-total').textContent = vat > 0 ? `${eur(totalTTC)} TTC` : `${eur(totalHT)} HT`;
-  if ($('live-ttc')) $('live-ttc').textContent = vat > 0 ? `(${eur(totalHT)} HT + TVA ${vat}%)` : 'TVA non applicable (0%)';
-  if ($('live-margin')) $('live-margin').textContent = `Marge nette pièces + MO : ${eur(margin)}`;
+  if ($('live-ttc')) {
+    const discTxt = discountAmount > 0 ? `Remise -${eur(discountAmount)} • ` : '';
+    $('live-ttc').textContent = vat > 0 ? `${discTxt}${eur(totalHT)} HT + TVA ${vat}%` : `${discTxt}TVA non applicable (0%)`;
+  }
+  if ($('live-margin')) $('live-margin').textContent = `Marge nette : ${eur(margin)}`;
 };
 
 /* Entretien + Facturation */
@@ -686,7 +849,12 @@ window.saveMaintenance = async (openInvAfter = false) => {
   if (short.length && !confirm(`Stock insuffisant pour : ${short.join(', ')}.\nLe stock passera à 0. Continuer ?`)) return;
 
   const laborTotalHT = labor * hourlyRate;
-  const totalHT = partsTotalHT + laborTotalHT;
+  const subtotalHT = partsTotalHT + laborTotalHT;
+  const discountVal = parseFloat($('m-disc').value) || 0;
+  const discountType = $('m-disctype').value || 'eur';
+  const discountAmount = calcDiscount(subtotalHT, discountVal, discountType);
+  const totalHT = Math.max(0, subtotalHT - discountAmount);
+
   const vatRate = Number(cfg.vatRate) || 0;
   const vatAmount = totalHT * (vatRate / 100);
   const totalTTC = totalHT + vatAmount;
@@ -704,13 +872,18 @@ window.saveMaintenance = async (openInvAfter = false) => {
     hourlyRate,
     partsUsed: used,
     items,
+    subtotalHT,
+    discountVal,
+    discountType,
+    discountAmount,
     totalHT,
     vatRate,
     vatAmount,
     totalTTC,
     invoice: {
       number: invNumber,
-      issuedAt: now.toLocaleDateString('fr-FR')
+      issuedAt: now.toLocaleDateString('fr-FR'),
+      status: 'impayee'
     }
   };
 
@@ -724,13 +897,15 @@ window.saveMaintenance = async (openInvAfter = false) => {
 
   try {
     await batch.commit();
-    ['m-desc', 'm-hours', 'm-labor', 'm-next'].forEach(i => $(i).value = '');
+    ['m-desc', 'm-hours', 'm-labor', 'm-next', 'm-disc'].forEach(i => $(i).value = '');
     $('m-rate').value = cfg.hourlyRate ?? 60;
     document.querySelectorAll('.kit-cb').forEach(cb => cb.checked = false);
     updateLiveTotal();
     toast('Entretien enregistré & stock mis à jour');
     if (openInvAfter) {
-      renderInvoiceModal(b, log);
+      const updatedBoat = boats.find(x => x.id === b.id) || b;
+      const newIdx = (updatedBoat.logs?.length || 1) - 1;
+      openInvoice(b.id, newIdx);
     }
   } catch (e) {
     console.error(e);
@@ -739,11 +914,58 @@ window.saveMaintenance = async (openInvAfter = false) => {
   btn1.disabled = false; btn2.disabled = false;
 };
 
-/* ===== Génération Facture ===== */
+/* ===== Génération & Modification Facture ===== */
 window.openInvoice = (boatId, logIdx) => {
   const b = boats.find(x => x.id === boatId);
   if (!b || !b.logs || !b.logs[logIdx]) return;
-  renderInvoiceModal(b, b.logs[logIdx]);
+  currentInvRef = { boatId, logIdx };
+  const l = b.logs[logIdx];
+
+  $('inv-modal-status').value = l.invoice?.status || 'impayee';
+  $('inv-modal-disc').value = l.discountVal || '';
+  $('inv-modal-disctype').value = l.discountType || 'eur';
+
+  renderInvoiceModal(b, l);
+};
+
+window.updateInvoiceFromModal = () => {
+  if (!currentInvRef) return;
+  const { boatId, logIdx } = currentInvRef;
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs || !b.logs[logIdx]) return;
+
+  const newStatus = $('inv-modal-status').value;
+  const discVal = parseFloat($('inv-modal-disc').value) || 0;
+  const discType = $('inv-modal-disctype').value;
+
+  const updatedLogs = b.logs.map((l, idx) => {
+    if (idx !== logIdx) return l;
+    const baseSub = l.subtotalHT ?? ((l.laborHours || 0) * (l.hourlyRate ?? cfg.hourlyRate ?? 0) + (l.items || []).reduce((a, it) => a + (it.total || 0), 0)) ?? l.totalHT ?? 0;
+    const discountAmount = calcDiscount(baseSub, discVal, discType);
+    const totalHT = Math.max(0, baseSub - discountAmount);
+    const vatRate = l.vatRate ?? cfg.vatRate ?? 0;
+    const vatAmount = totalHT * (vatRate / 100);
+    const totalTTC = totalHT + vatAmount;
+    const inv = l.invoice || { number: `FAC-${new Date().getFullYear()}-${idx + 1}`, issuedAt: l.date };
+
+    return {
+      ...l,
+      subtotalHT: baseSub,
+      discountVal: discVal,
+      discountType: discType,
+      discountAmount,
+      totalHT,
+      vatAmount,
+      totalTTC,
+      invoice: { ...inv, status: newStatus }
+    };
+  });
+
+  safe(async () => {
+    await updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs });
+    const freshBoat = { ...b, logs: updatedLogs };
+    renderInvoiceModal(freshBoat, updatedLogs[logIdx]);
+  }, 'Facture mise à jour');
 };
 
 function renderInvoiceModal(b, l) {
@@ -784,6 +1006,8 @@ function renderInvoiceModal(b, l) {
   }
 
   const totalHT = l.totalHT ?? 0;
+  const discountAmount = l.discountAmount ?? 0;
+  const subtotalHT = l.subtotalHT ?? (totalHT + discountAmount);
   const vatRate = l.vatRate ?? cfg.vatRate ?? 0;
   const vatAmount = l.vatAmount ?? (totalHT * vatRate / 100);
   const totalTTC = l.totalTTC ?? (totalHT + vatAmount);
@@ -828,6 +1052,10 @@ function renderInvoiceModal(b, l) {
       </table>
 
       <div class="inv-tot">
+        ${discountAmount > 0 ? `
+          <div><span>Sous-total HT :</span><span>${eur(subtotalHT)}</span></div>
+          <div style="color:#c1121f"><span>Remise${l.discountType === 'pct' ? ` (${l.discountVal}%)` : ''} :</span><span>-${eur(discountAmount)}</span></div>
+        ` : ''}
         <div><span>Total HT :</span><b>${eur(totalHT)}</b></div>
         ${vatRate > 0 ? `<div><span>TVA (${vatRate}%) :</span><span>${eur(vatAmount)}</span></div>` : ''}
         <div class="grand"><span>NET À PAYER ${vatRate > 0 ? 'TTC' : ''} :</span><span>${eur(totalTTC)}</span></div>
@@ -840,6 +1068,25 @@ function renderInvoiceModal(b, l) {
     </div>`;
   $('invoice-modal').classList.add('active');
 }
+
+window.downloadInvoicePDF = () => {
+  const el = document.querySelector('#invoice-render .inv-paper');
+  if (!el) return;
+  const invTitle = el.querySelector('.inv-head > div:last-child > div:nth-child(2)')?.textContent || '';
+  const cleanNum = invTitle.replace(/^N°\s*/i, '').trim() || 'Facture';
+  if (typeof html2pdf === 'undefined') {
+    toast("Librairie PDF indisponible, ouverture de l'impression.", true);
+    window.print();
+    return;
+  }
+  html2pdf().set({
+    margin: [8, 8, 8, 8],
+    filename: `${cleanNum}.pdf`,
+    image: { type: 'jpeg', quality: 0.96 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(el).save().then(() => toast(`${cleanNum}.pdf téléchargé`));
+};
 
 window.autoSaveWorks = text => {
   if (!activeBoatId) return;
