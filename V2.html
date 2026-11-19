@@ -197,14 +197,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, writeBatch, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// ⚠️ Remets ici TA vraie configuration Firebase complète
 const firebaseConfig = {
-  apiKey: "AIzaSyBpJHdSdSimVx_SIAke",
+  apiKey: "AIzaSyBsPJaHSdSimVx_SIAkeRmgkYpePTmatqQ",
   authDomain: "mecanic-manager.firebaseapp.com",
   projectId: "mecanic-manager",
-  storageBucket: "mecanic-manager.appspot.com",
+  storageBucket: "mecanic-manager.firebasestorage.app",
   messagingSenderId: "305702049718",
-  appId: "1:305702049718:web:077474c...",
+  appId: "1:305702049718:web:077474c4af884278969317",
   measurementId: "G-WNYD05J1GF"
 };
 
@@ -651,5 +650,3 @@ window.backup = () => {
   toast('Sauvegarde téléchargée');
 };
 </script>
-</body>
-  </html>
