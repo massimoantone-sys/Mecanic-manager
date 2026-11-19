@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V4</title>
+<title>Meca Manager V5</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -48,7 +48,7 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .full{grid-column:span 2}
 .rem{font-size:.78rem;font-weight:700;padding:6px 10px;border-radius:8px}
 .rem.late{background:rgba(230,57,70,.2);color:#ff4d6d}.rem.soon{background:rgba(247,127,0,.2);color:#ffa94d}.rem.ok{background:rgba(141,153,174,.15);color:var(--sec)}
-.actions{display:flex;gap:8px;border-top:1px solid var(--bd);padding-top:12px;align-items:center}
+.actions{display:flex;gap:8px;border-top:1px solid var(--bd);padding-top:12px;align-items:center;flex-wrap:wrap}
 .btn{padding:9px 12px;border-radius:8px;font-weight:700;font-size:.8rem;border:none;cursor:pointer;flex:1;text-align:center;color:#fff}
 .b-p{background:var(--blue)}.b-s{background:var(--bd)}.b-g{background:var(--green);color:#000}.b-o{background:var(--or);color:#000}
 .b-d{background:rgba(236,57,70,.2);color:#ff4d6d;border:1px solid var(--red);flex:.4}
@@ -80,6 +80,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 .lbl{font-size:.78rem;color:var(--sec)}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);z-index:300;background:#12805c;color:#fff;padding:12px 14px;border-radius:12px;font-size:.85rem;font-weight:600}
 .toast.err{background:#c1121f}
+.ed-line{background:rgba(11,19,43,.65);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
 
 /* ===== Style Facture (écran + PDF) ===== */
 .inv-paper{background:#fff;color:#111;padding:26px;border-radius:8px;font-size:.84rem;line-height:1.45}
@@ -190,7 +191,6 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
     </div>
     <div id="checklist"></div>
 
-    <!-- Remise commerciale -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
       <div>
         <label class="lbl">Remise commerciale</label>
@@ -316,26 +316,79 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="saveSettings()">Enregistrer</button></div>
 </div></div>
 
-<!-- Modal Aperçu Facture + Ajustement remise & statut -->
-<div class="modal" id="invoice-modal"><div class="mc" style="max-width:680px">
-  <div class="mb no-print" style="margin-top:0;margin-bottom:6px;flex-wrap:wrap">
-    <button class="btn b-s" onclick="closeModals()">Fermer</button>
-    <button class="btn b-p" onclick="window.print()">🖨️ Imprimer</button>
-    <button class="btn b-g" onclick="downloadInvoicePDF()">⬇️ Télécharger PDF</button>
+<!-- Modal Édition Complète d'une Facture -->
+<div class="modal" id="inv-editor-modal"><div class="mc" style="max-width:560px">
+  <h2>✏️ Modifier la facture</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div>
+      <label class="lbl">N° Facture</label>
+      <input id="ed-inv-num" class="inp">
+    </div>
+    <div>
+      <label class="lbl">Statut</label>
+      <select id="ed-inv-status">
+        <option value="impayee">🔴 Non payée</option>
+        <option value="relance">🟠 Relancée</option>
+        <option value="payee">🟢 Payée</option>
+        <option value="annulee">⚪ Annulée</option>
+      </select>
+    </div>
   </div>
-  <!-- Barre rapide statut & remise sur facture existante -->
-  <div class="no-print" id="inv-edit-bar" style="background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-    <select id="inv-modal-status" style="width:auto;flex:1;min-width:130px" onchange="updateInvoiceFromModal()">
-      <option value="impayee">🔴 Non payée</option>
-      <option value="relance">🟠 Relancée</option>
-      <option value="payee">🟢 Payée</option>
-      <option value="annulee">⚪ Annulée</option>
-    </select>
-    <input id="inv-modal-disc" type="number" step="0.5" min="0" class="inp" style="width:90px" placeholder="Remise" onchange="updateInvoiceFromModal()">
-    <select id="inv-modal-disctype" style="width:auto" onchange="updateInvoiceFromModal()">
-      <option value="eur">€</option>
-      <option value="pct">%</option>
-    </select>
+
+  <label class="lbl">Intitulé / Description de l'intervention</label>
+  <input id="ed-inv-desc" class="inp">
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div>
+      <label class="lbl">Main d'œuvre (heures)</label>
+      <input id="ed-inv-labor" type="number" step="0.25" class="inp" oninput="recalcEditorTotals()">
+    </div>
+    <div>
+      <label class="lbl">Tarif horaire (€/h)</label>
+      <input id="ed-inv-rate" type="number" step="0.5" class="inp" oninput="recalcEditorTotals()">
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+    <label class="lbl" style="color:var(--green);font-weight:700">Lignes pièces & prestations :</label>
+    <button type="button" class="btn b-s hbtn" onclick="addEditorLine()">+ Ajouter une ligne</button>
+  </div>
+  <div id="ed-inv-lines" style="display:flex;flex-direction:column;gap:8px"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+    <div>
+      <label class="lbl">Remise</label>
+      <input id="ed-inv-disc" type="number" step="0.5" min="0" class="inp" oninput="recalcEditorTotals()">
+    </div>
+    <div>
+      <label class="lbl">Type remise</label>
+      <select id="ed-inv-disctype" onchange="recalcEditorTotals()">
+        <option value="eur">Montant (€ HT)</option>
+        <option value="pct">Pourcentage (%)</option>
+      </select>
+    </div>
+  </div>
+
+  <label class="lbl">Note / Commentaire sur la facture (optionnel)</label>
+  <input id="ed-inv-note" class="inp" placeholder="Ex : Déplacement port de La Baule inclus...">
+
+  <div class="tot-bar" id="ed-inv-summary">
+    <div><span class="lbl">Nouveau total :</span></div>
+    <b style="color:var(--cy)" id="ed-inv-total">0,00 €</b>
+  </div>
+
+  <div class="mb">
+    <button class="btn b-s" onclick="closeModals()">Annuler</button>
+    <button class="btn b-g" onclick="saveEditedInvoice()">Enregistrer la facture</button>
+  </div>
+</div></div>
+
+<!-- Modal Aperçu Facture -->
+<div class="modal" id="invoice-modal"><div class="mc" style="max-width:680px">
+  <div class="mb no-print" style="margin-top:0;margin-bottom:8px;flex-wrap:wrap">
+    <button class="btn b-s" onclick="closeModals()">Fermer</button>
+    <button class="btn b-p" onclick="openEditInvoiceFromPreview()">✏️ Modifier</button>
+    <button class="btn b-g" onclick="downloadInvoicePDF()">⬇️ Télécharger PDF</button>
   </div>
   <div id="invoice-render"></div>
 </div></div>
@@ -620,13 +673,14 @@ function renderInvoices() {
         <div>${i.log.discountAmount > 0 ? `🏷️ Remise : <b>-${eur(i.log.discountAmount)}</b>` : '🏷️ Sans remise'}</div>
       </div>
       <div class="actions">
-        <select style="flex:1.1;padding:8px;font-size:.78rem" onchange="changeInvoiceStatus('${i.boatId}', ${i.logIdx}, this.value)">
+        <select style="flex:1;padding:8px;font-size:.78rem" onchange="changeInvoiceStatus('${i.boatId}', ${i.logIdx}, this.value)">
           <option value="impayee" ${i.status === 'impayee' ? 'selected' : ''}>🔴 Non payée</option>
           <option value="relance" ${i.status === 'relance' ? 'selected' : ''}>🟠 Relancée</option>
           <option value="payee" ${i.status === 'payee' ? 'selected' : ''}>🟢 Payée</option>
           <option value="annulee" ${i.status === 'annulee' ? 'selected' : ''}>⚪ Annulée</option>
         </select>
-        <button class="btn b-p" onclick="openInvoice('${i.boatId}', ${i.logIdx})">🧾 Ouvrir / PDF</button>
+        <button class="btn b-s hbtn" onclick="openEditInvoice('${i.boatId}', ${i.logIdx})">✏️</button>
+        <button class="btn b-p hbtn" onclick="openInvoice('${i.boatId}', ${i.logIdx})">🧾 PDF</button>
       </div>
     </div>`).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune facture correspondante.</div>`;
 }
@@ -709,6 +763,7 @@ function renderBoatDetail() {
         <div style="font-weight:700;color:var(--cy)">📅 ${esc(l.date)} — ⏱ ${fmt(l.newHours)} h</div>
         <div style="display:flex;gap:6px;align-items:center">
           ${l.invoice ? `<span class="badge st-${esc(st)}">${invStatusLabel(st)}</span>` : ''}
+          <button class="btn b-s hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openEditInvoice('${b.id}', ${l.origIdx})">✏️</button>
           <button class="btn b-g hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openInvoice('${b.id}', ${l.origIdx})">🧾 ${l.invoice ? esc(l.invoice.number) : 'Facturer'}</button>
         </div>
       </div>
@@ -914,58 +969,154 @@ window.saveMaintenance = async (openInvAfter = false) => {
   btn1.disabled = false; btn2.disabled = false;
 };
 
-/* ===== Génération & Modification Facture ===== */
-window.openInvoice = (boatId, logIdx) => {
+/* ===== Édition Complète Facture ===== */
+window.openEditInvoiceFromPreview = () => {
+  if (!currentInvRef) return;
+  const { boatId, logIdx } = currentInvRef;
+  closeModals();
+  openEditInvoice(boatId, logIdx);
+};
+
+window.openEditInvoice = (boatId, logIdx) => {
   const b = boats.find(x => x.id === boatId);
   if (!b || !b.logs || !b.logs[logIdx]) return;
   currentInvRef = { boatId, logIdx };
   const l = b.logs[logIdx];
 
-  $('inv-modal-status').value = l.invoice?.status || 'impayee';
-  $('inv-modal-disc').value = l.discountVal || '';
-  $('inv-modal-disctype').value = l.discountType || 'eur';
+  $('ed-inv-num').value = l.invoice?.number || `FAC-${new Date().getFullYear()}-${logIdx + 1}`;
+  $('ed-inv-status').value = l.invoice?.status || 'impayee';
+  $('ed-inv-desc').value = l.desc || '';
+  $('ed-inv-labor').value = l.laborHours ?? 0;
+  $('ed-inv-rate').value = l.hourlyRate ?? cfg.hourlyRate ?? 60;
+  $('ed-inv-disc').value = l.discountVal ?? '';
+  $('ed-inv-disctype').value = l.discountType || 'eur';
+  $('ed-inv-note').value = l.invoice?.note || '';
 
-  renderInvoiceModal(b, l);
+  const lines = Array.isArray(l.items) && l.items.length
+    ? l.items
+    : (l.partsUsed || []).map(p => ({ label: p, ref: '', qty: 1, unit: 'u', unitPrice: 0, total: 0 }));
+
+  $('ed-inv-lines').innerHTML = '';
+  lines.forEach(it => appendEditorLine(it));
+  recalcEditorTotals();
+  $('inv-editor-modal').classList.add('active');
 };
 
-window.updateInvoiceFromModal = () => {
+function appendEditorLine(it = {}) {
+  const div = document.createElement('div');
+  div.className = 'ed-line';
+  div.innerHTML = `
+    <div style="display:flex;gap:6px;align-items:center">
+      <input class="inp ed-l-label" style="flex:1" placeholder="Désignation (pièce ou forfait)" value="${esc(it.label || '')}" oninput="recalcEditorTotals()">
+      <input class="inp ed-l-ref" style="width:95px" placeholder="Réf" value="${esc(it.ref || '')}">
+      <button type="button" class="btn b-d hbtn" onclick="this.closest('.ed-line').remove(); recalcEditorTotals()">🗑</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:6px">
+      <input type="number" step="0.1" class="inp ed-l-qty" placeholder="Qté" value="${esc(it.qty ?? 1)}" oninput="recalcEditorTotals()">
+      <input class="inp ed-l-unit" style="text-align:center" placeholder="Unité" value="${esc(it.unit || 'u')}">
+      <input type="number" step="0.01" class="inp ed-l-price" placeholder="P.U. HT (€)" value="${esc(it.unitPrice ?? 0)}" oninput="recalcEditorTotals()">
+    </div>`;
+  $('ed-inv-lines').appendChild(div);
+}
+
+window.addEditorLine = () => appendEditorLine({ label: '', ref: '', qty: 1, unit: 'u', unitPrice: 0 });
+
+window.recalcEditorTotals = () => {
+  const labor = parseFloat($('ed-inv-labor')?.value) || 0;
+  const rate = parseFloat($('ed-inv-rate')?.value) || 0;
+  let sub = labor * rate;
+  document.querySelectorAll('#ed-inv-lines .ed-line').forEach(el => {
+    const q = parseFloat(el.querySelector('.ed-l-qty')?.value) || 0;
+    const p = parseFloat(el.querySelector('.ed-l-price')?.value) || 0;
+    sub += q * p;
+  });
+  const discVal = parseFloat($('ed-inv-disc')?.value) || 0;
+  const discType = $('ed-inv-disctype')?.value || 'eur';
+  const discAmt = calcDiscount(sub, discVal, discType);
+  const ht = Math.max(0, sub - discAmt);
+  const vat = Number(cfg.vatRate) || 0;
+  const ttc = ht * (1 + vat / 100);
+  if ($('ed-inv-total')) $('ed-inv-total').textContent = vat > 0 ? `${eur(ttc)} TTC` : `${eur(ht)} HT`;
+};
+
+window.saveEditedInvoice = () => {
   if (!currentInvRef) return;
   const { boatId, logIdx } = currentInvRef;
   const b = boats.find(x => x.id === boatId);
   if (!b || !b.logs || !b.logs[logIdx]) return;
 
-  const newStatus = $('inv-modal-status').value;
-  const discVal = parseFloat($('inv-modal-disc').value) || 0;
-  const discType = $('inv-modal-disctype').value;
+  const invNumber = $('ed-inv-num').value.trim() || `FAC-${new Date().getFullYear()}-${logIdx + 1}`;
+  const status = $('ed-inv-status').value;
+  const desc = $('ed-inv-desc').value.trim() || b.logs[logIdx].desc;
+  const laborHours = parseFloat($('ed-inv-labor').value) || 0;
+  const hourlyRate = parseFloat($('ed-inv-rate').value) || 0;
+  const discVal = parseFloat($('ed-inv-disc').value) || 0;
+  const discType = $('ed-inv-disctype').value || 'eur';
+  const note = $('ed-inv-note').value.trim();
+
+  const items = [];
+  const partsUsed = [];
+  let partsTotalHT = 0;
+
+  document.querySelectorAll('#ed-inv-lines .ed-line').forEach(el => {
+    const label = el.querySelector('.ed-l-label')?.value.trim();
+    const ref = el.querySelector('.ed-l-ref')?.value.trim() || '';
+    const qty = parseFloat(el.querySelector('.ed-l-qty')?.value) || 0;
+    const unit = el.querySelector('.ed-l-unit')?.value.trim() || 'u';
+    const unitPrice = parseFloat(el.querySelector('.ed-l-price')?.value) || 0;
+    if (!label && qty === 0 && unitPrice === 0) return;
+    const total = qty * unitPrice;
+    partsTotalHT += total;
+    items.push({ label: label || 'Prestation', ref, qty, unit, unitPrice, total });
+    partsUsed.push(`${label || 'Prestation'}${ref ? ' [' + ref + ']' : ''} (x${qty}${unit && unit !== 'u' ? ' ' + unit : ''} à ${eur(unitPrice)})`);
+  });
+
+  const subtotalHT = laborHours * hourlyRate + partsTotalHT;
+  const discountAmount = calcDiscount(subtotalHT, discVal, discType);
+  const totalHT = Math.max(0, subtotalHT - discountAmount);
+  const vatRate = b.logs[logIdx].vatRate ?? cfg.vatRate ?? 0;
+  const vatAmount = totalHT * (vatRate / 100);
+  const totalTTC = totalHT + vatAmount;
 
   const updatedLogs = b.logs.map((l, idx) => {
     if (idx !== logIdx) return l;
-    const baseSub = l.subtotalHT ?? ((l.laborHours || 0) * (l.hourlyRate ?? cfg.hourlyRate ?? 0) + (l.items || []).reduce((a, it) => a + (it.total || 0), 0)) ?? l.totalHT ?? 0;
-    const discountAmount = calcDiscount(baseSub, discVal, discType);
-    const totalHT = Math.max(0, baseSub - discountAmount);
-    const vatRate = l.vatRate ?? cfg.vatRate ?? 0;
-    const vatAmount = totalHT * (vatRate / 100);
-    const totalTTC = totalHT + vatAmount;
-    const inv = l.invoice || { number: `FAC-${new Date().getFullYear()}-${idx + 1}`, issuedAt: l.date };
-
     return {
       ...l,
-      subtotalHT: baseSub,
+      desc,
+      laborHours,
+      hourlyRate,
+      items,
+      partsUsed,
+      subtotalHT,
       discountVal: discVal,
       discountType: discType,
       discountAmount,
       totalHT,
+      vatRate,
       vatAmount,
       totalTTC,
-      invoice: { ...inv, status: newStatus }
+      invoice: {
+        ...(l.invoice || {}),
+        number: invNumber,
+        issuedAt: l.invoice?.issuedAt || l.date,
+        status,
+        note
+      }
     };
   });
 
   safe(async () => {
     await updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs });
-    const freshBoat = { ...b, logs: updatedLogs };
-    renderInvoiceModal(freshBoat, updatedLogs[logIdx]);
-  }, 'Facture mise à jour');
+    closeModals();
+  }, 'Facture enregistrée');
+};
+
+/* ===== Aperçu & PDF Facture ===== */
+window.openInvoice = (boatId, logIdx) => {
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs || !b.logs[logIdx]) return;
+  currentInvRef = { boatId, logIdx };
+  renderInvoiceModal(b, b.logs[logIdx]);
 };
 
 function renderInvoiceModal(b, l) {
@@ -1011,6 +1162,7 @@ function renderInvoiceModal(b, l) {
   const vatRate = l.vatRate ?? cfg.vatRate ?? 0;
   const vatAmount = l.vatAmount ?? (totalHT * vatRate / 100);
   const totalTTC = l.totalTTC ?? (totalHT + vatAmount);
+  const noteTxt = l.invoice?.note || '';
 
   $('invoice-render').innerHTML = `
     <div class="inv-paper">
@@ -1060,6 +1212,8 @@ function renderInvoiceModal(b, l) {
         ${vatRate > 0 ? `<div><span>TVA (${vatRate}%) :</span><span>${eur(vatAmount)}</span></div>` : ''}
         <div class="grand"><span>NET À PAYER ${vatRate > 0 ? 'TTC' : ''} :</span><span>${eur(totalTTC)}</span></div>
       </div>
+
+      ${noteTxt ? `<div style="margin-top:14px;padding:8px 10px;background:#f4f6fa;border-radius:6px;font-size:.78rem;color:#333"><b>Note :</b> ${esc(noteTxt)}</div>` : ''}
 
       <div class="inv-foot">
         <div style="white-space:pre-line">${esc(cfg.bizLegal || '')}</div>
