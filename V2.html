@@ -96,6 +96,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 .toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);z-index:300;background:#12805c;color:#fff;padding:12px 14px;border-radius:12px;font-size:.85rem;font-weight:600}
 .toast.err{background:#c1121f}
 .ed-line{background:rgba(11,19,43,.65);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.scan-preview{max-height:180px;width:100%;object-fit:contain;border-radius:8px;border:1px solid var(--bd);background:var(--bg)}
 .inv-paper{background:#fff;color:#111;padding:26px;border-radius:8px;font-size:.84rem;line-height:1.45}
 .inv-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0b132b;padding-bottom:14px;margin-bottom:16px;gap:12px}
 .inv-title{font-size:1.4rem;font-weight:800;color:#0b132b;text-transform:uppercase}
@@ -325,19 +326,20 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   </div>
   <input id="s-loc" class="inp" placeholder="Emplacement">
   <label class="lbl">Photo (optionnel) :</label>
-  <input id="s-file" type="file" accept="image/*" class="inp">
+  <input id="s-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic" class="inp">
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button id="s-save" class="btn b-p" onclick="saveStock()">Enregistrer</button></div>
 </div></div>
 
 <div class="modal" id="scan-modal"><div class="mc" style="max-width:600px">
-  <h2>📷 Facture / bon de commande fournisseur</h2>
-  <label class="lbl">Photo ou image de la facture / BDC</label>
-  <input id="scan-file" type="file" accept="image/*" capture="environment" class="inp" onchange="runInvoiceOCR(this.files[0])">
-  <div id="scan-status" class="lbl">Sélectionne une photo nette (références, quantités et prix bien lisibles).</div>
+  <h2>📷 Importer photo de facture → Stock</h2>
+  <label class="lbl">Choisis une photo enregistrée dans ta galerie (cadrée sur les lignes de pièces)</label>
+  <input id="scan-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic" class="inp" onchange="runInvoiceOCR(this.files[0])">
+  <img id="scan-preview" class="scan-preview hide" alt="Aperçu facture">
+  <div id="scan-status" class="lbl">Sélectionne une photo nette dans ta galerie pour remplir automatiquement les lignes.</div>
   <div id="scan-lines" style="display:flex;flex-direction:column;gap:8px"></div>
   <div class="mb">
     <button class="btn b-s" onclick="closeModals()">Fermer</button>
-    <button class="btn b-g" onclick="applyScannedStock()">Valider l'entrée en stock</button>
+    <button id="scan-apply-btn" class="btn b-g" onclick="applyScannedStock()">Valider l'entrée en stock</button>
   </div>
 </div></div>
 
@@ -548,7 +550,6 @@ const isOil = p => isEngineOil(p) || isGearOil(p);
 
 /* ===== Base complète de références OEM / NGK / Sierra / Quicksilver ===== */
 const BASE_REF_DB = [
-  // --- Yamaha ---
   { ref: 'MAR-100HR-KT-00, 65W-W0078-A0', type: 'Autre', brand: 'yamaha', models: 'F25, F30, F40', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F25 / F30 / F40' },
   { ref: 'MAR-100HR-KT-10', type: 'Autre', brand: 'yamaha', models: 'F50, T50, F60, T60', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F50 / T50 / F60 / T60' },
   { ref: 'MAR-100HR-KT-20', type: 'Autre', brand: 'yamaha', models: 'F75, F80, F90, F100', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F75 / F80 / F90 / F100' },
@@ -600,8 +601,6 @@ const BASE_REF_DB = [
   { ref: '90798-1M679-00, 8M6007985', type: 'Anode', brand: 'yamaha', models: 'F75, F80, F90, F100, F115, LF115', conf: 'OEM Yamaha / Quicksilver', src: 'Kit complet anodes embase/étrier Yamaha 75-115HP' },
   { ref: '90430-14M09, 90430-14M09-00', type: 'Joint', brand: 'yamaha', models: 'F2.5, F4, F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60, F70, F75, F80, F90, F100, F115, F130, F150, F175, F200, F225, F250, F300, F350', conf: 'OEM Yamaha', src: 'Joint vis de vidange carter huile moteur Yamaha 4T' },
   { ref: '90430-08003, 90430-08003-00, 90430-08020-00', type: 'Joint', brand: 'yamaha', models: 'F2.5, F4, F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60, F70, F75, F80, F90, F100, F115, F130, F150, F175, F200, F225, F250, F300, F350', conf: 'OEM Yamaha', src: 'Joint vis vidange/niveau huile embase Yamaha' },
-
-  // --- Mercury / Mariner ---
   { ref: '8M0100527, 8M0120840', type: 'Autre', brand: 'mercury', models: '40 EFI, 50 EFI, 60 EFI', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 40/50/60 EFI 4 cylindres (995cc)' },
   { ref: '8M0097854, 8M0097855', type: 'Autre', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS, 115 SeaPro', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 75-115 EFI 2.1L (série 2B095049+)' },
   { ref: '8M0094232, 8M0094233', type: 'Autre', brand: 'mercury', models: '150 EFI, 150 FourStroke, 150 Pro XS, 150 SeaPro', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 150 EFI 3.0L 4 cylindres (série 1B905505+)' },
@@ -634,8 +633,6 @@ const BASE_REF_DB = [
   { ref: '8M0107548, 97-8M0107548', type: 'Anode', brand: 'mercury', models: '150 EFI, 150 FourStroke, 135 Verado, 150 Verado, 175 Verado, 200 Verado', conf: 'OEM Mercury', src: 'Kit anodes aluminium Mercury 150 EFI / Verado 4 cyl' },
   { ref: '8M0137814, 97-8M0137814', type: 'Anode', brand: 'mercury', models: '175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 250 Verado V8, 300 Verado V8', conf: 'OEM Mercury', src: 'Kit anodes aluminium Mercury V6 3.4L & V8 4.6L' },
   { ref: '12-19183Q02, 12-191833, 26-830749', type: 'Joint', brand: 'mercury', models: '2.5, 4, 5, 6, 8, 9.9, 15, 20, 25 EFI, 30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 90 EFI, 115 EFI, 150 EFI, 200 FourStroke, 250 FourStroke, 300 FourStroke, 150 Verado, 200 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury', src: 'Joint vis vidange/niveau embase Mercury / Quicksilver' },
-
-  // --- Suzuki ---
   { ref: '17400-88811, 17400-88812', type: 'Autre', brand: 'suzuki', models: 'DF40A, DF50A, DF60A', conf: 'OEM Suzuki', src: 'Kit entretien 100h / 300h Suzuki DF40A / DF50A / DF60A' },
   { ref: '17400-87811, 17400-87812', type: 'Autre', brand: 'suzuki', models: 'DF70A, DF80A, DF90A', conf: 'OEM Suzuki', src: 'Kit entretien 100h / 300h Suzuki DF70A / DF80A / DF90A' },
   { ref: '17400-92821, 17400-92822, 17400-92823', type: 'Autre', brand: 'suzuki', models: 'DF100A, DF115A, DF140A', conf: 'OEM Suzuki', src: 'Kit entretien 100h / 300h Suzuki DF100A / DF115A / DF140A' },
@@ -678,10 +675,17 @@ let REF_DB = BASE_REF_DB;
 const cleanRef = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 const refList = s => String(s || '').split(/[,;\s]+/).map(cleanRef).filter(x => x.length >= 3);
 
+function fuzzyRefMatch(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a.length >= 7 && b.length >= 7 && (a.startsWith(b) || b.startsWith(a))) return true;
+  return false;
+}
+
 function findRefEntries(rawRef, rawBrand) {
   const pRefs = refList(rawRef);
   if (!pRefs.length) return [];
-  const hits = REF_DB.filter(e => refList(e.ref).some(r => pRefs.includes(r)));
+  const hits = REF_DB.filter(e => refList(e.ref).some(r => pRefs.some(p => fuzzyRefMatch(p, r))));
   if (!hits.length) return [];
   const pb = canonBrand(rawBrand);
   if (pb) {
@@ -703,7 +707,7 @@ function enrich(p, boat) {
   }
   const hasModels = !!String(p.models || '').trim();
   const fromName = (!hasModels && !hit) ? extractModelsFromName(p.name) : '';
-  const extraRefs = hit ? refList(hit.ref).filter(r => !pRefs.includes(r)) : [];
+  const extraRefs = hit ? refList(hit.ref).filter(r => !pRefs.some(pr => fuzzyRefMatch(pr, r))) : [];
   return {
     ...p,
     type: (p.type && TYPE_KEYS.includes(p.type) && p.type !== 'Autre') ? p.type : (hit ? hit.type : partType(p)),
@@ -742,10 +746,11 @@ function fitBoats(part) {
 function lookupRef(q) {
   const cq = cleanRef(q);
   if (cq.length < 3) return { db: [], stock: [] };
-  const db = REF_DB.filter(e => refList(e.ref).includes(cq));
+  const db = REF_DB.filter(e => refList(e.ref).some(r => fuzzyRefMatch(cq, r)));
   const st = stock.filter(s => {
     const es = enrich(s);
-    return refList(s.ref).includes(cq) || refList(es.crossRefs).includes(cq);
+    const all = [...refList(s.ref), ...refList(es.crossRefs)];
+    return all.some(r => fuzzyRefMatch(cq, r));
   });
   return { db, stock: st };
 }
@@ -824,7 +829,7 @@ let boats = [], stock = [], planning = [], unsubs = [];
 let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bizLegal: 'TVA non applicable, art. 293 B du CGI', nextInvNum: 1 };
 let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null, lastAutoRef = '';
 let invFilter = 'all', currentInvRef = null, planningDay = toISODay(new Date());
-let sel = {}, scannedRows = [];
+let sel = {}, scannedRows = [], scanPreviewUrl = '';
 const currentBoat = () => boats.find(x => x.id === activeBoatId);
 
 function toast(msg, err) {
@@ -928,7 +933,7 @@ function renderMetrics() {
       <div class="metric"><div class="metric-t">VALEUR D'ACHAT 💰</div><div class="metric-v" style="font-size:1.2rem">${eur(val)}</div></div>
       <div class="metric"><div class="metric-t">STOCK BAS ⚠️ (${stock.length} réf.)</div><div class="metric-v" style="color:${low.length ? '#ff4d6d' : '#2ec4b6'}">${low.length}</div></div>
       <button class="btn-add" style="background:#2ec4b6;color:#000" onclick="openStockModal()">+ Ajouter une pièce</button>
-      <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openScanModal()">📷 Importer facture / bon de commande</button>`;
+      <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openScanModal()">📷 Importer photo de facture → Stock</button>`;
   } else {
     const invs = getAllInvoices();
     const encaisse = invs.filter(i => i.status === 'payee').reduce((a, b) => a + b.totalTTC, 0);
@@ -1136,75 +1141,179 @@ window.deleteStock = id => {
   if (confirm(`Supprimer « ${s ? s.name : 'cette pièce'} » ?`)) safe(() => deleteDoc(doc(db, 'stock', id)));
 };
 
-/* ===== Scan facture / bon de commande fournisseur ===== */
+/* ===== Import photo facture depuis galerie → Remplissage stock ===== */
+function clearScanPreview() {
+  if (scanPreviewUrl) {
+    URL.revokeObjectURL(scanPreviewUrl);
+    scanPreviewUrl = '';
+  }
+  const img = $('scan-preview');
+  if (img) {
+    img.src = '';
+    img.classList.add('hide');
+  }
+}
+
 window.openScanModal = () => {
   scannedRows = [];
+  clearScanPreview();
   $('scan-file').value = '';
-  $('scan-status').textContent = 'Sélectionne une photo nette (références, quantités et prix bien lisibles).';
+  $('scan-status').textContent = 'Sélectionne une photo nette dans ta galerie pour remplir automatiquement les lignes.';
   $('scan-lines').innerHTML = '';
   $('scan-modal').classList.add('active');
 };
 
+function sanitizeOcrLine(line) {
+  return String(line || '')
+    .replace(/[|[\]()}{~<>`«»“”]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeOcrRefToken(tok) {
+  const raw = String(tok || '').replace(/^[.,:;!?/\\-]+|[.,:;!?/\\-]+$/g, '').toUpperCase();
+  if (!raw || raw.length < 5) return '';
+  if (/^(FACTURE|TOTAL|TVA|REMISE|CLIENT|DATE|EMAIL|TEL|SIRET|RIB|IBAN|BIC|DEBIT|MONTANT|ECHEANCE|NUMERO|PAGE|SUR|HT|TTC|EUR)$/i.test(raw)) {
+    return '';
+  }
+  // Si la chaîne est surtout numérique avec quelques lettres parasites (ex: 2470e0080), corrige e/o/i/l en chiffres
+  const digits = (raw.match(/\d/g) || []).length;
+  const letters = (raw.match(/[A-Z]/g) || []).length;
+  if (digits >= 4 && letters >= 1 && /^[0-9A-Z-]+$/.test(raw)) {
+    const fixedNum = raw.replace(/O/g, '0').replace(/I/g, '1');
+    if (/^\d+[EOIL]\d+$/.test(fixedNum)) {
+      return fixedNum.replace(/[EOIL]/g, c => ({ E: '8', O: '0', I: '1', L: '1' }[c] || c));
+    }
+    return fixedNum;
+  }
+  return raw;
+}
+
+function findExistingOrBasePart(refCand, brandHint = '') {
+  const existing = stock.find(s => {
+    const es = enrich(s);
+    const all = [...refList(s.ref), ...refList(es.crossRefs)];
+    return refList(refCand).some(r => all.some(a => fuzzyRefMatch(r, a)));
+  });
+  const baseHit = findRefEntries(refCand, brandHint)[0] || null;
+  return { existing, baseHit };
+}
+
 function parseInvoiceLines(rawText) {
-  const lines = String(rawText || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const lines = String(rawText || '').split(/\r?\n/).map(sanitizeOcrLine).filter(Boolean);
   const out = [];
-  const refRegex = /\b([A-Z0-9]{2,6}[-][A-Z0-9]{2,6}(?:[-][A-Z0-9]{1,4})?|[A-Z]{2,5}\d{2,6}[A-Z0-9-]*)\b/g;
 
   lines.forEach((line, idx) => {
-    const matches = [...line.matchAll(refRegex)].map(m => m[1]).filter(r => cleanRef(r).length >= 5 && !/^(FACTURE|TOTAL|TVA|REMISE|CLIENT|DATE|EMAIL|TEL|SIRET)$/i.test(r));
-    if (!matches.length) return;
-    const ref = matches[0];
-    const nums = [...line.matchAll(/\b\d+(?:[.,]\d{1,2})?\b/g)].map(m => parseFloat(m[0].replace(',', '.'))).filter(n => !isNaN(n));
-    const qty = nums.find(n => Number.isInteger(n) && n > 0 && n < 500) ?? 1;
-    const prices = nums.filter(n => n > 0 && n !== qty);
-    const buyPrice = prices.length ? Math.min(...prices) : 0;
-
-    const existing = stock.find(s => {
-      const es = enrich(s);
-      const all = [...refList(s.ref), ...refList(es.crossRefs)];
-      return refList(ref).some(r => all.includes(r));
+    const tokens = line.split(/\s+/).filter(Boolean);
+    const refCand = tokens.map(normalizeOcrRefToken).find(t => {
+      const c = cleanRef(t);
+      return c.length >= 6 && /[A-Z]/.test(c) && /\d/.test(c);
     });
-    const baseHit = findRefEntries(ref, '')[0] || null;
+    if (!refCand) return;
+
+    const rawNums = [...line.matchAll(/\b\d+(?:[.,]\d{1,2})?\b/g)]
+      .map(m => ({
+        val: parseFloat(m[0].replace(',', '.')),
+        hasComma: m[0].includes(',') || m[0].includes('.'),
+        raw: m[0]
+      }))
+      .filter(n => !isNaN(n.val) && n.val > 0 && n.val < 50000);
+
+    const ints = rawNums.filter(n => !n.hasComma && Number.isInteger(n.val) && n.val <= 200);
+    const decimals = rawNums.filter(n => n.hasComma);
+    const qty = ints.length ? ints[0].val : 1;
+
+    // Prix unitaire : préfère les montants décimaux (ex: 15,00 / 24,58) ou les autres nombres hors quantité
+    const priceCandidates = decimals.length
+      ? decimals.map(d => d.val)
+      : rawNums.filter(n => n.val !== qty).map(n => n.val);
+    const buyPrice = priceCandidates.length ? Math.min(...priceCandidates) : 0;
+
+    const { existing, baseHit } = findExistingOrBasePart(refCand);
+    const cleanedLabel = line
+      .replace(new RegExp(refCand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ')
+      .replace(/\b\d+(?:[.,]\d{1,2})?\s*%?\s*€?\b/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+      .slice(0, 65);
+
     const auto = existing
-      ? { mode: 'add', stockId: existing.id, name: existing.name, type: existing.type || partType(existing), brand: existing.brand || '', models: existing.models || '', buyPrice: buyPrice || Number(existing.buyPrice) || 0, sellPrice: Number(existing.sellPrice) || 0, qty }
+      ? {
+          mode: 'add',
+          stockId: existing.id,
+          name: existing.name,
+          type: existing.type || partType(existing),
+          brand: existing.brand || '',
+          models: existing.models || '',
+          buyPrice: buyPrice || Number(existing.buyPrice) || 0,
+          sellPrice: Number(existing.sellPrice) || 0,
+          qty
+        }
       : {
           mode: 'create',
           stockId: '',
-          name: baseHit ? baseHit.src : line.replace(ref, '').replace(/\s{2,}/g, ' ').trim().slice(0, 60) || `Pièce ${ref}`,
-          type: baseHit ? baseHit.type : 'Autre',
+          name: baseHit ? baseHit.src : (cleanedLabel || `Pièce ${refCand}`),
+          type: baseHit ? baseHit.type : partType({ name: cleanedLabel }),
           brand: baseHit ? (BRAND_LABEL[baseHit.brand] || baseHit.brand) : '',
           models: baseHit ? baseHit.models : '',
           buyPrice,
           sellPrice: buyPrice ? fmt(buyPrice * 1.6) : 0,
           qty
         };
-    out.push({ id: idx + '_' + cleanRef(ref), ref, checked: true, ...auto });
+
+    out.push({ id: idx + '_' + cleanRef(refCand), ref: refCand, checked: true, ...auto });
   });
   return out;
 }
 
+window.updateScannedRowField = (i, field, val) => {
+  if (!scannedRows[i]) return;
+  scannedRows[i][field] = val;
+  if (field === 'ref') {
+    const { existing, baseHit } = findExistingOrBasePart(val, scannedRows[i].brand);
+    if (existing) {
+      scannedRows[i].mode = 'add';
+      scannedRows[i].stockId = existing.id;
+      scannedRows[i].name = existing.name;
+      scannedRows[i].type = existing.type || partType(existing);
+      scannedRows[i].brand = existing.brand || scannedRows[i].brand;
+      scannedRows[i].models = existing.models || scannedRows[i].models;
+    } else if (baseHit) {
+      scannedRows[i].mode = 'create';
+      scannedRows[i].stockId = '';
+      scannedRows[i].type = baseHit.type;
+      scannedRows[i].brand = BRAND_LABEL[baseHit.brand] || baseHit.brand;
+      scannedRows[i].models = baseHit.models;
+      if (!scannedRows[i].name || /^Pièce\s/i.test(scannedRows[i].name)) scannedRows[i].name = baseHit.src;
+    }
+    renderScannedRows();
+  } else if (field === 'brand' || field === 'models') {
+    renderScannedRows();
+  }
+};
+
 function renderScannedRows() {
   const box = $('scan-lines');
   if (!scannedRows.length) {
-    box.innerHTML = `<div class="note">Aucune ligne avec référence détectée. Tu peux réessayer avec une photo plus proche ou plus lumineuse.</div>`;
+    box.innerHTML = `<div class="note">Aucune ligne de pièce détectée sur cette photo. Essaie une photo cadrée sur le tableau des articles, bien éclairée et sans reflet.</div>`;
     return;
   }
   box.innerHTML = scannedRows.map((r, i) => {
     const fits = boats.filter(b => compat({ name: r.name, ref: r.ref, type: r.type, brand: r.brand, models: r.models }, b).level === 'match').map(b => b.name);
     return `<div class="ed-line">
       <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
-        <label style="display:flex;align-items:center;gap:8px;font-weight:700">
-          <input type="checkbox" ${r.checked ? 'checked' : ''} onchange="scannedRows[${i}].checked=this.checked">
-          <span>${esc(r.ref)}</span>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:700;flex:1">
+          <input type="checkbox" ${r.checked ? 'checked' : ''} onchange="updateScannedRowField(${i},'checked',this.checked)">
+          <input class="inp" style="padding:5px 8px;font-size:.82rem;font-weight:700;max-width:190px" value="${esc(r.ref)}" placeholder="Réf pièce" onchange="updateScannedRowField(${i},'ref',this.value)">
         </label>
-        <span class="badge ${r.mode === 'add' ? 's-eau' : 's-hangar'}">${r.mode === 'add' ? '+ Stock existant' : '+ Nouvelle fiche'}</span>
+        <span class="badge ${r.mode === 'add' ? 's-eau' : 's-hangar'}">${r.mode === 'add' ? '+ Stock existant' : '+ Nouvelle pièce'}</span>
       </div>
-      <input class="inp" style="padding:7px 9px;font-size:.82rem" value="${esc(r.name)}" placeholder="Nom de la pièce" oninput="scannedRows[${i}].name=this.value">
+      <input class="inp" style="padding:7px 9px;font-size:.82rem" value="${esc(r.name)}" placeholder="Nom de la pièce" oninput="updateScannedRowField(${i},'name',this.value)">
       <div style="display:grid;grid-template-columns:1fr 1fr 80px 90px;gap:6px">
-        <input class="inp" style="padding:7px 8px;font-size:.8rem" value="${esc(r.brand)}" placeholder="Marque" oninput="scannedRows[${i}].brand=this.value">
-        <input class="inp" style="padding:7px 8px;font-size:.8rem" value="${esc(r.models)}" placeholder="Modèles" oninput="scannedRows[${i}].models=this.value">
-        <input type="number" step="0.1" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.qty)}" placeholder="Qté" oninput="scannedRows[${i}].qty=parseFloat(this.value)||0">
-        <input type="number" step="0.01" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.buyPrice)}" placeholder="Achat €" oninput="scannedRows[${i}].buyPrice=parseFloat(this.value)||0">
+        <input class="inp" style="padding:7px 8px;font-size:.8rem" value="${esc(r.brand)}" placeholder="Marque" oninput="updateScannedRowField(${i},'brand',this.value)">
+        <input class="inp" style="padding:7px 8px;font-size:.8rem" value="${esc(r.models)}" placeholder="Modèles" oninput="updateScannedRowField(${i},'models',this.value)">
+        <input type="number" step="0.1" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.qty)}" placeholder="Qté" oninput="updateScannedRowField(${i},'qty',parseFloat(this.value)||0)">
+        <input type="number" step="0.01" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.buyPrice)}" placeholder="Achat €" oninput="updateScannedRowField(${i},'buyPrice',parseFloat(this.value)||0)">
       </div>
       <div style="font-size:.74rem;color:var(--cy)">⛵ Compatibilité flotte : ${fits.length ? esc(fits.join(', ')) : 'aucun bateau correspondant'}</div>
     </div>`;
@@ -1213,17 +1322,25 @@ function renderScannedRows() {
 
 window.runInvoiceOCR = async file => {
   if (!file) return;
+  clearScanPreview();
+  scanPreviewUrl = URL.createObjectURL(file);
+  $('scan-preview').src = scanPreviewUrl;
+  $('scan-preview').classList.remove('hide');
+
   if (typeof Tesseract === 'undefined') return toast('OCR indisponible : vérifie la connexion internet.', true);
   $('scan-status').textContent = '⏳ Lecture de la facture en cours...';
+  $('scan-apply-btn').disabled = true;
   try {
     const res = await Tesseract.recognize(file, 'fra+eng');
     scannedRows = parseInvoiceLines(res.data?.text || '');
-    $('scan-status').textContent = `${scannedRows.length} ligne(s) détectée(s) — vérifie avant validation :`;
+    $('scan-status').textContent = `${scannedRows.length} ligne(s) détectée(s) — vérifie ou valide directement l'entrée en stock :`;
     renderScannedRows();
   } catch (e) {
     console.error(e);
     $('scan-status').textContent = 'Erreur pendant la lecture de la photo.';
     toast('Impossible de lire la photo.', true);
+  } finally {
+    $('scan-apply-btn').disabled = false;
   }
 };
 
@@ -1254,7 +1371,7 @@ window.applyScannedStock = async () => {
       });
     }
   }
-  await safe(() => batch.commit(), `${active.length} ligne(s) enregistrée(s) en stock`);
+  await safe(() => batch.commit(), `${active.length} ligne(s) ajoutée(s) au stock`);
   closeModals();
 };
 
@@ -1516,7 +1633,10 @@ window.completeWorks = () => {
 
 /* ===== Bateaux ===== */
 window.openBoatModal = () => $('boat-modal').classList.add('active');
-window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+window.closeModals = () => {
+  clearScanPreview();
+  document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+};
 window.saveBoat = () => {
   const name = $('b-name').value.trim(), model = $('b-model').value.trim();
   if (!name || !model) return alert('Remplis le nom et le modèle.');
