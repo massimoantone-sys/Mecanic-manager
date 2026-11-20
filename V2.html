@@ -514,8 +514,23 @@ const isGearOil = p => partType(p) === 'Huile embase';
 const isOil = p => isEngineOil(p) || isGearOil(p);
 
 /* ===== Compatibilité pièce <-> hors-bord ===== */
+// Si la référence est dans la base, l'app complète toute seule ce qui manque sur la fiche
+// (ce que tu as saisi n'est jamais écrasé). Ces infos restent « à vérifier ».
+function enrich(p) {
+  const hit = REF_DB.find(e => refList(p.ref).includes(cleanRef(e.ref)));
+  if (!hit) return { ...p, fromBase: false };
+  const hasModels = !!String(p.models || '').trim();
+  return {
+    ...p,
+    type: (p.type && TYPE_KEYS.includes(p.type)) ? p.type : hit.type,
+    brand: String(p.brand || '').trim() || BRAND_LABEL[hit.brand] || hit.brand,
+    models: hasModels ? p.models : hit.models,
+    fromBase: !hasModels
+  };
+}
 // level : 'match' (compatible), 'univ' (universel), 'todo' (information manquante), 'other' (pas pour ce moteur)
-function compat(part, boat) {
+function compat(part0, boat) {
+  const part = enrich(part0);
   const eng = engineInfo(boat);
   if (!eng.brand) return { level: 'todo', reason: 'Marque du hors-bord à renseigner' };
   const type = partType(part);
@@ -526,7 +541,10 @@ function compat(part, boat) {
   }
   if (pb !== eng.brand) return { level: 'other', reason: '' };
   const toks = modelTokens(part.models);
-  if (!toks.length) return { level: 'match', reason: `${BRAND_LABEL[pb]} (tous modèles)` };
+  if (!toks.length) {
+    if (UNIVERSAL_TYPES.includes(type)) return { level: 'match', reason: `${BRAND_LABEL[pb]} (tous modèles)` };
+    return { level: 'todo', reason: 'Modèles compatibles à renseigner' };
+  }
   if (!eng.code) return { level: 'todo', reason: 'Modèle du hors-bord à renseigner' };
   const hit = toks.find(t => modelMatch(t, eng.code));
   return hit ? { level: 'match', reason: `Compatible ${hit}` } : { level: 'other', reason: '' };
@@ -560,6 +578,7 @@ const REF_DB = [
   // ----- Filtres à huile Suzuki -----
   { ref: '16510-82703', type: 'Filtre à huile', brand: 'suzuki', models: 'DF140', conf: 'trouvée chez plusieurs revendeurs', src: 'Wakeboss, PartsVu : DF140 hors A, 2002 à 2012. Croisé Sierra 18-7897.' },
   { ref: '16510-61A32', type: 'Filtre à huile', brand: 'suzuki', models: 'DF70A, DF80A, DF90A, DF115A, DF140A', conf: 'trouvée chez plusieurs revendeurs', src: 'PartsVu, JLM Marine : DF70A à DF90A à partir du numéro de série 110001.' },
+  { ref: '16510-61A33', type: 'Filtre à huile', brand: 'suzuki', models: 'DF70A, DF80A, DF90A, DF115A, DF140A', conf: 'source unique', src: 'Westmarine : numero fabricant 16510-61A33 pour le filtre 16510-61A32. Verifier.' },
   { ref: '16510-61A31', type: 'Filtre à huile', brand: 'suzuki', models: 'DF70A, DF80A, DF90A, DF115A, DF140A', conf: 'trouvée chez plusieurs revendeurs', src: 'Fridayparts, JLM Marine : équivalent à 16510-61A32 selon les revendeurs.' },
   { ref: '16510-90J00', type: 'Filtre à huile', brand: 'suzuki', models: 'DF115A, DF140A', conf: 'source unique', src: 'Recmar (marine-deals.co.nz).' },
   { ref: '16510-92J00', type: 'Filtre à huile', brand: 'suzuki', models: 'DF140', conf: 'source unique', src: 'Asaki (Newegg), JLM. Les années indiquées diffèrent selon la source.' },
@@ -861,7 +880,8 @@ function brandGroup(s) {
 }
 function stockCard(s) {
   const buy = Number(s.buyPrice) || 0, sell = Number(s.sellPrice) || 0, margin = sell - buy;
-  const toks = modelTokens(s.models);
+  const es = enrich(s);
+  const toks = modelTokens(es.models);
   const fits = fitBoats(s);
   const brandTxt = canonBrand(s.brand) ? BRAND_LABEL[canonBrand(s.brand)] : (s.brand || '');
   return `<div class="card">
@@ -873,7 +893,7 @@ function stockCard(s) {
       <div class="sq ${Number(s.qty) <= Number(s.min) ? 'low' : ''}">${fmt(s.qty)}${isOil(s) ? ' L' : ''}</div>
     </div>
     <div class="equiv-box">
-      ⚙️ Modèles : <b>${esc(toks.length ? toks.join(', ') : (brandTxt ? 'tous' : 'universel'))}</b><br>
+      ⚙️ Modèles : <b>${esc(toks.length ? toks.join(', ') : (UNIVERSAL_TYPES.includes(partType(s)) || !brandTxt ? (brandTxt ? 'tous' : 'universel') : 'NON RENSEIGNÉS ⚠️'))}</b>${enrich(s).fromBase ? ' <span class="auto-tag">base</span>' : ''}<br>
       ⛵ Monte sur : <b>${fits.length ? esc(fits.slice(0, 4).join(', ')) + (fits.length > 4 ? ` (+${fits.length - 4})` : '') : 'aucun bateau de la flotte'}</b>
     </div>
     <div class="grid2">
@@ -903,8 +923,15 @@ function renderStock() {
 window.previewPartMatch = () => {
   const el = $('s-auto-preview'); if (!el) return;
   const p = { name: $('s-name').value, type: $('s-type').value, brand: $('s-brand').value, models: $('s-models').value, cat: $('s-cat').value };
+  const hit = REF_DB.find(x => refList($('s-ref').value).includes(cleanRef(x.ref)));
+  if (hit) {
+    if (!$('s-type').value) $('s-type').value = hit.type;
+    if (!$('s-brand').value.trim()) $('s-brand').value = BRAND_LABEL[hit.brand] || hit.brand;
+    if (!$('s-models').value.trim()) $('s-models').value = hit.models;
+  }
+  p.type = $('s-type').value; p.brand = $('s-brand').value; p.models = $('s-models').value;
   const t = partType(p), c = canonBrand(p.brand), toks = modelTokens(p.models);
-  el.innerHTML = `<div class="equiv-box">🤖 Type : <b>${esc(t)}</b> • Marque : <b>${esc(c ? BRAND_LABEL[c] : (p.brand || 'universel'))}</b> • Modèles : <b>${esc(toks.length ? toks.join(', ') : 'tous')}</b></div>`;
+  el.innerHTML = `<div class="equiv-box">🤖 Type : <b>${esc(t)}</b> • Marque : <b>${esc(c ? BRAND_LABEL[c] : (p.brand || 'universel'))}</b> • Modèles : <b>${esc(toks.length ? toks.join(', ') : (UNIVERSAL_TYPES.includes(t) || !c ? 'tous' : 'à renseigner ⚠️'))}</b></div>`;
   const sg = $('s-ref-suggest');
   if (sg) {
     const hit = REF_DB.find(x => cleanRef(x.ref) === cleanRef($('s-ref').value));
@@ -951,10 +978,11 @@ window.saveStock = async () => {
   if (!name || isNaN(qty)) return alert('Nom et quantité requis.');
   const btn = $('s-save'); btn.disabled = true;
   const cat = $('s-cat').value;
+  const pre = enrich({ name, ref: $('s-ref').value.trim(), type: $('s-type').value, brand: $('s-brand').value.trim(), models: $('s-models').value.trim() });
   const data = {
     name, ref: $('s-ref').value.trim(),
-    type: $('s-type').value || partType({ name, cat }),
-    brand: $('s-brand').value.trim(), models: $('s-models').value.trim(), verified: $('s-verified').checked,
+    type: pre.type || partType({ name, cat }),
+    brand: pre.brand, models: pre.models, verified: $('s-verified').checked,
     cat, buyPrice: parseFloat($('s-buy').value) || 0, sellPrice: parseFloat($('s-sell').value) || 0,
     qty, min: parseFloat($('s-min').value) || 2, loc: $('s-loc').value.trim()
   };
