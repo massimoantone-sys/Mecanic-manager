@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V13</title>
+<title>Meca Manager</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -93,6 +93,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 .mc{background:var(--card);width:100%;max-width:460px;padding:20px;border-radius:16px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:10px;max-height:92vh;overflow-y:auto}
 .mc h2{font-size:1.1rem}.mb{display:flex;gap:10px;margin-top:8px}
 .lbl{font-size:.78rem;color:var(--sec)}
+.file-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;background:var(--blue);color:#fff;border-radius:10px;font-weight:700;font-size:.86rem;cursor:pointer;width:100%}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);z-index:300;background:#12805c;color:#fff;padding:12px 14px;border-radius:12px;font-size:.85rem;font-weight:600}
 .toast.err{background:#c1121f}
 .ed-line{background:rgba(11,19,43,.65);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
@@ -326,16 +327,16 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   </div>
   <input id="s-loc" class="inp" placeholder="Emplacement">
   <label class="lbl">Photo (optionnel) :</label>
-  <input id="s-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic" class="inp">
+  <input id="s-file" type="file" accept="image/*" class="inp">
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button id="s-save" class="btn b-p" onclick="saveStock()">Enregistrer</button></div>
 </div></div>
 
 <div class="modal" id="scan-modal"><div class="mc" style="max-width:600px">
-  <h2>📷 Importer photo de facture → Stock</h2>
-  <label class="lbl">Choisis une photo enregistrée dans ta galerie (cadrée sur les lignes de pièces)</label>
-  <input id="scan-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic" class="inp" onchange="runInvoiceOCR(this.files[0])">
+  <h2>🤖 Facture / bon de commande → Stock</h2>
+  <label for="scan-file" class="file-btn">📷 Choisir une photo dans la galerie</label>
+  <input id="scan-file" type="file" accept="image/*" class="hide" onchange="onScanFileChange(event)">
   <img id="scan-preview" class="scan-preview hide" alt="Aperçu facture">
-  <div id="scan-status" class="lbl">Sélectionne une photo nette dans ta galerie pour remplir automatiquement les lignes.</div>
+  <div id="scan-status" class="lbl">Sélectionne une photo de ta facture : l'agent IA lit les lignes, regroupe les codes coupés et calcule les quantités / prix.</div>
   <div id="scan-lines" style="display:flex;flex-direction:column;gap:8px"></div>
   <div class="mb">
     <button class="btn b-s" onclick="closeModals()">Fermer</button>
@@ -344,7 +345,9 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 </div></div>
 
 <div class="modal" id="settings-modal"><div class="mc">
-  <h2>⚙️ Tarifs & infos facturation</h2>
+  <h2>⚙️ Tarifs, IA & infos facturation</h2>
+  <label class="lbl">Clé API Gemini (Agent IA scan facture)</label>
+  <input id="cfg-aikey" type="password" class="inp" placeholder="AIza... (optionnel, repli OCR local sinon)">
   <label class="lbl">Taux horaire par défaut (€/h)</label>
   <input id="cfg-rate" type="number" step="0.5" class="inp">
   <label class="lbl">Taux de TVA (%) — 0 si non assujetti</label>
@@ -548,7 +551,7 @@ const isEngineOil = p => partType(p) === 'Huile moteur';
 const isGearOil = p => partType(p) === 'Huile embase';
 const isOil = p => isEngineOil(p) || isGearOil(p);
 
-/* ===== Base complète de références OEM / NGK / Sierra / Quicksilver ===== */
+/* ===== Base de références OEM / NGK / Sierra / Quicksilver ===== */
 const BASE_REF_DB = [
   { ref: 'MAR-100HR-KT-00, 65W-W0078-A0', type: 'Autre', brand: 'yamaha', models: 'F25, F30, F40', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F25 / F30 / F40' },
   { ref: 'MAR-100HR-KT-10', type: 'Autre', brand: 'yamaha', models: 'F50, T50, F60, T60', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F50 / T50 / F60 / T60' },
@@ -564,7 +567,7 @@ const BASE_REF_DB = [
   { ref: '5GH-13440-71-00, 5GH-13440-70-00, 5GH-13440-70, 5GH-13440-30-00, 5GH-13440-00-00, 18-7906-1', type: 'Filtre à huile', brand: 'yamaha', models: 'F30, F40, F50, F75, F80, F90, VF90, F100, F115, LF115', conf: 'OEM Yamaha / Sierra', src: 'Filtre à huile Yamaha 30-115HP (F115 avant 2014)' },
   { ref: '69J-13440-05-00, 69J-13440-05, 69J-13440-04-00, 69J-13440-04, 69J-13440-03-00, 69J-13440-01-00, 18-7906-2', type: 'Filtre à huile', brand: 'yamaha', models: 'F115B, LF115B, VF115, F130, F150, LF150, VF150, F175, VF175, F200, LF200, F225, F250, VF250', conf: 'OEM Yamaha / Sierra', src: 'Filtre à huile Yamaha 115B à 250HP' },
   { ref: 'N26-13440-03-00, N26-13440-03, N26-13440-02-00, N26-13440-00-00', type: 'Filtre à huile', brand: 'yamaha', models: 'F300, LF300, F300B, F350, LF350, F425, XF425, F450, XF450', conf: 'OEM Yamaha', src: 'Filtre à huile Yamaha V6 4.2L / V8 5.3L & 5.6L XTO' },
-  { ref: '61N-24560-00-00, 61N-24563-00-00, 61N-24563-10-00, 18-79910', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, F60', conf: 'OEM Yamaha / Sierra', src: 'Tamiz / cartouche carburant petits 4T Yamaha' },
+  { ref: '61N-24560-00-00, 61N-24563-00-00, 61N-24563-10-00, 18-79910', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, F60', conf: 'OEM Yamaha / Sierra', src: 'Tamis / cartouche carburant petits 4T Yamaha' },
   { ref: '68V-24563-00-00, 68V-24563-01-00, 18-7979', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F50, T50, F60, T60, F75, F80, F90, F100, F115, LF115', conf: 'OEM Yamaha / Sierra', src: 'Cartouche interne bol décanteur Yamaha 50-115HP' },
   { ref: '6D8-24563-00-00, 6D8-WS24A-00-00, 18-79799', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F30, F40, F50, T50, F60, T60, F70, F75, F90, F115, F115B, F130', conf: 'OEM Yamaha / Sierra', src: 'Cartouche filtre essence Yamaha récents (30-130HP)' },
   { ref: '6P3-24563-01-00, 6P3-24563-00-00, 6P3-WS24A-02, 6P3-WS24A-01-00, 6P3-WS24A-00-00, 18-79809', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F150, LF150, F175, F200, LF200, F225, F250, F300, F350', conf: 'OEM Yamaha / Sierra', src: 'Cartouche interne bol décanteur Yamaha 150-350HP' },
@@ -826,7 +829,7 @@ function defaultQty(s, b) {
 
 /* ===== État ===== */
 let boats = [], stock = [], planning = [], unsubs = [];
-let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bizLegal: 'TVA non applicable, art. 293 B du CGI', nextInvNum: 1 };
+let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bizLegal: 'TVA non applicable, art. 293 B du CGI', nextInvNum: 1, aiKey: '' };
 let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null, lastAutoRef = '';
 let invFilter = 'all', currentInvRef = null, planningDay = toISODay(new Date());
 let sel = {}, scannedRows = [], scanPreviewUrl = '';
@@ -834,7 +837,7 @@ const currentBoat = () => boats.find(x => x.id === activeBoatId);
 
 function toast(msg, err) {
   const t = $('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
-  clearTimeout(window._tt); window._tt = setTimeout(() => t.classList.add('hide'), 3000);
+  clearTimeout(window._tt); window._tt = setTimeout(() => t.classList.add('hide'), 3200);
 }
 async function safe(fn, okMsg) {
   try { await fn(); if (okMsg) toast(okMsg); } catch (e) { console.error(e); toast("Erreur : l'action n'a pas été enregistrée.", true); }
@@ -933,7 +936,7 @@ function renderMetrics() {
       <div class="metric"><div class="metric-t">VALEUR D'ACHAT 💰</div><div class="metric-v" style="font-size:1.2rem">${eur(val)}</div></div>
       <div class="metric"><div class="metric-t">STOCK BAS ⚠️ (${stock.length} réf.)</div><div class="metric-v" style="color:${low.length ? '#ff4d6d' : '#2ec4b6'}">${low.length}</div></div>
       <button class="btn-add" style="background:#2ec4b6;color:#000" onclick="openStockModal()">+ Ajouter une pièce</button>
-      <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openScanModal()">📷 Importer photo de facture → Stock</button>`;
+      <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openScanModal()">🤖 Importer photo de facture → Stock</button>`;
   } else {
     const invs = getAllInvoices();
     const encaisse = invs.filter(i => i.status === 'payee').reduce((a, b) => a + b.totalTTC, 0);
@@ -1092,17 +1095,17 @@ window.openStockModal = id => {
   previewPartMatch(!s || !s.models);
   $('stock-modal').classList.add('active');
 };
-function compress(file) {
+function compress(file, maxDim = 900, quality = 0.75) {
   return new Promise(res => {
     const r = new FileReader();
     r.onload = e => {
       const img = new Image();
       img.onload = () => {
-        const M = 300; let w = img.width, h = img.height;
-        if (w > h) { if (w > M) { h *= M / w; w = M; } } else if (h > M) { w *= M / h; h = M; }
+        let w = img.width, h = img.height;
+        if (w > h) { if (w > maxDim) { h *= maxDim / w; w = maxDim; } } else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
         const c = document.createElement('canvas'); c.width = w; c.height = h;
         c.getContext('2d').drawImage(img, 0, 0, w, h);
-        res(c.toDataURL('image/jpeg', 0.6));
+        res(c.toDataURL('image/jpeg', quality));
       };
       img.onerror = () => res(null); img.src = e.target.result;
     };
@@ -1123,7 +1126,7 @@ window.saveStock = async () => {
     qty, min: parseFloat($('s-min').value) || 2, loc: $('s-loc').value.trim()
   };
   const f = $('s-file').files[0];
-  if (f) { const img = await compress(f); if (img) data.img = img; }
+  if (f) { const img = await compress(f, 300, 0.6); if (img) data.img = img; }
   await safe(async () => {
     if (editStockId) await updateDoc(doc(db, 'stock', editStockId), data);
     else await addDoc(collection(db, 'stock'), { ...data, img: data.img || '' });
@@ -1141,7 +1144,7 @@ window.deleteStock = id => {
   if (confirm(`Supprimer « ${s ? s.name : 'cette pièce'} » ?`)) safe(() => deleteDoc(doc(db, 'stock', id)));
 };
 
-/* ===== Import photo facture depuis galerie → Remplissage stock ===== */
+/* ===== Agent IA Vision + Repli OCR pour factures ===== */
 function clearScanPreview() {
   if (scanPreviewUrl) {
     URL.revokeObjectURL(scanPreviewUrl);
@@ -1152,42 +1155,18 @@ function clearScanPreview() {
     img.src = '';
     img.classList.add('hide');
   }
+  if ($('scan-file')) $('scan-file').value = '';
 }
 
 window.openScanModal = () => {
   scannedRows = [];
   clearScanPreview();
-  $('scan-file').value = '';
-  $('scan-status').textContent = 'Sélectionne une photo nette dans ta galerie pour remplir automatiquement les lignes.';
+  $('scan-status').textContent = cfg.aiKey
+    ? 'Agent IA actif : sélectionne une photo de ta facture dans la galerie.'
+    : 'Mode OCR local actif (ajoute une clé Gemini dans ⚙️ pour une lecture IA encore plus précise).';
   $('scan-lines').innerHTML = '';
   $('scan-modal').classList.add('active');
 };
-
-function sanitizeOcrLine(line) {
-  return String(line || '')
-    .replace(/[|[\]()}{~<>`«»“”]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function normalizeOcrRefToken(tok) {
-  const raw = String(tok || '').replace(/^[.,:;!?/\\-]+|[.,:;!?/\\-]+$/g, '').toUpperCase();
-  if (!raw || raw.length < 5) return '';
-  if (/^(FACTURE|TOTAL|TVA|REMISE|CLIENT|DATE|EMAIL|TEL|SIRET|RIB|IBAN|BIC|DEBIT|MONTANT|ECHEANCE|NUMERO|PAGE|SUR|HT|TTC|EUR)$/i.test(raw)) {
-    return '';
-  }
-  // Si la chaîne est surtout numérique avec quelques lettres parasites (ex: 2470e0080), corrige e/o/i/l en chiffres
-  const digits = (raw.match(/\d/g) || []).length;
-  const letters = (raw.match(/[A-Z]/g) || []).length;
-  if (digits >= 4 && letters >= 1 && /^[0-9A-Z-]+$/.test(raw)) {
-    const fixedNum = raw.replace(/O/g, '0').replace(/I/g, '1');
-    if (/^\d+[EOIL]\d+$/.test(fixedNum)) {
-      return fixedNum.replace(/[EOIL]/g, c => ({ E: '8', O: '0', I: '1', L: '1' }[c] || c));
-    }
-    return fixedNum;
-  }
-  return raw;
-}
 
 function findExistingOrBasePart(refCand, brandHint = '') {
   const existing = stock.find(s => {
@@ -1199,43 +1178,14 @@ function findExistingOrBasePart(refCand, brandHint = '') {
   return { existing, baseHit };
 }
 
-function parseInvoiceLines(rawText) {
-  const lines = String(rawText || '').split(/\r?\n/).map(sanitizeOcrLine).filter(Boolean);
+function buildRowsFromItems(rawItems) {
   const out = [];
-
-  lines.forEach((line, idx) => {
-    const tokens = line.split(/\s+/).filter(Boolean);
-    const refCand = tokens.map(normalizeOcrRefToken).find(t => {
-      const c = cleanRef(t);
-      return c.length >= 6 && /[A-Z]/.test(c) && /\d/.test(c);
-    });
-    if (!refCand) return;
-
-    const rawNums = [...line.matchAll(/\b\d+(?:[.,]\d{1,2})?\b/g)]
-      .map(m => ({
-        val: parseFloat(m[0].replace(',', '.')),
-        hasComma: m[0].includes(',') || m[0].includes('.'),
-        raw: m[0]
-      }))
-      .filter(n => !isNaN(n.val) && n.val > 0 && n.val < 50000);
-
-    const ints = rawNums.filter(n => !n.hasComma && Number.isInteger(n.val) && n.val <= 200);
-    const decimals = rawNums.filter(n => n.hasComma);
-    const qty = ints.length ? ints[0].val : 1;
-
-    // Prix unitaire : préfère les montants décimaux (ex: 15,00 / 24,58) ou les autres nombres hors quantité
-    const priceCandidates = decimals.length
-      ? decimals.map(d => d.val)
-      : rawNums.filter(n => n.val !== qty).map(n => n.val);
-    const buyPrice = priceCandidates.length ? Math.min(...priceCandidates) : 0;
-
-    const { existing, baseHit } = findExistingOrBasePart(refCand);
-    const cleanedLabel = line
-      .replace(new RegExp(refCand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ')
-      .replace(/\b\d+(?:[.,]\d{1,2})?\s*%?\s*€?\b/g, ' ')
-      .replace(/\s{2,}/g, ' ')
-      .trim()
-      .slice(0, 65);
+  (Array.isArray(rawItems) ? rawItems : []).forEach((it, idx) => {
+    const refCand = String(it.ref || '').trim().toUpperCase();
+    if (!refCand || cleanRef(refCand).length < 4) return;
+    const qty = Math.max(0, parseFloat(it.qty) || 1);
+    const buyPrice = Math.max(0, parseFloat(it.buyPrice) || 0);
+    const { existing, baseHit } = findExistingOrBasePart(refCand, it.brand || '');
 
     const auto = existing
       ? {
@@ -1243,8 +1193,8 @@ function parseInvoiceLines(rawText) {
           stockId: existing.id,
           name: existing.name,
           type: existing.type || partType(existing),
-          brand: existing.brand || '',
-          models: existing.models || '',
+          brand: existing.brand || it.brand || '',
+          models: existing.models || it.models || '',
           buyPrice: buyPrice || Number(existing.buyPrice) || 0,
           sellPrice: Number(existing.sellPrice) || 0,
           qty
@@ -1252,10 +1202,10 @@ function parseInvoiceLines(rawText) {
       : {
           mode: 'create',
           stockId: '',
-          name: baseHit ? baseHit.src : (cleanedLabel || `Pièce ${refCand}`),
-          type: baseHit ? baseHit.type : partType({ name: cleanedLabel }),
-          brand: baseHit ? (BRAND_LABEL[baseHit.brand] || baseHit.brand) : '',
-          models: baseHit ? baseHit.models : '',
+          name: String(it.name || '').trim() || (baseHit ? baseHit.src : `Pièce ${refCand}`),
+          type: baseHit ? baseHit.type : partType({ name: it.name || '' }),
+          brand: String(it.brand || '').trim() || (baseHit ? (BRAND_LABEL[baseHit.brand] || baseHit.brand) : ''),
+          models: String(it.models || '').trim() || (baseHit ? baseHit.models : ''),
           buyPrice,
           sellPrice: buyPrice ? fmt(buyPrice * 1.6) : 0,
           qty
@@ -1264,6 +1214,78 @@ function parseInvoiceLines(rawText) {
     out.push({ id: idx + '_' + cleanRef(refCand), ref: refCand, checked: true, ...auto });
   });
   return out;
+}
+
+async function extractInvoiceWithAI(dataUrl, apiKey) {
+  const base64 = dataUrl.split(',')[1];
+  const prompt = `Tu es un assistant spécialisé dans la lecture de factures et bons de commande de pièces détachées nautiques/hors-bord (Yamaha, Mercury, Suzuki, Honda...).
+Extrais chaque ligne d'article commandé du tableau.
+Règles importantes :
+- Regroupe les références ou codes coupés sur deux lignes (ex: un code suivi d'un "0", "00" ou "200" sur la ligne du dessous).
+- Corrige les confusions de lecture évidentes dans les références (ex: LFR5A11 plutôt que LFRSA11).
+- "qty" = quantité commandée (nombre).
+- "buyPrice" = prix unitaire HT ("P.U. HT", nombre avec point décimal).
+- Ignore les en-têtes, totaux, TVA, remises globales et mentions légales.
+Réponds UNIQUEMENT avec un tableau JSON valide :
+[{"ref":"...","name":"...","brand":"...","models":"...","qty":1,"buyPrice":0}]`;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: 'image/jpeg', data: base64 } },
+            { text: prompt }
+          ]
+        }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    }
+  );
+  if (!res.ok) throw new Error(`API IA (${res.status})`);
+  const data = await res.json();
+  const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+  const parsed = JSON.parse(txt);
+  return buildRowsFromItems(parsed);
+}
+
+function sanitizeOcrLine(line) {
+  return String(line || '').replace(/[|[\]()}{~<>`«»“”]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function extractItemsWithOcrFallback(rawText) {
+  const rawLines = String(rawText || '').split(/\r?\n/).map(sanitizeOcrLine).filter(Boolean);
+  const merged = [];
+  for (const l of rawLines) {
+    if (/^\d{1,3}$/.test(l) && merged.length) {
+      merged[merged.length - 1] += l;
+    } else {
+      merged.push(l);
+    }
+  }
+  const items = [];
+  merged.forEach(line => {
+    const tokens = line.split(/\s+/).filter(Boolean);
+    const refCand = tokens.map(t => t.replace(/^[.,:;!?/\\-]+|[.,:;!?/\\-]+$/g, '').toUpperCase())
+      .find(t => {
+        const c = cleanRef(t);
+        return c.length >= 6 && /[A-Z]/.test(c) && /\d/.test(c);
+      });
+    if (!refCand) return;
+    const nums = [...line.matchAll(/\b\d+(?:[.,]\d{1,2})?\b/g)]
+      .map(m => ({ val: parseFloat(m[0].replace(',', '.')), dec: m[0].includes(',') || m[0].includes('.') }))
+      .filter(n => !isNaN(n.val) && n.val > 0 && n.val < 50000);
+    const qty = nums.find(n => !n.dec && n.val <= 200)?.val || 1;
+    const decs = nums.filter(n => n.dec).map(n => n.val);
+    const buyPrice = decs.length ? Math.min(...decs) : 0;
+    const name = line.replace(new RegExp(refCand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ')
+      .replace(/\b\d+(?:[.,]\d{1,2})?\b/g, ' ').replace(/\s{2,}/g, ' ').trim().slice(0, 60);
+    items.push({ ref: refCand, name, qty, buyPrice });
+  });
+  return buildRowsFromItems(items);
 }
 
 window.updateScannedRowField = (i, field, val) => {
@@ -1295,7 +1317,7 @@ window.updateScannedRowField = (i, field, val) => {
 function renderScannedRows() {
   const box = $('scan-lines');
   if (!scannedRows.length) {
-    box.innerHTML = `<div class="note">Aucune ligne de pièce détectée sur cette photo. Essaie une photo cadrée sur le tableau des articles, bien éclairée et sans reflet.</div>`;
+    box.innerHTML = `<div class="note">Aucune ligne détectée sur cette photo. Essaie une photo nette et bien éclairée sur le tableau des articles.</div>`;
     return;
   }
   box.innerHTML = scannedRows.map((r, i) => {
@@ -1320,26 +1342,37 @@ function renderScannedRows() {
   }).join('');
 }
 
-window.runInvoiceOCR = async file => {
+window.onScanFileChange = async event => {
+  const input = event.target;
+  const file = input?.files?.[0];
   if (!file) return;
-  clearScanPreview();
+
+  if (scanPreviewUrl) URL.revokeObjectURL(scanPreviewUrl);
   scanPreviewUrl = URL.createObjectURL(file);
   $('scan-preview').src = scanPreviewUrl;
   $('scan-preview').classList.remove('hide');
-
-  if (typeof Tesseract === 'undefined') return toast('OCR indisponible : vérifie la connexion internet.', true);
-  $('scan-status').textContent = '⏳ Lecture de la facture en cours...';
   $('scan-apply-btn').disabled = true;
+
   try {
-    const res = await Tesseract.recognize(file, 'fra+eng');
-    scannedRows = parseInvoiceLines(res.data?.text || '');
-    $('scan-status').textContent = `${scannedRows.length} ligne(s) détectée(s) — vérifie ou valide directement l'entrée en stock :`;
+    const compressed = await compress(file, 1100, 0.8);
+    if (cfg.aiKey && cfg.aiKey.trim()) {
+      $('scan-status').textContent = '🤖 Agent IA en train d’analyser la facture...';
+      scannedRows = await extractInvoiceWithAI(compressed || scanPreviewUrl, cfg.aiKey.trim());
+      $('scan-status').textContent = `${scannedRows.length} ligne(s) extraite(s) par l'IA — vérifie et valide :`;
+    } else {
+      if (typeof Tesseract === 'undefined') throw new Error('OCR indisponible');
+      $('scan-status').textContent = '⏳ Lecture OCR locale en cours...';
+      const res = await Tesseract.recognize(file, 'fra+eng');
+      scannedRows = extractItemsWithOcrFallback(res.data?.text || '');
+      $('scan-status').textContent = `${scannedRows.length} ligne(s) détectée(s) (OCR local) — vérifie et valide :`;
+    }
     renderScannedRows();
   } catch (e) {
     console.error(e);
-    $('scan-status').textContent = 'Erreur pendant la lecture de la photo.';
-    toast('Impossible de lire la photo.', true);
+    $('scan-status').textContent = 'Erreur de lecture : ' + (e.message || 'réessaie avec une photo nette.');
+    toast('Erreur pendant la lecture de la facture.', true);
   } finally {
+    input.value = '';
     $('scan-apply-btn').disabled = false;
   }
 };
@@ -1797,7 +1830,7 @@ function renderPlanning() {
         </div></div>
       ${p.note ? `<div style="font-size:.82rem;color:var(--sec)">📝 ${esc(p.note)}</div>` : ''}
       ${missing.length
-        ? `<div class="alert" style="margin:0"><b>🛒 À commander :</b><br>${missing.map(m => `• <b>${esc(m.name)}</b> (${esc(m.ref)}) — manque ${fmt(m.missingQty)} ${m.unit}`).join('<br>')}</div>`
+        ? `<div class="alert" style="margin:0"><b>🛒 À commander :</b><br>${missing.map(m => `• <b>${esc(m.name)}</b> (${esc(m.ref)}) — manque <b>${fmt(m.missingQty)} ${m.unit}</b>`).join('<br>')}</div>`
         : `<div class="oil-banner">✅ Stock complet (${checks.length} poste(s))</div>`}
       <div class="actions">
         <button class="btn ${p.done ? 'b-s' : 'b-g'}" onclick="togglePlanningDone('${p.id}', ${!p.done})">${p.done ? 'Réouvrir' : 'Marquer fait'}</button>
@@ -2094,6 +2127,7 @@ window.importRefs = async () => {
 
 /* ===== Paramètres & sauvegarde ===== */
 window.openSettingsModal = () => {
+  $('cfg-aikey').value = cfg.aiKey || '';
   $('cfg-rate').value = cfg.hourlyRate ?? 60; $('cfg-vat').value = cfg.vatRate ?? 0;
   $('cfg-biz').value = cfg.bizName || ''; $('cfg-addr').value = cfg.bizAddr || '';
   $('cfg-legal').value = cfg.bizLegal || ''; $('cfg-invnum').value = cfg.nextInvNum || 1;
@@ -2101,6 +2135,7 @@ window.openSettingsModal = () => {
 };
 window.saveSettings = () => {
   const data = {
+    aiKey: $('cfg-aikey').value.trim(),
     hourlyRate: parseFloat($('cfg-rate').value) || 0, vatRate: parseFloat($('cfg-vat').value) || 0,
     bizName: $('cfg-biz').value.trim() || 'Meca Manager', bizAddr: $('cfg-addr').value.trim(),
     bizLegal: $('cfg-legal').value.trim(), nextInvNum: parseInt($('cfg-invnum').value, 10) || 1
@@ -2113,7 +2148,8 @@ window.saveSettings = () => {
   }, 'Paramètres enregistrés');
 };
 window.backup = () => {
-  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), cfg, boats, stock, planning }, null, 2)], { type: 'application/json' });
+  const { aiKey, ...safeCfg } = cfg;
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), cfg: safeCfg, boats, stock, planning }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'meca-manager-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
