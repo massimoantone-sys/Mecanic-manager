@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V10</title>
+<title>Meca Manager V11</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -141,7 +141,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <div id="main" class="wrap">
   <section class="metrics" id="metrics"></section>
   <div id="stock-alert"></div>
-  <div class="search"><input id="search" placeholder="Rechercher (bateau, référence, modèle moteur DF140, F150, 115...)"></div>
+  <div class="search"><input id="search" placeholder="Rechercher (bateau, référence, modèle moteur DF140, F150, 150 EFI, Verado...)"></div>
   <div class="filters hide" id="inv-filters">
     <button class="fchip active" data-f="all" onclick="setInvFilter('all')">Toutes</button>
     <button class="fchip" data-f="impayee" onclick="setInvFilter('impayee')">🔴 Non payées</button>
@@ -263,7 +263,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <input id="b-immat" class="inp" placeholder="Immatriculation / CIN">
   <label class="lbl">Hors-bord</label>
   <input id="b-ebrand" class="inp" list="brands" placeholder="Marque (ex : Yamaha, Suzuki, Mercury)">
-  <input id="b-emodel" class="inp" placeholder="Modèle (ex : F150, DF140A, 115)">
+  <input id="b-emodel" class="inp" placeholder="Modèle (ex : F150, DF140A, 150 EFI, 250 Verado)">
   <input id="b-sn" class="inp" placeholder="N° série moteur">
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
     <div><label class="lbl">Huile moteur (L)</label><input id="b-oilE" type="number" step="0.1" class="inp"></div>
@@ -285,7 +285,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <input id="e-immat" class="inp" placeholder="Immatriculation / CIN">
   <label class="lbl">Hors-bord</label>
   <input id="e-ebrand" class="inp" list="brands" placeholder="Marque (ex : Yamaha, Suzuki, Mercury)">
-  <input id="e-emodel" class="inp" placeholder="Modèle (ex : F150, DF140A, 115)">
+  <input id="e-emodel" class="inp" placeholder="Modèle (ex : F150, DF140A, 150 EFI, 250 Verado)">
   <input id="e-sn" class="inp" placeholder="N° série moteur">
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
     <div><label class="lbl">Huile moteur (L)</label><input id="e-oilE" type="number" step="0.1" class="inp"></div>
@@ -309,10 +309,9 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <label class="lbl">Marque du hors-bord concerné (vide = universel)</label>
   <input id="s-brand" class="inp" list="brands" placeholder="Ex : Yamaha, Suzuki, Mercury" oninput="previewPartMatch()">
   <label class="lbl">Modèles compatibles (séparés par des virgules, vide = tous les modèles de la marque)</label>
-  <input id="s-models" class="inp" placeholder="Ex : F115, F150, DF140A" oninput="previewPartMatch()">
+  <input id="s-models" class="inp" placeholder="Ex : F115, F150, DF140A, 150 EFI, 250 Verado" oninput="previewPartMatch()">
   <input id="s-ref" class="inp" placeholder="Réf(s) : une ou plusieurs, séparées par des virgules" oninput="previewPartMatch()">
   <div id="s-ref-suggest"></div>
-  <label class="lbl" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="s-verified" style="width:18px;height:18px;accent-color:var(--green)"> J'ai vérifié cette référence et ces modèles</label>
   <div id="s-auto-preview"></div>
   <select id="s-cat"><option value="Moteur / Filtres">Moteur & filtres</option><option value="Huiles & Chimie">Huiles & lubrifiants</option><option value="Électricité">Électricité</option><option value="Sécurité">Sécurité</option><option value="Castillage">Accastillage</option></select>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -344,7 +343,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <label class="lbl">Prochain N° de facture</label>
   <input id="cfg-invnum" type="number" step="1" class="inp">
   <div class="sec-t">📥 Importer des références de pièces</div>
-  <div class="lbl">Une ligne par référence : <b>référence;type;marque;modèles;confiance;source</b><br>Exemple : 17400-96J04;Turbine / pompe à eau;Suzuki;DF150, DF175;source revendeur;Wakeboss<br>Types : Filtre à huile, Filtre carburant / décanteur, Bougie, Turbine / pompe à eau, Thermostat, Anode, Huile moteur, Huile embase, Joint, Autre.</div>
+  <div class="lbl">Une ligne par référence : <b>référence;type;marque;modèles;source</b><br>Exemple : 17400-96J04;Turbine / pompe à eau;Suzuki;DF150, DF175;Wakeboss<br>Types : Filtre à huile, Filtre carburant / décanteur, Bougie, Turbine / pompe à eau, Thermostat, Anode, Huile moteur, Huile embase, Joint, Autre.</div>
   <textarea id="imp-text" style="min-height:120px;font-size:.78rem" placeholder="Colle ici tes lignes..."></textarea>
   <button class="btn b-g" onclick="importRefs()">Importer les références</button>
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="saveSettings()">Enregistrer</button></div>
@@ -472,13 +471,14 @@ function extractModelsFromName(name) {
   t = t.replace(/\b(100|300)\s*(H|HEURE|HEURES|HR|HRS)\b/g, ' ');
   t = t.replace(/\b(4T|2T|10W30|10W40|25W40|5W30|80W90|75W90)\b/g, ' ');
   const found = [];
-  const re = /\b(DF|BF|F|LF|VF|XF|T|MFS|MD)?\s*(\d{1,3}(?:[.,]\d)?)\s*(CV|CH|HP|A|AP|B|F|G|D|LA|EFI|VERADO)?\b/g;
+  const re = /\b(DF|BF|F|LF|VF|XF|T|MFS|MD)?\s*(\d{1,3}(?:[.,]\d)?)\s*(CV|CH|HP|A|AP|B|F|G|D|LA|EFI|VERADO|PRO\s*XS|SEAPRO)?\b/g;
   let m;
   while ((m = re.exec(t)) !== null) {
     const prefix = m[1] || '';
     const numPart = m[2].replace(',', '.');
-    const suffix = (m[3] && !['CV', 'CH', 'HP', 'EFI', 'VERADO'].includes(m[3])) ? m[3] : '';
-    if (!prefix && !m[3]) continue;
+    const rawSuf = (m[3] || '').replace(/\s+/g, '');
+    const suffix = (rawSuf && !['CV', 'CH', 'HP'].includes(rawSuf)) ? rawSuf : '';
+    if (!prefix && !rawSuf) continue;
     const code = prefix + numPart + suffix;
     if (code && !found.includes(code)) found.push(code);
   }
@@ -491,6 +491,7 @@ function modelMatch(tok, code) {
   if (!tok || !code) return false;
   if (tok === code) return true;
   if (code.startsWith(tok) && /^[A-Z]*$/.test(code.slice(tok.length))) return true;
+  if (tok.startsWith(code) && /^[A-Z]*$/.test(tok.slice(code.length))) return true;
   const numOnly = tok.match(/^(\d{1,3}(?:\.\d)?)$/);
   if (numOnly) {
     const cm = code.match(/^[A-Z]*(\d{1,3}(?:\.\d)?)[A-Z]*$/);
@@ -538,12 +539,12 @@ const BASE_REF_DB = [
   // --- Filtres à huile Yamaha ---
   { ref: '5GH-13440-90-00, 5GH-13440-60-00, 5GH-13440-61-00, 5GH-13440-50-00, 5GH-13440-20-00, 18-7911-1', type: 'Filtre à huile', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, T50, F60, T60, F70', conf: 'OEM Yamaha / Sierra', src: 'Catalogue Yamaha / Sierra 18-7911-1' },
   { ref: '5GH-13440-71-00, 5GH-13440-70-00, 5GH-13440-30-00, 5GH-13440-00-00, 18-7906-1', type: 'Filtre à huile', brand: 'yamaha', models: 'F30, F40, F50, F75, F80, F90, VF90, F100, F115, LF115', conf: 'OEM Yamaha / Sierra', src: 'Catalogue Yamaha (avant 2014 pour F115) / Sierra 18-7906-1' },
-  { ref: '69J-13440-04-00, 69J-13440-05-00, 69J-13440-03-00, 69J-13440-01-00, 18-7906-2', type: 'Filtre à huile', brand: 'yamaha', models: 'F115B, VF115, F130, F150, LF150, VF150, F175, VF175, F200, LF200, F225, F250, VF250', conf: 'OEM Yamaha / Sierra', src: 'Catalogue Yamaha 4T 115B à 250 / Sierra 18-7906-2' },
+  { ref: '69J-13440-05-00, 69J-13440-05, 69J-13440-04-00, 69J-13440-03-00, 69J-13440-01-00, 18-7906-2', type: 'Filtre à huile', brand: 'yamaha', models: 'F115B, VF115, F130, F150, LF150, VF150, F175, VF175, F200, LF200, F225, F250, VF250', conf: 'OEM Yamaha / Sierra', src: 'Catalogue Yamaha 4T 115B à 250 / Sierra 18-7906-2' },
   { ref: 'N26-13440-03-00, N26-13440-02-00, N26-13440-00-00', type: 'Filtre à huile', brand: 'yamaha', models: 'F300, LF300, F350, LF350, F425, XF425', conf: 'OEM Yamaha', src: 'Catalogue Yamaha V6 4.2L / V8 5.3L & 5.6L' },
 
   // --- Filtres carburant / décanteurs Yamaha ---
   { ref: '68V-24563-00-00, 68V-24563-01-00, 18-7979', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F50, T50, F60, T60, F75, F80, F90, F100, F115, LF115', conf: 'OEM Yamaha / Sierra', src: 'Cartouche interne bol décanteur Yamaha 50-115HP' },
-  { ref: '6P3-24563-01-00, 6P3-24563-00-00, 6P3-WS24A-01-00, 18-79809', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F150, LF150, F175, F200, LF200, F225, F250, F300, F350', conf: 'OEM Yamaha / Sierra', src: 'Cartouche interne bol décanteur Yamaha 150-350HP' },
+  { ref: '6P3-24563-01-00, 6P3-24563-00-00, 6P3-WS24A-02, 6P3-WS24A-01-00, 6P3-WS24A-00-00, 18-79809', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F150, LF150, F175, F200, LF200, F225, F250, F300, F350', conf: 'OEM Yamaha / Sierra', src: 'Cartouche interne bol décanteur Yamaha 150-350HP' },
   { ref: '6D8-24563-00-00, 18-79799', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F30, F40, F50, T50, F60, T60, F70, F75, F90, F115', conf: 'OEM Yamaha / Sierra', src: 'Cartouche filtre essence Yamaha récents' },
   { ref: 'MAR-10MEL-00-00, MAR-FUELF-IL-TR, 18-7866', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, F60, F70, F75, F80, F90, F100, F115, F130, F150, F175, F200, F225, F250, F300', conf: 'OEM Yamaha', src: 'Filtre séparateur eau/essence 10 microns à visser' },
 
@@ -568,52 +569,57 @@ const BASE_REF_DB = [
   { ref: '6P2-W0078-00-00, 18-3515, 18-3396', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F150, LF150, F175, F200, LF200', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha 150-200HP' },
   { ref: '6CE-W0078-01-00, 6CE-W0078-00-00, 18-3474, 8M6012787', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F150, F175, F200, F225, F250, F300', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha V6 / 4 cyl 2.8L' },
 
-  // --- Thermostats & Anodes Yamaha ---
+  // --- Thermostats, Anodes & Joints Yamaha ---
   { ref: '66M-12411-01-00, 18-3541', type: 'Thermostat', brand: 'yamaha', models: 'F2.5, F4, F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60', conf: 'OEM Yamaha / Sierra', src: 'Thermostat 60°C petits et moyens 4T Yamaha' },
   { ref: '67F-12411-01-00, 67F-12411-00-00, 6CB-12411-00-00, 18-3632', type: 'Thermostat', brand: 'yamaha', models: 'F75, F80, F90, F100, F150, F175, F200, F225, F250, VF250', conf: 'OEM Yamaha / Sierra', src: 'Thermostat 60°C Yamaha 75-250HP' },
   { ref: '60V-12411-00-00, 68V-12411-00-00, 8M6010295', type: 'Thermostat', brand: 'yamaha', models: 'F115, LF115', conf: 'OEM Yamaha', src: 'Thermostat Yamaha F115' },
   { ref: '6DA-12411-01-00', type: 'Thermostat', brand: 'yamaha', models: 'F150B, F175, F200F, F200G', conf: 'OEM Yamaha', src: 'Thermostat Yamaha 2.8L 4 cylindres' },
+  { ref: '6ML-11325-00, 6ML-11325-00-00, 63P-11325-01-00, 63P-11325-21-00', type: 'Anode', brand: 'yamaha', models: 'F150, LF150, F175, F200, LF200, F225, F250, F300', conf: 'OEM Yamaha', src: 'Anode bloc moteur / culasse Yamaha 4T' },
   { ref: '90798-1M682-00, 8M6007986', type: 'Anode', brand: 'yamaha', models: 'F150, LF150, F175, F200', conf: 'OEM Yamaha / Quicksilver', src: 'Kit complet anodes embase/étrier Yamaha 150-200HP' },
+  { ref: '90430-14M09, 90430-14M09-00', type: 'Joint', brand: 'yamaha', models: 'F2.5, F4, F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60, F70, F75, F80, F90, F100, F115, F130, F150, F175, F200, F225, F250, F300, F350', conf: 'OEM Yamaha', src: 'Joint vis de vidange carter huile moteur Yamaha 4T' },
+  { ref: '90430-08003, 90430-08003-00, 90430-08020-00', type: 'Joint', brand: 'yamaha', models: 'F2.5, F4, F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60, F70, F75, F80, F90, F100, F115, F130, F150, F175, F200, F225, F250, F300, F350', conf: 'OEM Yamaha', src: 'Joint vis vidange/niveau huile embase Yamaha' },
 
   // ==================== MERCURY / MARINER ====================
-  // --- Kits entretien complets 100h / 300h Mercury ---
-  { ref: '8M0097854, 8M0097855', type: 'Autre', brand: 'mercury', models: '75, 80, 90, 100, 115', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 75-115HP 2.1L' },
-  { ref: '8M0094232, 8M0094233', type: 'Autre', brand: 'mercury', models: '150', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 150HP EFI 3.0L' },
-  { ref: '8M0100527, 8M0120840', type: 'Autre', brand: 'mercury', models: '40, 50, 60', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 40-60HP EFI' },
-  { ref: '8M0149929, 8M0149930', type: 'Autre', brand: 'mercury', models: '175, 200, 225, 250, 300', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury V6 3.4L & V8 4.6L' },
+  // --- Kits entretien complets 100h / 300h Mercury (EFI, FourStroke, Verado, Pro XS, SeaPro) ---
+  { ref: '8M0100527, 8M0120840', type: 'Autre', brand: 'mercury', models: '40 EFI, 50 EFI, 60 EFI', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 40/50/60 EFI 4 cylindres (995cc)' },
+  { ref: '8M0097854, 8M0097855', type: 'Autre', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS, 115 SeaPro', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 75-115 EFI 2.1L (n° série 2B095049+)' },
+  { ref: '8M0094232, 8M0094233', type: 'Autre', brand: 'mercury', models: '150 EFI, 150 FourStroke, 150 Pro XS, 150 SeaPro', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 150 EFI 3.0L 4 cylindres (n° série 1B905505+)' },
+  { ref: '8M0149929, 8M0149930', type: 'Autre', brand: 'mercury', models: '175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 200 Pro XS, 225 Pro XS, 250 Pro XS, 300 Pro XS, 250 Verado V8, 300 Verado V8', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury V6 3.4L & V8 4.6L (2018+)' },
+  { ref: '8M0097856, 8M0097857', type: 'Autre', brand: 'mercury', models: '135 Verado, 150 Verado, 175 Verado, 200 Verado', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury Verado 4 cylindres compresseur (L4)' },
+  { ref: '8M0097858, 8M0097859', type: 'Autre', brand: 'mercury', models: '200 Verado L6, 225 Verado, 250 Verado L6, 275 Verado, 300 Verado L6, 350 Verado, 400 Verado', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury Verado 6 cylindres en ligne (L6)' },
 
   // --- Filtres à huile Mercury ---
-  { ref: '35-822626Q03, 35-822626A2, 18-7913', type: 'Filtre à huile', brand: 'mercury', models: '8, 9.9, 15, 20, 25, 30', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver portables 4T 8-30HP' },
-  { ref: '35-8M0065103, 35-8M0065104, 18-7914', type: 'Filtre à huile', brand: 'mercury', models: '25, 30, 40, 50, 60, 75, 80, 90, 100, 115', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver 25-115HP 4T (série 2B094996+)' },
-  { ref: '35-877761Q01, 35-877761K01, 18-7758', type: 'Filtre à huile', brand: 'mercury', models: '75, 80, 90, 100, 115, 135, 150', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver 75-115HP (1B366823-2B094995) & 150 EFI' },
-  { ref: '35-877767Q01, 35-877767K01', type: 'Filtre à huile', brand: 'mercury', models: '135, 150, 175, 200', conf: 'OEM Mercury', src: 'Catalogue Quicksilver Verado 4 cylindres' },
-  { ref: '35-877769Q01, 35-877769K01', type: 'Filtre à huile', brand: 'mercury', models: '200, 225, 250, 275, 300, 350, 400', conf: 'OEM Mercury', src: 'Catalogue Quicksilver Verado 6 cylindres L6' },
-  { ref: '35-8M0123025', type: 'Filtre à huile', brand: 'mercury', models: '175, 200, 225, 250, 300', conf: 'OEM Mercury', src: 'Catalogue Quicksilver nouveaux V6 3.4L & V8 4.6L (2018+)' },
+  { ref: '35-822626Q03, 35-822626A2, 18-7913', type: 'Filtre à huile', brand: 'mercury', models: '8, 9.9, 15, 20, 25, 30 EFI', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver portables 4T 8-30HP' },
+  { ref: '35-8M0065103, 35-8M0065104, 18-7914', type: 'Filtre à huile', brand: 'mercury', models: '25 EFI, 30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver 25-115HP 4T (série 2B094996+)' },
+  { ref: '35-877761Q01, 35-877761K01, 18-7758', type: 'Filtre à huile', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 150 FourStroke, 150 Pro XS', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver 75-115HP (1B366823-2B094995) & 150 EFI 3.0L' },
+  { ref: '35-877767Q01, 35-877767K01', type: 'Filtre à huile', brand: 'mercury', models: '135 Verado, 150 Verado, 175 Verado, 200 Verado', conf: 'OEM Mercury', src: 'Catalogue Quicksilver Verado 4 cylindres L4' },
+  { ref: '35-877769Q01, 35-877769K01', type: 'Filtre à huile', brand: 'mercury', models: '200 Verado L6, 225 Verado, 250 Verado L6, 275 Verado, 300 Verado L6, 350 Verado, 400 Verado', conf: 'OEM Mercury', src: 'Catalogue Quicksilver Verado 6 cylindres L6' },
+  { ref: '35-8M0123025', type: 'Filtre à huile', brand: 'mercury', models: '175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 200 Pro XS, 225 Pro XS, 250 Pro XS, 300 Pro XS, 250 Verado V8, 300 Verado V8', conf: 'OEM Mercury', src: 'Catalogue Quicksilver nouveaux V6 3.4L & V8 4.6L (2018+)' },
 
   // --- Filtres carburant / décanteurs Mercury ---
-  { ref: '35-8M0088825, 35-879884T', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '30, 40, 50, 60, 75, 80, 90, 100, 115', conf: 'OEM Mercury', src: 'Filtre essence haute pression EFI 30-115HP' },
-  { ref: '35-879885Q, 35-879885T, 18-7718', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '30, 40, 50, 60, 75, 80, 90, 100, 115, 135, 150, 175, 200, 225, 250, 300', conf: 'OEM Mercury / Sierra', src: 'Filtre en ligne translucide sous capot Mercury EFI / Verado' },
-  { ref: '35-8M0106635, 35-8M0060041', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '75, 80, 90, 100, 115, 150, 175, 200, 225, 250, 300', conf: 'OEM Mercury', src: 'Cartouche décanteur eau/carburant Mercury 2.1L / 3.0L / V6 / V8' },
-  { ref: '35-802893Q01, 35-60494A1, 18-7845', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '40, 50, 60, 75, 90, 115, 135, 150, 175, 200, 225, 250, 300', conf: 'OEM Mercury / Sierra', src: 'Cartouche séparatrice eau/essence à visser Quicksilver' },
+  { ref: '35-8M0088825, 35-879884T', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI', conf: 'OEM Mercury', src: 'Filtre essence haute pression EFI 30-115HP' },
+  { ref: '35-879885Q, 35-879885T, 18-7718', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 135 Verado, 150 Verado, 175 Verado, 200 Verado, 225 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury / Sierra', src: 'Filtre en ligne translucide sous capot Mercury EFI / Verado' },
+  { ref: '35-8M0106635, 35-8M0060041', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 250 Verado V8, 300 Verado V8', conf: 'OEM Mercury', src: 'Cartouche décanteur eau/carburant Mercury 2.1L / 3.0L / V6 / V8' },
+  { ref: '35-802893Q01, 35-60494A1, 18-7845', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '40 EFI, 50 EFI, 60 EFI, 75 EFI, 90 EFI, 115 EFI, 150 EFI, 135 Verado, 150 Verado, 200 Verado, 225 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury / Sierra', src: 'Cartouche séparatrice eau/essence à visser Quicksilver' },
 
   // --- Bougies Mercury ---
-  { ref: 'DCPR6E, 33-855672', type: 'Bougie', brand: 'mercury', models: '8, 9.9, 15, 20, 25, 30, 40, 50, 60', conf: 'NGK / OEM Mercury', src: 'Tableau NGK / Mercury 4T 8-60HP' },
-  { ref: 'LFR6A-11, 33-889246Q', type: 'Bougie', brand: 'mercury', models: '75, 80, 90, 100, 115', conf: 'NGK / OEM Mercury', src: 'Tableau Mercury 75-115HP 1.7L (avant 2014)' },
-  { ref: 'ZFR5F, 33-8M0058931', type: 'Bougie', brand: 'mercury', models: '75, 80, 90, 100, 115, 150', conf: 'NGK / OEM Mercury', src: 'Tableau Mercury 75-115HP 2.1L (2014+) & 150 EFI 3.0L' },
-  { ref: 'ILFR6G-E, 33-889246Q39', type: 'Bougie', brand: 'mercury', models: '135, 150, 175, 200, 225, 250, 300, 350', conf: 'NGK / OEM Mercury', src: 'Bougie iridium Verado L4 & L6' },
-  { ref: 'LKAR7C-9, 33-8M0135348', type: 'Bougie', brand: 'mercury', models: '175, 200, 225, 250, 300', conf: 'NGK / OEM Mercury', src: 'Bougie Mercury V6 3.4L & V8 4.6L' },
+  { ref: 'DCPR6E, 33-855672', type: 'Bougie', brand: 'mercury', models: '8, 9.9, 15, 20, 25 EFI, 30 EFI, 40 EFI, 50 EFI, 60 EFI', conf: 'NGK / OEM Mercury', src: 'Tableau NGK / Mercury 4T 8-60HP' },
+  { ref: 'LFR6A-11, 33-889246Q', type: 'Bougie', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI', conf: 'NGK / OEM Mercury', src: 'Tableau Mercury 75-115HP 1.7L (avant 2014)' },
+  { ref: 'ZFR5F, 33-8M0058931', type: 'Bougie', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS, 150 EFI, 150 FourStroke', conf: 'NGK / OEM Mercury', src: 'Tableau Mercury 75-115HP 2.1L (2014+) & 150 EFI 3.0L' },
+  { ref: 'ILFR6G-E, 33-889246Q39', type: 'Bougie', brand: 'mercury', models: '135 Verado, 150 Verado, 175 Verado, 200 Verado, 225 Verado, 250 Verado L6, 300 Verado L6, 350 Verado', conf: 'NGK / OEM Mercury', src: 'Bougie iridium Verado L4 & L6' },
+  { ref: 'LKAR7C-9, 33-8M0135348', type: 'Bougie', brand: 'mercury', models: '175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 200 Pro XS, 225 Pro XS, 250 Pro XS, 300 Pro XS, 250 Verado V8, 300 Verado V8', conf: 'NGK / OEM Mercury', src: 'Bougie Mercury V6 3.4L & V8 4.6L' },
 
   // --- Turbines / Pompes à eau Mercury ---
   { ref: '47-803748Q01, 47-803748K01, 18-3446', type: 'Turbine / pompe à eau', brand: 'mercury', models: '8, 9.9, 15, 20', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 8-20HP 4T' },
-  { ref: '46-8M0113799, 46-821354A2, 18-4531', type: 'Turbine / pompe à eau', brand: 'mercury', models: '25, 30, 40, 45, 50', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 25-50HP' },
-  { ref: '46-812966A12, 46-812966A11, 18-3445', type: 'Turbine / pompe à eau', brand: 'mercury', models: '40, 45, 50, 55, 60', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 40-60HP EFI (embase standard)' },
-  { ref: '46-43024A7, 18-3688', type: 'Turbine / pompe à eau', brand: 'mercury', models: '60, 75, 80, 90, 100, 115, 125', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 60 BigFoot / 75-115HP' },
-  { ref: '47-8M0100526, 47-43026Q06, 18-3214', type: 'Turbine / pompe à eau', brand: 'mercury', models: '75, 80, 90, 100, 115, 135, 150, 175, 200, 225, 250, 300', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau universel grosses embases Mercury / Verado' },
+  { ref: '46-8M0113799, 46-821354A2, 18-4531', type: 'Turbine / pompe à eau', brand: 'mercury', models: '25 EFI, 30 EFI, 40 EFI, 45, 50 EFI', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 25-50HP' },
+  { ref: '46-812966A12, 46-812966A11, 18-3445', type: 'Turbine / pompe à eau', brand: 'mercury', models: '40 EFI, 45, 50 EFI, 55, 60 EFI', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 40-60HP EFI (embase standard)' },
+  { ref: '46-43024A7, 18-3688', type: 'Turbine / pompe à eau', brand: 'mercury', models: '60 BigFoot, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 125', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 60 BigFoot / 75-115HP' },
+  { ref: '47-8M0100526, 47-43026Q06, 18-3214', type: 'Turbine / pompe à eau', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 135 Verado, 150 Verado, 175 Verado, 200 Verado, 225 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau universel grosses embases Mercury / Verado' },
 
   // --- Thermostats & Anodes Mercury ---
-  { ref: '8M0090819, 892864T06, 18-3635', type: 'Thermostat', brand: 'mercury', models: '75, 80, 90, 100, 115, 150', conf: 'OEM Mercury / Sierra', src: 'Thermostat complet avec boîtier 75-115HP 2.1L & 150 EFI' },
-  { ref: '8M0107546, 8M0107547', type: 'Anode', brand: 'mercury', models: '40, 50, 60, 75, 80, 90, 100, 115', conf: 'OEM Mercury', src: 'Kit anodes aluminium Mercury 40-115HP' },
-  { ref: '8M0107548, 97-8M0107548', type: 'Anode', brand: 'mercury', models: '135, 150, 175, 200', conf: 'OEM Mercury', src: 'Kit anodes aluminium Mercury 150 EFI / Verado 4 cyl' },
+  { ref: '8M0090819, 892864T06, 18-3635', type: 'Thermostat', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 150 FourStroke', conf: 'OEM Mercury / Sierra', src: 'Thermostat complet avec boîtier 75-115HP 2.1L & 150 EFI' },
+  { ref: '8M0107546, 8M0107547', type: 'Anode', brand: 'mercury', models: '40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI', conf: 'OEM Mercury', src: 'Kit anodes aluminium Mercury 40-115HP' },
+  { ref: '8M0107548, 97-8M0107548', type: 'Anode', brand: 'mercury', models: '150 EFI, 150 FourStroke, 135 Verado, 150 Verado, 175 Verado, 200 Verado', conf: 'OEM Mercury', src: 'Kit anodes aluminium Mercury 150 EFI / Verado 4 cyl' },
 
   // ==================== SUZUKI ====================
   // --- Filtres à huile Suzuki ---
@@ -722,23 +728,21 @@ function fitsForRef(q) {
   const { db, stock: st } = lookupRef(q);
   const entries = [
     ...db.map(e => ({ type: e.type, brand: e.brand, models: e.models, source: 'base', conf: e.conf, src: e.src })),
-    ...st.map(s => ({ type: s.type, brand: s.brand, models: s.models, source: 'stock', conf: s.verified ? 'vérifiée' : 'à vérifier', src: 'ta fiche de stock' }))
+    ...st.map(s => ({ type: s.type, brand: s.brand, models: s.models, source: 'stock', conf: 'stock', src: 'ta fiche de stock' }))
   ];
   return entries.map(en => ({
     ...en,
     boats: boats.filter(b => compat({ type: en.type, brand: en.brand, models: en.models, name: '' }, b).level === 'match').map(b => b.name)
   }));
 }
-const needsCheck = s => !s.verified && REF_DB.some(e => refList(e.ref).some(r => refList(s.ref).includes(r)));
 
 function renderRefLookup(q) {
   const res = fitsForRef(q);
   if (!res.length) return `<div class="lbl">Référence inconnue : ajoute la pièce avec ses modèles compatibles, et elle sera reconnue ensuite.</div>`;
   return res.map(r => `<div class="equiv-box" style="margin-bottom:6px">
     🔎 <b>${esc(r.type)}</b> • ${esc(BRAND_LABEL[r.brand] || r.brand)} • modèles : <b>${esc(r.models || 'tous')}</b><br>
-    Confiance : <b>${esc(r.conf)}</b><br>Source : ${esc(r.src)}<br>
+    Source : ${esc(r.src)}<br>
     ⛵ Bateaux concernés : <b>${r.boats.length ? esc(r.boats.join(', ')) : 'aucun de la flotte'}</b>
-    <div style="color:#ffa94d;margin-top:4px">⚠️ Vérifie la référence sur l'étiquette ou le catalogue avant de monter la pièce.</div>
   </div>`).join('');
 }
 window.useRefSuggestion = () => {
@@ -777,7 +781,7 @@ function getNeededPartsForBoat(b, maintType) {
     const best = cands[0];
     return {
       name: best ? best.name : n.type,
-      ref: best ? (best.ref || 'À vérifier') : 'Aucune pièce compatible en stock',
+      ref: best ? (best.ref || 'À renseigner') : 'Aucune pièce compatible en stock',
       neededQty: n.qty, availQty: avail, missingQty: missing, unit: n.unit, ok: missing <= 0
     };
   });
@@ -959,14 +963,14 @@ function stockCard(s) {
   return `<div class="card">
     <div class="srow">
       ${s.img ? `<img class="thumb" src="${esc(s.img)}" alt="">` : `<div class="thumb">📦</div>`}
-      <div style="flex:1;overflow:hidden"><div class="ct" style="font-size:1.02rem">${esc(s.name)} ${needsCheck(s) ? '<span class="badge st-relance">à vérifier</span>' : (s.verified ? '<span class="badge s-eau">vérifiée</span>' : '')}</div>
+      <div style="flex:1;overflow:hidden"><div class="ct" style="font-size:1.02rem">${esc(s.name)}</div>
         <div class="cs">Réf : ${esc(s.ref) || 'N/A'}</div>
         <div style="font-size:.75rem;color:var(--sec)">${esc(partType(es))}${brandTxt ? ' • ' + esc(brandTxt) : ''}</div></div>
       <div class="sq ${Number(s.qty) <= Number(s.min) ? 'low' : ''}">${fmt(s.qty)}${isOil(es) ? ' L' : ''}</div>
     </div>
     <div class="equiv-box">
       ⚙️ <b>Modèles compatibles (${esc(brandTxt || 'Universel')}) :</b><br>
-      <span style="color:#fff">${esc(toks.length ? toks.join(', ') : (UNIVERSAL_TYPES.includes(partType(es)) || !brandTxt ? (brandTxt ? 'Tous modèles' : 'Universel (tous moteurs)') : 'NON RENSEIGNÉS ⚠️'))}</span>${es.fromBase ? ' <span class="auto-tag">auto-base</span>' : ''}
+      <span style="color:#fff">${esc(toks.length ? toks.join(', ') : (UNIVERSAL_TYPES.includes(partType(es)) || !brandTxt ? (brandTxt ? 'Tous modèles' : 'Universel (tous moteurs)') : 'NON RENSEIGNÉS ⚠️'))}</span>
       ${es.crossRefs ? `<div style="margin-top:4px;color:#a8dadc">🔄 <b>Équivalences connues :</b> ${esc(es.crossRefs)}</div>` : ''}
       <div style="margin-top:4px;color:#2ec4b6">⛵ <b>Bateaux de ta flotte :</b> ${fits.length ? esc(fits.join(', ')) : '<span style="color:var(--sec)">aucun bateau enregistré</span>'}</div>
     </div>
@@ -1013,7 +1017,7 @@ window.previewPartMatch = () => {
   const sg = $('s-ref-suggest');
   if (sg) {
     const h = REF_DB.find(x => refList(x.ref).includes(cleanRef($('s-ref').value)));
-    sg.innerHTML = h ? `<div class="note" style="margin:0">Référence reconnue dans la base (${esc(h.conf)}) : ${esc(h.type)}, ${esc(BRAND_LABEL[h.brand])}, modèles ${esc(h.models)}.<br><button type="button" class="btn b-o hbtn" style="margin-top:6px" onclick="useRefSuggestion()">Utiliser ces infos</button></div>` : '';
+    sg.innerHTML = h ? `<div class="note" style="margin:0">Référence reconnue : ${esc(h.type)}, ${esc(BRAND_LABEL[h.brand])}, modèles ${esc(h.models)}.<br><button type="button" class="btn b-o hbtn" style="margin-top:6px" onclick="useRefSuggestion()">Utiliser ces infos</button></div>` : '';
   }
 };
 window.openStockModal = id => {
@@ -1025,7 +1029,6 @@ window.openStockModal = id => {
   $('s-brand').value = s ? s.brand || '' : '';
   $('s-models').value = s ? s.models || '' : '';
   $('s-ref').value = s ? s.ref || '' : '';
-  $('s-verified').checked = !!(s && s.verified);
   $('s-cat').value = s ? s.cat || 'Moteur / Filtres' : 'Moteur / Filtres';
   $('s-buy').value = s && s.buyPrice != null ? s.buyPrice : '';
   $('s-sell').value = s && s.sellPrice != null ? s.sellPrice : '';
@@ -1060,7 +1063,7 @@ window.saveStock = async () => {
   const data = {
     name, ref: $('s-ref').value.trim(),
     type: pre.type || partType({ name, cat }),
-    brand: pre.brand, models: pre.models, verified: $('s-verified').checked,
+    brand: pre.brand, models: pre.models,
     cat, buyPrice: parseFloat($('s-buy').value) || 0, sellPrice: parseFloat($('s-sell').value) || 0,
     qty, min: parseFloat($('s-min').value) || 2, loc: $('s-loc').value.trim()
   };
@@ -1201,7 +1204,7 @@ function renderChecklist(fresh) {
   const e = engineInfo(b);
   let html = '';
   if (!e.brand) html += `<div class="note">Renseigne la marque du hors-bord (✏️ Modifier) pour voir les pièces compatibles.</div>`;
-  else if (!e.code) html += `<div class="note">Renseigne le modèle du hors-bord (ex : F150, DF140A) pour un tri précis.</div>`;
+  else if (!e.code) html += `<div class="note">Renseigne le modèle du hors-bord (ex : F150, DF140A, 150 EFI) pour un tri précis.</div>`;
   html += `<div class="sec-t">✅ Compatibles avec ${esc(e.txt)} (${groups.match.length})</div>`;
   html += groups.match.length ? groups.match.map(row).join('')
     : `<div class="lbl" style="margin-top:6px">Aucune pièce compatible en stock. Ajoute-la dans Stock avec la marque « ${esc(BRAND_LABEL[e.brand] || e.brand || '…')} ».</div>`;
@@ -1780,12 +1783,12 @@ window.importRefs = async () => {
   let ok = 0; const bad = [];
   lines.forEach(line => {
     const c = line.split(';').map(x => x.trim());
-    const [ref, type, brand, models, conf, src] = c;
+    const [ref, type, brand, models, src] = c;
     const bk = canonBrand(brand);
     if (!ref || !bk) { bad.push(line.slice(0, 40)); return; }
     const data = {
       ref, type: TYPE_KEYS.includes(type) ? type : 'Autre', brand: bk,
-      models: models || '', conf: conf || 'importée (à vérifier)', src: src || 'import manuel'
+      models: models || '', src: src || 'import manuel'
     };
     batch.set(doc(db, 'ref_db', cleanRef(ref) + '_' + bk), data);
     ok++;
