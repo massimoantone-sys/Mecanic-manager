@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V9</title>
+<title>Meca Manager V10</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -23,14 +23,14 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .metric-t{font-size:.7rem;font-weight:700;color:var(--sec);margin-bottom:4px}
 .metric-v{font-size:1.45rem;font-weight:800;color:var(--cy)}
 .btn-add{grid-column:span 2;background:var(--blue);color:#fff;border:none;padding:14px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer}
-.btn-sec-wide{background:var(--card);color:var(--cy);border:1px solid var(--cy);padding:11px 14px;border-radius:12px;font-size:.88rem;font-weight:700;cursor:pointer;width:100%}
 .alert{margin:0 16px 12px;background:rgba(230,57,70,.15);border:1px solid var(--red);color:#ff8d99;padding:10px 12px;border-radius:10px;font-size:.82rem;line-height:1.45}
+.note{background:rgba(247,127,0,.15);border:1px solid var(--or);color:#ffb366;padding:10px 12px;border-radius:10px;font-size:.82rem;line-height:1.4}
 .search{padding:0 16px 12px}
 .search input{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--bd);border-radius:10px;color:#fff;font-size:.9rem}
 .filters{display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto}
 .fchip{padding:7px 12px;border-radius:20px;background:var(--card);border:1px solid var(--bd);color:var(--sec);font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap}
 .fchip.active{background:var(--cy);color:#000;border-color:var(--cy)}
-.days-strip{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 8px;position:relative;z-index:2;-webkit-overflow-scrolling:touch}
+.days-strip{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 8px;position:relative;z-index:2}
 .day-pill{min-width:58px;padding:8px 6px;border-radius:12px;background:var(--bg);border:1px solid var(--bd);color:var(--sec);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;flex-shrink:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .day-pill *{pointer-events:none}
 .day-pill.active{background:var(--cy);color:#000;border-color:var(--cy);font-weight:800}
@@ -74,10 +74,8 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .hist{background:rgba(11,19,43,.6);padding:12px;border-radius:8px;border-left:4px solid var(--green);font-size:.85rem;margin-top:8px;display:flex;flex-direction:column;gap:6px}
 .sec-t{font-size:.82rem;font-weight:800;color:var(--green);margin-top:8px}
 .auto-tag{display:inline-block;font-size:.68rem;padding:2px 6px;border-radius:6px;background:rgba(46,196,182,.15);color:var(--green);border:1px solid rgba(46,196,182,.4);margin-left:4px;font-weight:700}
-.custom-tag{display:inline-block;font-size:.68rem;padding:2px 6px;border-radius:6px;background:rgba(247,127,0,.18);color:#ffa94d;border:1px solid rgba(247,127,0,.45);margin-left:4px;font-weight:700}
 .oil-banner{font-size:.78rem;color:#2ec4b6;background:rgba(46,196,182,.12);border:1px solid rgba(46,196,182,.35);padding:8px 10px;border-radius:8px;line-height:1.4}
-.equiv-box{font-size:.72rem;color:#90e0ef;background:rgba(0,180,216,.1);border:1px solid rgba(0,180,216,.3);padding:6px 8px;border-radius:6px;line-height:1.4}
-.eq-card{background:rgba(11,19,43,.65);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:5px}
+.equiv-box{font-size:.74rem;color:#90e0ef;background:rgba(0,180,216,.1);border:1px solid rgba(0,180,216,.3);padding:6px 8px;border-radius:6px;line-height:1.45}
 .row{display:flex;align-items:center;gap:8px;background:var(--bg);padding:9px 10px;border-radius:8px;border:1px solid var(--bd);font-size:.83rem;margin-top:6px;flex-wrap:wrap}
 .row input[type=checkbox]{width:20px;height:20px;accent-color:var(--green);flex-shrink:0}
 .qin{width:62px;padding:6px 4px;background:var(--card);border:1px solid var(--bd);border-radius:6px;color:#fff;text-align:center;font-size:.82rem}
@@ -86,7 +84,7 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 details summary{font-size:.82rem;color:var(--sec);padding:8px 0;cursor:pointer}
 textarea,.inp,select{width:100%;padding:10px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:#fff;font-size:.88rem}
 textarea{min-height:80px;resize:vertical}
-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:10px 0 calc(env(safe-area-inset-top,0px) + 10px);backdrop-filter:blur(10px);z-index:50}
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 10px);backdrop-filter:blur(10px);z-index:50}
 .nav{display:flex;flex-direction:column;align-items:center;color:var(--sec);font-size:.72rem;gap:3px;background:none;border:none;cursor:pointer;flex:1}
 .nav.active{color:var(--cy);font-weight:700}.nav span:first-child{font-size:19px}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;align-items:center;justify-content:center;padding:16px}
@@ -97,7 +95,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 .toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);z-index:300;background:#12805c;color:#fff;padding:12px 14px;border-radius:12px;font-size:.85rem;font-weight:600}
 .toast.err{background:#c1121f}
 .ed-line{background:rgba(11,19,43,.65);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
-.inv-paper{background:#fff;color:#111;padding:26px;border-radius:8px;font-size:.84rem;line-height:1.45;position:relative}
+.inv-paper{background:#fff;color:#111;padding:26px;border-radius:8px;font-size:.84rem;line-height:1.45}
 .inv-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0b132b;padding-bottom:14px;margin-bottom:16px;gap:12px}
 .inv-title{font-size:1.4rem;font-weight:800;color:#0b132b;text-transform:uppercase}
 .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
@@ -111,20 +109,14 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 .inv-tot .grand{font-size:1.05rem;font-weight:800;border-top:2px solid #0b132b;padding-top:6px;color:#0b132b}
 .inv-foot{margin-top:22px;padding-top:10px;border-top:1px solid #dce2ec;font-size:.72rem;color:#555;text-align:center}
 .stamp-cancel{color:#c1121f;border:2px solid #c1121f;padding:2px 8px;border-radius:4px;font-weight:800;font-size:.78rem;display:inline-block;margin-top:4px;text-transform:uppercase}
-@media print{
-  body *{visibility:hidden}
-  #invoice-modal, #invoice-modal *{visibility:visible}
-  #invoice-modal{position:fixed;inset:0;background:#fff;padding:0;display:block!important}
-  #invoice-modal .mc{max-width:100%;max-height:none;border:none;padding:0;background:#fff;box-shadow:none}
-  .no-print{display:none!important}
-}
+@media print{body *{visibility:hidden}#invoice-modal,#invoice-modal *{visibility:visible}#invoice-modal{position:fixed;inset:0;background:#fff;padding:0;display:block!important}#invoice-modal .mc{max-width:100%;max-height:none;border:none;padding:0;background:#fff}.no-print{display:none!important}}
 </style>
 </head>
 <body>
 
 <datalist id="brands">
   <option value="Yamaha"><option value="Mercury"><option value="Mariner"><option value="Suzuki">
-  <option value="Honda"><option value="Tohatsu"><option value="Evinrude"><option value="Johnson"><option value="Selva">
+  <option value="Honda"><option value="Tohatsu"><option value="Evinrude"><option value="Johnson"><option value="Selva"><option value="Parsun"><option value="Nissan">
 </datalist>
 
 <div id="login" style="position:fixed;inset:0;z-index:200;background:#0b132b;display:flex;align-items:center;justify-content:center;padding:20px">
@@ -140,8 +132,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <header>
   <div class="app-title"><div class="app-icon">⚓</div><div><h1>Meca Manager</h1><div class="subtitle" id="sub">Gestion de flotte hors-bord</div></div></div>
   <div style="display:flex;gap:6px">
-    <button class="btn b-s hbtn" title="Tarifs & Infos Facture" onclick="openSettingsModal()">⚙️</button>
-    <button class="btn b-s hbtn" title="Sauvegarde JSON" onclick="backup()">💾</button>
+    <button class="btn b-s hbtn" title="Tarifs & infos facture" onclick="openSettingsModal()">⚙️</button>
+    <button class="btn b-s hbtn" title="Sauvegarde" onclick="backup()">💾</button>
     <button class="btn b-s hbtn" onclick="logout()">Quitter</button>
   </div>
 </header>
@@ -149,7 +141,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <div id="main" class="wrap">
   <section class="metrics" id="metrics"></section>
   <div id="stock-alert"></div>
-  <div class="search"><input id="search" placeholder="Rechercher (nom, réf OEM, équivalence Sierra/NGK/Mann...)"></div>
+  <div class="search"><input id="search" placeholder="Rechercher..."></div>
   <div class="filters hide" id="inv-filters">
     <button class="fchip active" data-f="all" onclick="setInvFilter('all')">Toutes</button>
     <button class="fchip" data-f="impayee" onclick="setInvFilter('impayee')">🔴 Non payées</button>
@@ -187,25 +179,22 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
           <option value="Autre">Autre</option>
         </select>
       </div>
-      <div>
-        <label class="lbl">Nouv. heures moteur</label>
-        <input id="m-hours" type="number" step="0.1" class="inp" placeholder="Ex : 245.5">
-      </div>
+      <div><label class="lbl">Nouv. heures moteur</label><input id="m-hours" type="number" step="0.1" class="inp" placeholder="Ex : 245.5"></div>
     </div>
-    <input id="m-custom-type" class="inp hide" placeholder="Préciser le type d'entretien (ex : Turbine, Diagnostic...)" oninput="onBoatCustomTypeInput()">
-    <input id="m-desc" class="inp" placeholder="Description (ex : Révision 100h)">
+    <input id="m-custom-type" class="inp hide" placeholder="Préciser l'intervention (ex : Turbine, Diagnostic...)" oninput="onBoatCustomTypeInput()">
+    <input id="m-desc" class="inp" placeholder="Description (ex : Maintenance 100h)">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div><label class="lbl">Main d'œuvre (heures)</label><input id="m-labor" type="number" step="0.25" class="inp" placeholder="Ex : 2.5" oninput="updateLiveTotal()"></div>
-      <div><label class="lbl">Tarif horaire appliqué (€/h)</label><input id="m-rate" type="number" step="0.5" class="inp" oninput="updateLiveTotal()"></div>
+      <div><label class="lbl">Tarif horaire (€/h)</label><input id="m-rate" type="number" step="0.5" class="inp" oninput="updateLiveTotal()"></div>
     </div>
 
     <div id="oil-capacity-box"></div>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">
-      <label class="lbl" style="color:var(--green);font-weight:700">Pièces & huiles détectées :</label>
-      <button type="button" id="btn-auto-check" class="btn b-s hbtn" onclick="checkEngineParts()">Cocher auto</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <label class="lbl" style="color:var(--green);font-weight:700">Pièces compatibles avec ce moteur :</label>
+      <button type="button" class="btn b-s hbtn" onclick="checkEngineParts()">Cocher auto</button>
     </div>
-    <input id="part-filter" class="inp" style="padding:8px 10px;font-size:.82rem" placeholder="Filtrer les pièces par nom ou réf..." oninput="renderChecklist()">
+    <input id="part-filter" class="inp" style="padding:8px 10px;font-size:.82rem" placeholder="Filtrer par nom, réf ou type..." oninput="renderChecklist()">
     <div id="checklist"></div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
@@ -235,7 +224,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
     </div>
   </div>
 
-  <div class="card"><h3 style="font-size:1rem">📋 Historique & Factures</h3><div id="history"></div></div>
+  <div class="card"><h3 style="font-size:1rem">📋 Historique & factures</h3><div id="history"></div></div>
 </div>
 
 <nav id="nav">
@@ -247,34 +236,40 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 
 <div class="modal" id="planning-modal"><div class="mc">
   <h2>📅 Programmer une maintenance</h2>
-  <label class="lbl">Date de l'intervention *</label>
+  <label class="lbl">Date *</label>
   <input id="p-date" type="date" class="inp" onchange="previewPlanningStock()">
   <label class="lbl">Bateau *</label>
   <select id="p-boat" class="inp" onchange="previewPlanningStock()"></select>
   <label class="lbl">Type de maintenance</label>
-  <select id="p-type" class="inp" onchange="toggleCustomType(); previewPlanningStock()">
+  <select id="p-type" class="inp" onchange="toggleCustomType();previewPlanningStock()">
     <option value="Maintenance 100h">Maintenance 100h</option>
     <option value="Maintenance 300h">Maintenance 300h</option>
     <option value="Autre">Autre</option>
   </select>
-  <input id="p-custom" class="inp hide" placeholder="Préciser l'intervention (ex : Hivernage, Turbine, Diagnostic...)" oninput="previewPlanningStock()">
-  <input id="p-note" class="inp" placeholder="Note / détail (optionnel)">
+  <input id="p-custom" class="inp hide" placeholder="Préciser l'intervention" oninput="previewPlanningStock()">
+  <input id="p-note" class="inp" placeholder="Note (optionnel)">
   <div id="p-stock-check"></div>
   <div class="mb">
     <button class="btn b-s" onclick="closeModals()">Annuler</button>
-    <button class="btn b-g" onclick="savePlanningItem()">Enregistrer au planning</button>
+    <button class="btn b-g" onclick="savePlanningItem()">Enregistrer</button>
   </div>
 </div></div>
 
 <div class="modal" id="boat-modal"><div class="mc">
-  <h2>Nouveau bateau hors-bord</h2>
+  <h2>Nouveau bateau</h2>
   <input id="b-name" class="inp" placeholder="Nom du bateau *">
-  <input id="b-model" class="inp" placeholder="Marque & modèle du bateau *">
+  <input id="b-model" class="inp" placeholder="Modèle du bateau (ex : CAP Camarat 625) *">
   <input id="b-owner" class="inp" placeholder="Propriétaire, adresse & tél">
   <input id="b-immat" class="inp" placeholder="Immatriculation / CIN">
-  <input id="b-ebrand" class="inp" list="brands" placeholder="Marque hors-bord (ex : Yamaha)">
-  <input id="b-emodel" class="inp" placeholder="Modèle hors-bord (ex : F150)">
+  <label class="lbl">Hors-bord</label>
+  <input id="b-ebrand" class="inp" list="brands" placeholder="Marque (ex : Yamaha)">
+  <input id="b-emodel" class="inp" placeholder="Modèle (ex : F150)">
   <input id="b-sn" class="inp" placeholder="N° série moteur">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+    <div><label class="lbl">Huile moteur (L)</label><input id="b-oilE" type="number" step="0.1" class="inp"></div>
+    <div><label class="lbl">Huile embase (L)</label><input id="b-oilG" type="number" step="0.1" class="inp"></div>
+    <div><label class="lbl">Nb bougies</label><input id="b-spark" type="number" step="1" class="inp"></div>
+  </div>
   <select id="b-status"><option value="eau">À l'eau</option><option value="hangar">Au hangar</option><option value="atelier">En atelier</option><option value="hivernage">Hivernage</option></select>
   <input id="b-hours" type="number" step="0.1" class="inp" placeholder="Heures moteur initiales">
   <select id="b-fuel"><option>Essence</option><option>Électrique</option></select>
@@ -285,99 +280,90 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 <div class="modal" id="edit-modal"><div class="mc">
   <h2>Modifier le bateau</h2>
   <input id="e-name" class="inp" placeholder="Nom *">
-  <input id="e-model" class="inp" placeholder="Marque & modèle du bateau *">
+  <input id="e-model" class="inp" placeholder="Modèle du bateau *">
   <input id="e-owner" class="inp" placeholder="Propriétaire, adresse & tél">
   <input id="e-immat" class="inp" placeholder="Immatriculation / CIN">
-  <input id="e-ebrand" class="inp" list="brands" placeholder="Marque hors-bord (ex : Yamaha)">
-  <input id="e-emodel" class="inp" placeholder="Modèle hors-bord (ex : F150)">
+  <label class="lbl">Hors-bord</label>
+  <input id="e-ebrand" class="inp" list="brands" placeholder="Marque (ex : Yamaha)">
+  <input id="e-emodel" class="inp" placeholder="Modèle (ex : F150)">
   <input id="e-sn" class="inp" placeholder="N° série moteur">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+    <div><label class="lbl">Huile moteur (L)</label><input id="e-oilE" type="number" step="0.1" class="inp"></div>
+    <div><label class="lbl">Huile embase (L)</label><input id="e-oilG" type="number" step="0.1" class="inp"></div>
+    <div><label class="lbl">Nb bougies</label><input id="e-spark" type="number" step="1" class="inp"></div>
+  </div>
   <select id="e-fuel"><option>Essence</option><option>Électrique</option></select>
   <input id="e-notes" class="inp" placeholder="Notes">
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="updateBoat()">Mettre à jour</button></div>
 </div></div>
 
 <div class="modal" id="stock-modal"><div class="mc">
-  <h2 id="s-title">Nouvelle référence</h2>
+  <h2 id="s-title">Nouvelle pièce</h2>
   <input id="s-name" class="inp" placeholder="Nom de la pièce *" oninput="previewPartMatch()">
-  <input id="s-ref" class="inp" placeholder="Réf OEM ou adaptable (ex: 69J-13440, 18-7911...)" oninput="previewPartMatch()">
+  <select id="s-type" onchange="previewPartMatch()">
+    <option value="">Type : automatique (d'après le nom)</option>
+    <option>Filtre à huile</option><option>Filtre carburant / décanteur</option><option>Bougie</option>
+    <option>Turbine / pompe à eau</option><option>Thermostat</option><option>Anode</option>
+    <option>Huile moteur</option><option>Huile embase</option><option>Joint</option><option>Autre</option>
+  </select>
+  <label class="lbl">Marque du hors-bord concerné (vide = universel)</label>
+  <input id="s-brand" class="inp" list="brands" placeholder="Ex : Yamaha" oninput="previewPartMatch()">
+  <label class="lbl">Modèles compatibles (séparés par des virgules, vide = tous les modèles de la marque)</label>
+  <input id="s-models" class="inp" placeholder="Ex : F115, F150, F2.5" oninput="previewPartMatch()">
+  <input id="s-ref" class="inp" placeholder="Réf(s) : une ou plusieurs, séparées par des virgules">
   <div id="s-auto-preview"></div>
-  <select id="s-cat"><option value="Moteur / Filtres">Moteur & filtres</option><option value="Huiles & Chimie">Huiles & lubrifiants (L)</option><option value="Électricité">Électricité & batterie</option><option value="Sécurité">Sécurité</option><option value="Castillage">Accastillage</option></select>
+  <select id="s-cat"><option value="Moteur / Filtres">Moteur & filtres</option><option value="Huiles & Chimie">Huiles & lubrifiants</option><option value="Électricité">Électricité</option><option value="Sécurité">Sécurité</option><option value="Castillage">Accastillage</option></select>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-    <div><label class="lbl">Prix d'achat unitaire (€)</label><input id="s-buy" type="number" step="0.01" class="inp" placeholder="Ex : 12.50"></div>
-    <div><label class="lbl">Prix de revente (€)</label><input id="s-sell" type="number" step="0.01" class="inp" placeholder="Ex : 22.00"></div>
+    <div><label class="lbl">Prix d'achat (€)</label><input id="s-buy" type="number" step="0.01" class="inp"></div>
+    <div><label class="lbl">Prix de vente (€)</label><input id="s-sell" type="number" step="0.01" class="inp"></div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-    <div><label class="lbl">Quantité en stock *</label><input id="s-qty" type="number" step="0.1" class="inp" placeholder="Ex : 5"></div>
-    <div><label class="lbl">Alerte stock min</label><input id="s-min" type="number" step="0.1" class="inp" placeholder="Ex : 2"></div>
+    <div><label class="lbl">Quantité en stock *</label><input id="s-qty" type="number" step="0.1" class="inp"></div>
+    <div><label class="lbl">Alerte stock min</label><input id="s-min" type="number" step="0.1" class="inp"></div>
   </div>
   <input id="s-loc" class="inp" placeholder="Emplacement">
-  <label class="lbl">Photo (optionnel, remplace l'ancienne) :</label>
+  <label class="lbl">Photo (optionnel) :</label>
   <input id="s-file" type="file" accept="image/*" class="inp">
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button id="s-save" class="btn b-p" onclick="saveStock()">Enregistrer</button></div>
 </div></div>
 
-<div class="modal" id="equiv-modal"><div class="mc" style="max-width:540px">
-  <h2>🔗 Équivalences pièces / hors-bord</h2>
-  <div class="lbl">Ajoute tes propres règles pour reconnaître automatiquement tes pièces et références sur un hors-bord.</div>
-  <form id="eq-form" style="display:flex;flex-direction:column;gap:8px;margin-top:4px" onsubmit="event.preventDefault();saveCustomEquivalence()">
-    <input id="eq-id" type="hidden">
-    <label class="lbl">Type de pièce *</label>
-    <input id="eq-type" class="inp" placeholder="Ex : Filtre à huile, Turbine, Bougies..." required>
-    <label class="lbl">Marque(s) hors-bord (séparées par virgule)</label>
-    <input id="eq-brands" class="inp" list="brands" placeholder="Ex : Yamaha, Mercury ou Suzuki">
-    <label class="lbl">Modèle(s) hors-bord (séparés par virgule)</label>
-    <input id="eq-models" class="inp" placeholder="Ex : F115, F150 ou DF140">
-    <label class="lbl">Références / équivalences (séparées par virgule) *</label>
-    <input id="eq-refs" class="inp" placeholder="Ex : 69J-13440-00, 18-7906, OC606" required>
-    <div style="display:flex;gap:8px">
-      <button type="submit" id="eq-submit" class="btn b-g">💾 Enregistrer l'équivalence</button>
-      <button type="button" id="eq-reset" class="btn b-s hbtn hide" onclick="resetEquivalenceForm()">Annuler modif.</button>
-    </div>
-  </form>
-  <div class="sec-t">Mes équivalences enregistrées (<span id="eq-count">0</span>)</div>
-  <div id="eq-list" style="display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto"></div>
-  <div class="mb"><button type="button" class="btn b-s" onclick="closeModals()">Fermer</button></div>
-</div></div>
-
 <div class="modal" id="settings-modal"><div class="mc">
-  <h2>⚙️ Tarifs & Infos Facturation</h2>
-  <label class="lbl">Taux horaire main d'œuvre par défaut (€/h)</label>
-  <input id="cfg-rate" type="number" step="0.5" class="inp" placeholder="Ex : 65">
-  <label class="lbl">Taux de TVA (%) — mettre 0 si non assujetti</label>
-  <input id="cfg-vat" type="number" step="0.1" class="inp" placeholder="Ex : 0 ou 20">
-  <label class="lbl">Nom de ton entreprise</label>
-  <input id="cfg-biz" class="inp" placeholder="Ex : Meca Marine 44">
-  <label class="lbl">Adresse, Téléphone & E-mail</label>
+  <h2>⚙️ Tarifs & infos facturation</h2>
+  <label class="lbl">Taux horaire par défaut (€/h)</label>
+  <input id="cfg-rate" type="number" step="0.5" class="inp">
+  <label class="lbl">Taux de TVA (%) — 0 si non assujetti</label>
+  <input id="cfg-vat" type="number" step="0.1" class="inp">
+  <label class="lbl">Nom de l'entreprise</label>
+  <input id="cfg-biz" class="inp">
+  <label class="lbl">Adresse, téléphone & e-mail</label>
   <textarea id="cfg-addr" style="min-height:60px"></textarea>
-  <label class="lbl">SIRET & Mentions légales</label>
+  <label class="lbl">SIRET & mentions légales</label>
   <textarea id="cfg-legal" style="min-height:60px"></textarea>
   <label class="lbl">Prochain N° de facture</label>
-  <input id="cfg-invnum" type="number" step="1" class="inp" placeholder="1">
+  <input id="cfg-invnum" type="number" step="1" class="inp">
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="saveSettings()">Enregistrer</button></div>
 </div></div>
 
 <div class="modal" id="inv-editor-modal"><div class="mc" style="max-width:580px">
   <h2>✏️ Modifier la facture</h2>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-    <div><label class="lbl">N° Facture</label><input id="ed-inv-num" class="inp"></div>
-    <div><label class="lbl">Date</label><input id="ed-inv-date" class="inp" placeholder="JJ/MM/AAAA"></div>
+    <div><label class="lbl">N° facture</label><input id="ed-inv-num" class="inp"></div>
+    <div><label class="lbl">Date</label><input id="ed-inv-date" class="inp"></div>
     <div><label class="lbl">Statut</label>
       <select id="ed-inv-status">
-        <option value="impayee">🔴 Non payée</option>
-        <option value="relance">🟠 Relancée</option>
-        <option value="payee">🟢 Payée</option>
-        <option value="annulee">⚪ Annulée</option>
+        <option value="impayee">🔴 Non payée</option><option value="relance">🟠 Relancée</option>
+        <option value="payee">🟢 Payée</option><option value="annulee">⚪ Annulée</option>
       </select>
     </div>
   </div>
-  <label class="lbl">Intitulé / Description de l'intervention</label>
+  <label class="lbl">Intitulé de l'intervention</label>
   <input id="ed-inv-desc" class="inp">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-    <div><label class="lbl">Main d'œuvre (heures)</label><input id="ed-inv-labor" type="number" step="0.25" class="inp" oninput="recalcEditorTotals()"></div>
+    <div><label class="lbl">Main d'œuvre (h)</label><input id="ed-inv-labor" type="number" step="0.25" class="inp" oninput="recalcEditorTotals()"></div>
     <div><label class="lbl">Tarif horaire (€/h)</label><input id="ed-inv-rate" type="number" step="0.5" class="inp" oninput="recalcEditorTotals()"></div>
   </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">
-    <label class="lbl" style="color:var(--green);font-weight:700">Lignes pièces & prestations :</label>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap">
+    <label class="lbl" style="color:var(--green);font-weight:700">Lignes pièces & prestations</label>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       <select id="ed-stock-pick" style="width:auto;max-width:175px;padding:6px 8px;font-size:.78rem" onchange="addSelectedStockLine(this)">
         <option value="">+ Pièce du stock...</option>
@@ -386,21 +372,17 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
     </div>
   </div>
   <div id="ed-inv-lines" style="display:flex;flex-direction:column;gap:8px"></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
     <div><label class="lbl">Remise</label><input id="ed-inv-disc" type="number" step="0.5" min="0" class="inp" oninput="recalcEditorTotals()"></div>
-    <div><label class="lbl">Type remise</label>
+    <div><label class="lbl">Type de remise</label>
       <select id="ed-inv-disctype" onchange="recalcEditorTotals()">
-        <option value="eur">Montant (€ HT)</option>
-        <option value="pct">Pourcentage (%)</option>
+        <option value="eur">Montant (€ HT)</option><option value="pct">Pourcentage (%)</option>
       </select>
     </div>
   </div>
-  <label class="lbl">Note / Commentaire sur la facture (optionnel)</label>
+  <label class="lbl">Note sur la facture (optionnel)</label>
   <input id="ed-inv-note" class="inp">
-  <div class="tot-bar" id="ed-inv-summary">
-    <div><span class="lbl">Nouveau total :</span></div>
-    <b style="color:var(--cy)" id="ed-inv-total">0,00 €</b>
-  </div>
+  <div class="tot-bar"><span class="lbl">Nouveau total :</span><b style="color:var(--cy)" id="ed-inv-total">0,00 €</b></div>
   <div class="mb">
     <button class="btn b-s" onclick="closeModals()">Annuler</button>
     <button class="btn b-g" onclick="saveEditedInvoice()">Enregistrer la facture</button>
@@ -438,146 +420,166 @@ const app = initializeApp(firebaseConfig);
 const db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
 const auth = getAuth(app);
 
+/* ===== Utilitaires ===== */
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => Math.round((Number(n) || 0) * 100) / 100;
 const eur = n => (Number(n) || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const norm = s => String(s || '').trim().toLowerCase();
-const cleanRef = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-const isFilter = s => /(filtre|filter|cartouche|crepine|crépine|turbine|courroie|belt)/i.test(`${s.name || ''} ${s.cat || ''}`);
-const isGearOil = s => !isFilter(s) && /\b(embase|gear|80w90|75w90|sae\s*90|transmission)\b/i.test(s.name || '');
-const isEngineOil = s => !isFilter(s) && !isGearOil(s) && (s.cat === 'Huiles & Chimie' || /\b(huile|oil|10w|5w|15w|20w|4t|2t|moteur)\b/i.test(s.name || ''));
-const isOil = s => isGearOil(s) || isEngineOil(s) || (!isFilter(s) && /\b(2t|graisse|grease|liquide|refroidissement)\b/i.test(s.name || ''));
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
-const NOBRAND = 'Détection auto / Universel';
 const toISODay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const match = (q, ...fields) => { q = (q || '').toLowerCase(); return fields.some(f => String(f || '').toLowerCase().includes(q)); };
+const query = () => $('search').value;
+const num = v => parseFloat(v) || 0;
+const NOBRAND = 'Sans marque / universel';
 
-const ENGINE_OIL_CAPACITIES = [
-  // Yamaha Hors-Bord 4T
-  { brands: ['yamaha'], models: ['F2.5', 'F4', 'F6'], engineL: 0.6, gearL: 0.1 },
-  { brands: ['yamaha'], models: ['F8', 'F9.9'], engineL: 0.8, gearL: 0.25 },
-  { brands: ['yamaha'], models: ['F15', 'F20'], engineL: 1.6, gearL: 0.25 },
-  { brands: ['yamaha'], models: ['F25'], engineL: 1.7, gearL: 0.32 },
-  { brands: ['yamaha'], models: ['F30', 'F40'], engineL: 1.7, gearL: 0.43 },
-  { brands: ['yamaha'], models: ['F50', 'F60', 'FT50', 'FT60'], engineL: 2.1, gearL: 0.43 },
-  { brands: ['yamaha'], models: ['F70'], engineL: 2.1, gearL: 0.67 },
-  { brands: ['yamaha'], models: ['F75', 'F80', 'F90', 'F100'], engineL: 3.2, gearL: 0.67 },
-  { brands: ['yamaha'], models: ['F115', 'FL115', 'F130'], engineL: 3.2, gearL: 0.76 },
-  { brands: ['yamaha'], models: ['F150', 'LF150', 'F175', 'F200', 'LF200'], engineL: 4.5, gearL: 0.98 },
-  { brands: ['yamaha'], models: ['F225', 'LF225', 'F250', 'LF250', 'F300', 'LF300'], engineL: 6.3, gearL: 1.04 },
-  { brands: ['yamaha'], models: ['F350', 'LF350'], engineL: 7.7, gearL: 1.45 },
-  // Suzuki Hors-Bord DF
-  { brands: ['suzuki'], models: ['DF2.5', 'DF4', 'DF5', 'DF6'], engineL: 0.7, gearL: 0.18 },
-  { brands: ['suzuki'], models: ['DF8', 'DF9.9'], engineL: 0.8, gearL: 0.2 },
-  { brands: ['suzuki'], models: ['DF15', 'DF20'], engineL: 1.0, gearL: 0.25 },
-  { brands: ['suzuki'], models: ['DF25', 'DF30'], engineL: 1.5, gearL: 0.33 },
-  { brands: ['suzuki'], models: ['DF40', 'DF50', 'DF60'], engineL: 2.7, gearL: 0.61 },
-  { brands: ['suzuki'], models: ['DF70', 'DF80', 'DF90'], engineL: 4.0, gearL: 0.85 },
-  { brands: ['suzuki'], models: ['DF100', 'DF115', 'DF140', 'DF140A'], engineL: 5.5, gearL: 1.05 },
-  { brands: ['suzuki'], models: ['DF150', 'DF175', 'DF200', 'DF225', 'DF250', 'DF300'], engineL: 8.0, gearL: 1.1 },
-  { brands: ['suzuki'], models: ['DF350', 'DF350A'], engineL: 8.5, gearL: 1.25 },
-  // Honda Hors-Bord BF
-  { brands: ['honda'], models: ['BF2', 'BF2.3', 'BF5'], engineL: 0.55, gearL: 0.1 },
-  { brands: ['honda'], models: ['BF8', 'BF10'], engineL: 0.85, gearL: 0.2 },
-  { brands: ['honda'], models: ['BF15', 'BF20'], engineL: 1.0, gearL: 0.29 },
-  { brands: ['honda'], models: ['BF25', 'BF30'], engineL: 1.6, gearL: 0.29 },
-  { brands: ['honda'], models: ['BF40', 'BF50'], engineL: 2.4, gearL: 0.41 },
-  { brands: ['honda'], models: ['BF60', 'BFP60'], engineL: 2.7, gearL: 0.54 },
-  { brands: ['honda'], models: ['BF75', 'BF80', 'BF90', 'BF100'], engineL: 4.4, gearL: 0.65 },
-  { brands: ['honda'], models: ['BF115', 'BF130', 'BF135', 'BF150'], engineL: 6.5, gearL: 0.98 },
-  { brands: ['honda'], models: ['BF175', 'BF200', 'BF225', 'BF250'], engineL: 7.6, gearL: 1.15 },
-  // Mercury / Mariner Hors-Bord
-  { brands: ['mercury', 'mariner'], models: ['F2.5', 'F3.5', 'F4', 'F5', 'F6'], engineL: 0.45, gearL: 0.18 },
-  { brands: ['mercury', 'mariner'], models: ['F8', 'F9.9'], engineL: 0.85, gearL: 0.24 },
-  { brands: ['mercury', 'mariner'], models: ['F15', 'F20'], engineL: 1.0, gearL: 0.37 },
-  { brands: ['mercury', 'mariner'], models: ['F25', 'F30'], engineL: 1.8, gearL: 0.35 },
-  { brands: ['mercury', 'mariner'], models: ['F40', 'F50', 'F60'], engineL: 3.0, gearL: 0.34 },
-  { brands: ['mercury', 'mariner'], models: ['F75', 'F80', 'F90', 'F100', 'F115'], engineL: 5.2, gearL: 0.71 },
-  { brands: ['mercury', 'mariner'], models: ['F135', 'F150'], engineL: 6.0, gearL: 0.85 },
-  { brands: ['mercury', 'mariner'], models: ['F175', 'F200', 'F225', 'F250', 'F300', 'VERADO'], engineL: 6.6, gearL: 0.95 },
-  // Tohatsu Hors-Bord
-  { brands: ['tohatsu'], models: ['MFS2.5', 'MFS3.5', 'MFS4', 'MFS5', 'MFS6'], engineL: 0.45, gearL: 0.18 },
-  { brands: ['tohatsu'], models: ['MFS8', 'MFS9.8'], engineL: 0.8, gearL: 0.32 },
-  { brands: ['tohatsu'], models: ['MFS15', 'MFS20'], engineL: 1.0, gearL: 0.37 },
-  { brands: ['tohatsu'], models: ['MFS25', 'MFS30'], engineL: 1.85, gearL: 0.35 },
-  { brands: ['tohatsu'], models: ['MFS40', 'MFS50', 'MFS60'], engineL: 3.0, gearL: 0.34 },
-  { brands: ['tohatsu'], models: ['MFS75', 'MFS90', 'MFS115', 'MFS140'], engineL: 5.5, gearL: 0.85 }
+/* ===== Hors-bord : marques et modèles ===== */
+// Marques hors-bord uniquement. Mercury et Mariner sont la même famille.
+const BRANDS = {
+  yamaha: ['yamaha'],
+  mercury: ['mercury', 'mariner', 'quicksilver'],
+  suzuki: ['suzuki'],
+  honda: ['honda'],
+  tohatsu: ['tohatsu'],
+  evinrude: ['evinrude', 'johnson', 'omc'],
+  selva: ['selva'],
+  parsun: ['parsun'],
+  nissan: ['nissan']
+};
+const BRAND_LABEL = {
+  yamaha: 'Yamaha', mercury: 'Mercury / Mariner', suzuki: 'Suzuki', honda: 'Honda',
+  tohatsu: 'Tohatsu', evinrude: 'Evinrude / Johnson', selva: 'Selva', parsun: 'Parsun', nissan: 'Nissan'
+};
+function canonBrand(raw) {
+  const t = norm(raw);
+  if (!t) return '';
+  for (const [key, alts] of Object.entries(BRANDS)) if (alts.some(a => t.includes(a))) return key;
+  return '';
+}
+
+// Code modèle : "Yamaha F 150 XB" -> "F150XB", "Suzuki DF140A" -> "DF140A", "F2,5" -> "F2.5"
+function engineCode(raw) {
+  let t = String(raw || '').toUpperCase();
+  t = t.replace(/YAMAHA|MERCURY|MARINER|QUICKSILVER|SUZUKI|HONDA|TOHATSU|EVINRUDE|JOHNSON|SELVA|PARSUN|NISSAN|HORS[- ]?BORD|OUTBOARD/g, ' ');
+  const m = t.match(/([A-Z]{0,4})\s*(\d{1,3}(?:[.,]\d)?)\s*([A-Z]{0,3})/);
+  return m ? (m[1] + m[2].replace(',', '.') + m[3]) : '';
+}
+// Liste de modèles saisie sur une pièce : "F115, F150" -> ["F115", "F150"]
+function modelTokens(s) {
+  return String(s || '').toUpperCase().split(/[;\n\/,]+/).map(x => x.replace(/\s+/g, '')).filter(Boolean);
+}
+// Règle de correspondance, stricte :
+//  - F150 ne correspond JAMAIS à F15, ni F2.5 à F25
+//  - DF140 correspond à DF140A (même modèle, variante), l'inverse non
+function modelMatch(tok, code) {
+  if (!tok || !code) return false;
+  if (tok === code) return true;
+  return code.startsWith(tok) && /^[A-Z]*$/.test(code.slice(tok.length));
+}
+function engineInfo(b) {
+  const brand = canonBrand(b.engineBrand) || canonBrand(b.engineModel);
+  const code = engineCode(b.engineModel) || engineCode(b.engineBrand);
+  const txt = [b.engineBrand, b.engineModel].filter(Boolean).join(' ') || 'Moteur non renseigné';
+  return { brand, code, txt };
+}
+
+/* ===== Types de pièces ===== */
+const PART_TYPES = [
+  { k: 'Filtre à huile', re: /filtre.*huile|oil\s*filter/i },
+  { k: 'Filtre carburant / décanteur', re: /carburant|essence|d[ée]canteur|fuel|s[ée]parateur/i },
+  { k: 'Bougie', re: /bougie|spark|plug/i },
+  { k: 'Turbine / pompe à eau', re: /turbine|pompe.*eau|impeller/i },
+  { k: 'Thermostat', re: /thermostat/i },
+  { k: 'Anode', re: /anode/i },
+  { k: 'Huile embase', re: /embase|gear\s*oil|80w\s*90|75w\s*90|transmission/i },
+  { k: 'Huile moteur', re: /huile|oil|10w|5w|15w|\b4t\b|\b2t\b/i },
+  { k: 'Joint', re: /joint|gasket|washer/i },
+  { k: 'Autre', re: /./ }
 ];
+const TYPE_KEYS = PART_TYPES.map(t => t.k);
+// Ces pièces sont vendues sans marque précise : sans marque, elles s'utilisent sur tous les moteurs
+const UNIVERSAL_TYPES = ['Huile moteur', 'Huile embase', 'Joint'];
 
-const MARINE_PARTS_DB = [
-  // YAMAHA HORS-BORD
-  { type: 'Filtre à huile', brands: ['yamaha'], models: ['F2.5', 'F4', 'F6', 'F8', 'F9.9'], refs: ['5GH-13440-00', '18-7911', 'HF204'] },
-  { type: 'Filtre à huile', brands: ['yamaha'], models: ['F15', 'F20', 'F25', 'F30', 'F40', 'F50', 'F60', 'F70', 'FT50', 'FT60'], refs: ['5GH-13440-00', '5GH-13440-10', '5GH-13440-20', '5GH-13440-30', '5GH-13440-50', '5GH-13440-60', '5GH-13440-70', '18-7911', '18-7911-1', 'HF204', 'MW64', 'OC575'] },
-  { type: 'Filtre à huile', brands: ['yamaha', 'mercury', 'mariner'], models: ['F75', 'F80', 'F90', 'F100', 'F115', 'FL115', '75', '80', '90', '100', '115'], refs: ['5GH-13440-30', '69J-13440-00', '35-822626Q04', '35-822626K04', '18-7914', 'HF303'] },
-  { type: 'Filtre à huile', brands: ['yamaha'], models: ['F150', 'F175', 'F200', 'F225', 'F250', 'F300', 'LF150', 'LF200', 'LF225', 'LF250', 'LF300'], refs: ['69J-13440-00', '69J-13440-01', '69J-13440-02', '69J-13440-03', '69J-13440-04', '18-7906', '18-7906-1', 'REC69J-13440-03', 'HF204'] },
-  { type: 'Filtre à huile V8', brands: ['yamaha'], models: ['F350', 'LF350'], refs: ['6AW-13440-00', '18-7906'] },
-  { type: 'Filtre carburant / décanteur', brands: ['yamaha'], models: ['F150', 'F175', 'F200', 'F225', 'F250', 'F300', 'Z150', 'Z200', 'Z250', 'Z300', 'HPDI'], refs: ['6P3-WS24A-00', '6P3-WS24A-01', '6P3-24563-00', '6P3-24563-01', '18-79809', 'REC6P3-WS24A-01'] },
-  { type: 'Filtre carburant', brands: ['yamaha'], models: ['F30', 'F40', 'F50', 'F60', 'F70', 'F75', 'F80', 'F90', 'F100', 'F115'], refs: ['6D8-WS24A-00', '6D8-24563-00', '18-79799', 'REC6D8-WS24A-00'] },
-  { type: 'Filtre essence embarqué (cuve)', brands: ['yamaha'], models: ['F25', 'F30', 'F40', 'F50', 'F60', 'F70', 'F75', 'F80', 'F90', 'F115', 'F150', 'F200', 'F250'], refs: ['61N-24560-00', '61N-24563-00', '6C5-24251-00', '18-7833', '18-79910'] },
-  { type: 'Turbine / Kit pompe à eau', brands: ['yamaha'], models: ['F4', 'F6', 'F8', 'F9.9', 'F15', 'F20', 'F25'], refs: ['68T-44352-00', '664-44352-01', '18-3073', '18-3066'] },
-  { type: 'Turbine / Kit pompe à eau', brands: ['yamaha'], models: ['F40', 'F50', 'F60', 'F70', 'FT50', 'FT60'], refs: ['6H3-44352-00', '6H3-W0078-02', '63D-W0078-01', '18-3069', '18-3434'] },
-  { type: 'Turbine / Kit pompe à eau', brands: ['yamaha'], models: ['F75', 'F80', 'F90', 'F100', 'F115', 'FL115'], refs: ['6E5-44352-00', '6E5-44352-01', '68V-W0078-00', '61A-W0078-A2', '18-3071', '18-3396-1'] },
-  { type: 'Turbine / Kit pompe à eau', brands: ['yamaha'], models: ['F150', 'F175', 'F200', 'F225', 'F250', 'F300'], refs: ['6E5-44352-01', '6P2-W0078-00', '6CE-W0078-00', '18-3071', '18-3517'] },
-  { type: 'Thermostat', brands: ['yamaha'], models: ['F40', 'F50', 'F60', 'F70', 'F75', 'F80', 'F90', 'F100', 'F115'], refs: ['67F-12411-01', '6D8-12411-00', '18-3632', '18-3540'] },
-  { type: 'Thermostat', brands: ['yamaha'], models: ['F150', 'F175', 'F200', 'F225', 'F250', 'F300'], refs: ['67F-12411-01', '6CB-12411-00', '18-3632', '18-3668'] },
-  { type: 'Courroie de distribution', brands: ['yamaha'], models: ['F40', 'F50', 'F60', 'F75', 'F80', 'F90', 'F100', 'F115', 'F150'], refs: ['67F-46241-00', '6C5-46241-00', '68V-46241-00', '18-15110', '18-15112'] },
-  { type: 'Kit anodes moteur / embase', brands: ['yamaha'], models: ['F40', 'F50', 'F60', 'F70', 'F75', 'F80', 'F90', 'F100', 'F115', 'F150', 'F200', 'F225', 'F250', 'F300'], refs: ['6G5-45251-02', '67F-45371-00', '61A-45371-00', '18-6096', 'CMY150KIT'] },
+function partType(p) {
+  if (p.type && TYPE_KEYS.includes(p.type)) return p.type;
+  const txt = `${p.name || ''} ${p.cat || ''}`;
+  const hit = PART_TYPES.find(t => t.re.test(txt));
+  if (hit && hit.k === 'Autre' && p.cat === 'Huiles & Chimie') return 'Huile moteur';
+  return hit ? hit.k : 'Autre';
+}
+const isEngineOil = p => partType(p) === 'Huile moteur';
+const isGearOil = p => partType(p) === 'Huile embase';
+const isOil = p => isEngineOil(p) || isGearOil(p);
 
-  // MERCURY / MARINER HORS-BORD
-  { type: 'Filtre à huile', brands: ['mercury', 'mariner'], models: ['F25', 'F30', 'F40', 'F50', 'F60', 'F75', 'F80', 'F90', 'F100', 'F115', 'EFI'], refs: ['35-8M0065103', '35-8M0065104', '35-822626Q05', '35-822626K04', '18-7914', '18-7921'] },
-  { type: 'Filtre à huile', brands: ['mercury', 'mariner'], models: ['F135', 'F150', 'F175', 'F200', 'F225', 'F250', 'F300', 'VERADO', 'V6', 'V8'], refs: ['35-877761K01', '35-877761Q01', '35-877767K01', '35-877767Q01', '18-7758', '18-7920'] },
-  { type: 'Filtre carburant / décanteur', brands: ['mercury', 'mariner'], models: ['F40', 'F50', 'F60', 'F75', 'F90', 'F115', 'F150', 'VERADO', 'OPTIMAX'], refs: ['35-8M0093688', '35-8M0122423', '35-802893Q01', '35-802893T', '18-7845', '18-7945'] },
-  { type: 'Turbine / Kit pompe à eau', brands: ['mercury', 'mariner'], models: ['F40', 'F50', 'F60', 'F75', 'F80', 'F90', 'F115', 'F150'], refs: ['47-43026Q06', '47-43026K06', '47-43026T2', '47-8M0100526', '18-3214', '18-3265', '18-3056'] },
-  { type: 'Turbine / Kit pompe à eau', brands: ['mercury', 'mariner'], models: ['F175', 'F200', 'F225', 'F250', 'F300', 'VERADO'], refs: ['47-8M0170767', '47-43026Q06', '18-3214', '18-3056'] },
-  { type: 'Thermostat', brands: ['mercury', 'mariner'], models: ['F40', 'F50', 'F60', 'F75', 'F80', 'F90', 'F100', 'F115', 'F150'], refs: ['8M0090819', '8M0117413', '892864T06', '18-3633', '18-3675'] },
-  { type: 'Kit anodes', brands: ['mercury', 'mariner'], models: ['F40', 'F60', 'F75', 'F90', 'F115', 'F150', 'F200', 'F250'], refs: ['888756Q01', '888756Q03', '97-888755Q03', '18-6158', 'CM75115KIT'] },
+/* ===== Compatibilité pièce <-> hors-bord ===== */
+// level : 'match' (compatible), 'univ' (universel), 'todo' (information manquante), 'other' (pas pour ce moteur)
+function compat(part, boat) {
+  const eng = engineInfo(boat);
+  if (!eng.brand) return { level: 'todo', reason: 'Marque du hors-bord à renseigner' };
+  const type = partType(part);
+  const pb = canonBrand(part.brand);
+  if (!pb) {
+    if (UNIVERSAL_TYPES.includes(type)) return { level: 'univ', reason: 'Universel' };
+    return { level: 'todo', reason: 'Marque de la pièce à renseigner' };
+  }
+  if (pb !== eng.brand) return { level: 'other', reason: '' };
+  const toks = modelTokens(part.models);
+  if (!toks.length) return { level: 'match', reason: `${BRAND_LABEL[pb]} (tous modèles)` };
+  if (!eng.code) return { level: 'todo', reason: 'Modèle du hors-bord à renseigner' };
+  const hit = toks.find(t => modelMatch(t, eng.code));
+  return hit ? { level: 'match', reason: `Compatible ${hit}` } : { level: 'other', reason: '' };
+}
+const isOk = c => c.level === 'match' || c.level === 'univ';
+function fitBoats(part) {
+  return boats.filter(b => compat(part, b).level === 'match').map(b => b.name);
+}
 
-  // SUZUKI HORS-BORD
-  { type: 'Filtre à huile', brands: ['suzuki'], models: ['DF2.5', 'DF4', 'DF5', 'DF6', 'DF8', 'DF9.9', 'DF15', 'DF20', 'DF25', 'DF30', 'DF40', 'DF50', 'DF60', 'DF70'], refs: ['16510-87J00', '16510-87J01', '16510-45H10', '18-7915', '18-7915-1'] },
-  { type: 'Filtre à huile', brands: ['suzuki', 'johnson', 'evinrude'], models: ['DF70', 'DF80', 'DF90', 'DF100', 'DF115', 'DF140', 'DF140A'], refs: ['16510-61A31', '16510-61A30', '16510-61A21', '16510-61A33', '5033539', '18-7896', 'OC215'] },
-  { type: 'Filtre à huile', brands: ['suzuki'], models: ['DF150', 'DF175', 'DF200', 'DF225', 'DF250', 'DF300', 'DF350'], refs: ['16510-96J00', '16510-96J10', '18-7905', '18-7905-1'] },
-  { type: 'Filtre carburant basse/haute pression', brands: ['suzuki'], models: ['DF40', 'DF50', 'DF60', 'DF70', 'DF90', 'DF115', 'DF140', 'DF150', 'DF175', 'DF200', 'DF250', 'DF300'], refs: ['15410-87J10', '15410-92J00', '15410-96J00', '18-7835', '18-7982'] },
-  { type: 'Kit pompe à eau', brands: ['suzuki'], models: ['DF40', 'DF50', 'DF60', 'DF70'], refs: ['17400-87L00', '17400-98550', '18-3242'] },
-  { type: 'Kit pompe à eau', brands: ['suzuki'], models: ['DF90', 'DF100', 'DF115', 'DF140', 'DF140A'], refs: ['17400-92J00', '17400-92J21', '17400-92J22', '17400-96J04', '18-3256'] },
-  { type: 'Kit pompe à eau', brands: ['suzuki'], models: ['DF150', 'DF175', 'DF200', 'DF225', 'DF250', 'DF300'], refs: ['17400-93J00', '17400-93J02', '17400-93J04', '18-3258'] },
-  { type: 'Thermostat', brands: ['suzuki'], models: ['DF40', 'DF50', 'DF60', 'DF70', 'DF80', 'DF90', 'DF100', 'DF115', 'DF140', 'DF150', 'DF175', 'DF200', 'DF250', 'DF300'], refs: ['17670-90J00', '17670-90J10', '17670-93J00', '18-3629', '18-3659'] },
-  { type: 'Kit anodes', brands: ['suzuki'], models: ['DF40', 'DF50', 'DF60', 'DF70', 'DF80', 'DF90', 'DF100', 'DF115', 'DF140', 'DF150', 'DF175', 'DF200', 'DF250', 'DF300'], refs: ['55321-87J01', '55320-95311', '18-6098', 'CMSZ140KIT'] },
+/* ===== Entretien : pièces nécessaires selon le type ===== */
+function maintNeeds(b, maintType) {
+  const t = norm(maintType);
+  const is100 = t.includes('100'), is300 = t.includes('300');
+  if (!is100 && !is300) return null;
+  const needs = [];
+  if (Number(b.oilEngineL) > 0) needs.push({ type: 'Huile moteur', qty: Number(b.oilEngineL), unit: 'L' });
+  if (Number(b.oilGearL) > 0) needs.push({ type: 'Huile embase', qty: Number(b.oilGearL), unit: 'L' });
+  needs.push({ type: 'Filtre à huile', qty: 1, unit: 'u' });
+  needs.push({ type: 'Filtre carburant / décanteur', qty: 1, unit: 'u' });
+  if (is300) {
+    needs.push({ type: 'Bougie', qty: Number(b.sparkCount) || 1, unit: 'u' });
+    needs.push({ type: 'Turbine / pompe à eau', qty: 1, unit: 'u' });
+    needs.push({ type: 'Thermostat', qty: 1, unit: 'u' });
+    needs.push({ type: 'Anode', qty: 1, unit: 'u' });
+  }
+  return needs;
+}
+function getNeededPartsForBoat(b, maintType) {
+  const needs = maintNeeds(b, maintType);
+  if (!needs) return [];
+  return needs.map(n => {
+    const cands = stock.filter(s => partType(s) === n.type && isOk(compat(s, b)));
+    const avail = fmt(cands.reduce((a, s) => a + (Number(s.qty) || 0), 0));
+    const missing = Math.max(0, fmt(n.qty - avail));
+    const best = cands[0];
+    return {
+      name: best ? best.name : n.type,
+      ref: best ? (best.ref || 'À vérifier') : 'Aucune pièce compatible en stock',
+      neededQty: n.qty, availQty: avail, missingQty: missing, unit: n.unit, ok: missing <= 0
+    };
+  });
+}
+function defaultQty(s, b) {
+  if (b && isEngineOil(s) && Number(b.oilEngineL) > 0) return Number(b.oilEngineL);
+  if (b && isGearOil(s) && Number(b.oilGearL) > 0) return Number(b.oilGearL);
+  return 1;
+}
 
-  // HONDA / TOHATSU HORS-BORD
-  { type: 'Filtre à huile', brands: ['honda', 'tohatsu'], models: ['BF15', 'BF20', 'BF25', 'BF30', 'BF40', 'BF50', 'BF60', 'BF75', 'BF90', 'BF115', 'BF130', 'BFP60', 'MFS25', 'MFS30', 'MFS40', 'MFS50', 'MFS60'], refs: ['15400-PFB-014', '15400-PFB-004', '15400-ZW4-003', '3R0-07615-0', '18-7909', '18-7911'] },
-  { type: 'Filtre à huile', brands: ['honda'], models: ['BF115', 'BF135', 'BF150', 'BF175', 'BF200', 'BF225', 'BF250'], refs: ['15400-PLM-A01', '15400-PLM-A02', '15400-RBA-F01', '18-7909', 'OC617'] },
-  { type: 'Filtre carburant', brands: ['honda', 'tohatsu'], models: ['BF40', 'BF50', 'BF60', 'BF75', 'BF90', 'BF115', 'BF150', 'BF200', 'BF250', 'MFS40', 'MFS50', 'MFS90', 'MFS115'], refs: ['16911-ZZ5-003', '16900-SA5-004', '3R0-07405-0', '18-7830', '18-7990'] },
-  { type: 'Turbine pompe à eau', brands: ['honda'], models: ['BF40', 'BF50', 'BF60', 'BFP60'], refs: ['19210-ZV5-003', '06192-ZV5-000', '18-3245'] },
-  { type: 'Turbine pompe à eau', brands: ['honda'], models: ['BF75', 'BF90', 'BF115', 'BF130', 'BF135', 'BF150', 'BF175', 'BF200', 'BF225', 'BF250'], refs: ['19210-ZW1-B04', '19210-ZY9-H01', '19210-ZY3-003', '18-3250', '18-3285'] },
-  { type: 'Turbine pompe à eau', brands: ['tohatsu'], models: ['MFS25', 'MFS30', 'MFS40', 'MFS50', 'MFS60', 'MFS75', 'MFS90', 'MFS115', 'MFS140'], refs: ['3C7-65021-2', '3C8-65021-2', '18-8921', '18-8922'] },
-  { type: 'Thermostat', brands: ['honda'], models: ['BF40', 'BF50', 'BF60', 'BF75', 'BF90', 'BF115', 'BF135', 'BF150', 'BF200', 'BF225', 'BF250'], refs: ['19300-ZW9-003', '19300-ZY3-023', '18-3630', '18-3631'] },
-  { type: 'Kit anodes', brands: ['honda'], models: ['BF75', 'BF90', 'BF115', 'BF135', 'BF150', 'BF200', 'BF225', 'BF250'], refs: ['06411-ZW1-000', '41106-ZW1-B00', '18-6097', 'CMBF150KIT'] },
-
-  // BOUGIES HORS-BORD
-  { type: 'Bougies allumage LFR6A-11', brands: ['yamaha', 'suzuki', 'mercury', 'mariner'], models: ['F115', 'F150', 'F200', 'F225', 'F250', 'DF90', 'DF115', 'DF140', 'DF140A', 'DF150', 'DF175', 'DF200', 'DF250'], refs: ['LFR6A-11', '69J-85640-00', '09482-00549', '33-889246Q', 'K20HR-U11'] },
-  { type: 'Bougies allumage DPR6EA-9', brands: ['yamaha', 'honda', 'mercury', 'mariner'], models: ['F40', 'F50', 'F60', 'F75', 'F90', 'F100', 'BF40', 'BF50', 'BF75', 'BF90', 'BF115', 'BF130'], refs: ['DPR6EA-9', '94702-00318', '98069-56916', '33-827858Q', 'X20EPR-U9'] },
-  { type: 'Bougies allumage DCPR7E', brands: ['honda'], models: ['BF135', 'BF150', 'BF175', 'BF200', 'BF225', 'BF250'], refs: ['DCPR7E', '98079-771BE', 'IXU22'] },
-  { type: 'Bougies allumage ILZKR7B-11', brands: ['suzuki', 'yamaha'], models: ['DF150', 'DF175', 'DF200', 'DF250', 'DF300', 'F225', 'F250', 'F300'], refs: ['ILZKR7B-11', '09482-00607', 'LFR6AIX-11'] }
-];
-
-let boats = [], stock = [], planning = [], customEquivs = [], unsubs = [];
+/* ===== État ===== */
+let boats = [], stock = [], planning = [], unsubs = [];
 let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bizLegal: 'TVA non applicable, art. 293 B du CGI', nextInvNum: 1 };
 let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null;
-let invFilter = 'all', currentInvRef = null;
-let checklistState = {};
-let planningDay = toISODay(new Date());
-
-function getCombinedPartsDb() {
-  const userEntries = customEquivs.map(c => ({
-    id: c.id,
-    isCustom: true,
-    type: c.type || 'Équivalence perso',
-    brands: (c.brands || []).map(b => norm(b)).filter(Boolean),
-    models: (c.models || []).map(m => String(m).trim()).filter(Boolean),
-    refs: (c.refs || []).map(r => String(r).trim()).filter(Boolean)
-  }));
-  return [...userEntries, ...MARINE_PARTS_DB];
-}
+let invFilter = 'all', currentInvRef = null, planningDay = toISODay(new Date());
+let sel = {}; // état des cases de la checklist : id -> { c, q, p }
+const currentBoat = () => boats.find(x => x.id === activeBoatId);
 
 function toast(msg, err) {
   const t = $('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
@@ -587,6 +589,7 @@ async function safe(fn, okMsg) {
   try { await fn(); if (okMsg) toast(okMsg); } catch (e) { console.error(e); toast("Erreur : l'action n'a pas été enregistrée.", true); }
 }
 
+/* ===== Connexion & écoute temps réel ===== */
 window.login = async () => {
   $('l-err').textContent = '';
   try { await signInWithEmailAndPassword(auth, $('l-email').value.trim(), $('l-pass').value); $('l-pass').value = ''; }
@@ -599,7 +602,7 @@ onAuthStateChanged(auth, user => {
   if (user) startListeners();
   else {
     unsubs.forEach(u => u()); unsubs = [];
-    boats = []; stock = []; planning = []; customEquivs = []; activeBoatId = null; checklistState = {};
+    boats = []; stock = []; planning = []; activeBoatId = null; sel = {};
     $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
   }
 });
@@ -618,13 +621,6 @@ function startListeners() {
     planning = s.docs.map(d => ({ id: d.id, ...d.data() }));
     renderAll();
   }, e => console.error('planning', e)));
-  unsubs.push(onSnapshot(collection(db, 'part_equivalences'), s => {
-    customEquivs = s.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderAll();
-    if ($('equiv-modal')?.classList.contains('active')) renderCustomEquivalencesList();
-    if ($('stock-modal')?.classList.contains('active')) previewPartMatch();
-    if (activeBoatId) { renderBoatDetail(); renderChecklist(); }
-  }, e => console.error('part_equivalences', e)));
   unsubs.push(onSnapshot(doc(db, 'settings', 'general'), d => {
     if (d.exists()) cfg = { ...cfg, ...d.data() };
     if (activeBoatId && !$('m-rate').value) $('m-rate').value = cfg.hourlyRate;
@@ -632,222 +628,7 @@ function startListeners() {
   }, e => console.error('settings', e)));
 }
 
-function detectBrandFromText(raw) {
-  const txt = norm(raw);
-  if (!txt) return '';
-  if (/\byamaha\b/.test(txt)) return 'yamaha';
-  if (/\b(mercury|mariner|quicksilver)\b/.test(txt)) return 'mercury';
-  if (/\bsuzuki\b/.test(txt)) return 'suzuki';
-  if (/\bhonda\b/.test(txt)) return 'honda';
-  if (/\btohatsu\b/.test(txt)) return 'tohatsu';
-  if (/\b(evinrude|johnson|omc)\b/.test(txt)) return 'evinrude';
-  if (/\bselva\b/.test(txt)) return 'selva';
-  return '';
-}
-
-function modelMatches(candidateModel, boatModelRaw) {
-  const cm = cleanRef(candidateModel);
-  const bm = cleanRef(boatModelRaw);
-  if (!cm || !bm) return false;
-  if (cm === bm) return true;
-  if (cm.length >= 3 && bm.includes(cm)) return true;
-  if (bm.length >= 3 && cm.includes(bm)) return true;
-  return false;
-}
-
-function getEngineOilSpec(boat) {
-  if (!boat) return null;
-  const fullEngineTxt = [boat.engineBrand, boat.engineModel].filter(Boolean).join(' ');
-  if (!fullEngineTxt.trim()) return null;
-  const detectedBrand = detectBrandFromText(fullEngineTxt);
-  for (const spec of ENGINE_OIL_CAPACITIES) {
-    if (detectedBrand && !spec.brands.includes(detectedBrand)) continue;
-    const hitModel = spec.models.find(m => modelMatches(m, boat.engineModel || fullEngineTxt));
-    if (hitModel) return { ...spec, matchedModel: hitModel };
-  }
-  return null;
-}
-
-function lookupDbEntries(part) {
-  const rawTxt = [part.name, part.ref, part.brand, part.models].filter(Boolean).join(' ');
-  const cleanedTxt = cleanRef(rawTxt);
-  const lowTxt = norm(rawTxt);
-  const matches = [];
-  getCombinedPartsDb().forEach(entry => {
-    const matchedRefs = entry.refs.filter(r => {
-      const cr = cleanRef(r);
-      if (cr.length >= 4 && cleanedTxt.includes(cr)) return true;
-      if (r.length >= 4 && lowTxt.includes(norm(r))) return true;
-      return false;
-    });
-    if (matchedRefs.length) matches.push({ entry, matchedRefs });
-  });
-  return matches;
-}
-
-function getPartKnowledge(part) {
-  const dbHits = lookupDbEntries(part);
-  const brands = new Set(), models = new Set(), equivRefs = new Set();
-  let detectedType = '';
-  let hasCustom = false;
-  dbHits.forEach(({ entry }) => {
-    if (!detectedType) detectedType = entry.type;
-    if (entry.isCustom) hasCustom = true;
-    entry.brands.forEach(b => brands.add(b));
-    entry.models.forEach(m => models.add(m));
-    entry.refs.forEach(r => equivRefs.add(r));
-  });
-  const txt = norm([part.name, part.ref, part.brand, part.models].filter(Boolean).join(' '));
-  [
-    ['yamaha', /\byamaha\b/], ['mercury', /\b(mercury|mariner|quicksilver)\b/],
-    ['suzuki', /\bsuzuki\b/], ['honda', /\bhonda\b/],
-    ['tohatsu', /\btohatsu\b/], ['evinrude', /\b(evinrude|johnson|omc)\b/],
-    ['selva', /\bselva\b/]
-  ].forEach(([bName, re]) => { if (re.test(txt)) brands.add(bName); });
-  return { dbHits, detectedType, hasCustom, brands: [...brands], models: [...models], equivRefs: [...equivRefs] };
-}
-
-function autoMatchPart(part, boat) {
-  const know = getPartKnowledge(part);
-  const partText = norm([part.name, part.ref, part.cat, part.brand, part.models].filter(Boolean).join(' '));
-  const partClean = cleanRef([part.name, part.ref, part.brand, part.models].filter(Boolean).join(' '));
-  const fullEngineStr = [boat.engineBrand, boat.engineModel].filter(Boolean).join(' ');
-  const bBrand = detectBrandFromText(boat.engineBrand) || detectBrandFromText(fullEngineStr);
-  const bModel = String(boat.engineModel || '').trim();
-  const bModelClean = cleanRef(bModel || fullEngineStr);
-
-  if (know.brands.length) {
-    if (!bBrand) return { tier: 'other', reason: '', know };
-    const sameBrand = know.brands.includes(bBrand);
-    if (!sameBrand) return { tier: 'other', reason: '', know };
-  }
-  if (know.dbHits.length) {
-    const modelHit = know.models.find(m => modelMatches(m, bModel || fullEngineStr));
-    if (bModelClean && modelHit) return { tier: 'match', reason: `Compatible ${boat.engineBrand ? boat.engineBrand + ' ' : ''}${modelHit}`, know };
-    if (!bModelClean && bBrand && know.brands.includes(bBrand)) return { tier: 'match', reason: `Marque ${boat.engineBrand}`, know };
-    if (!know.models.length && bBrand && know.brands.includes(bBrand)) return { tier: 'match', reason: `Marque ${boat.engineBrand}`, know };
-    return { tier: 'other', reason: '', know };
-  }
-  if (bModelClean && bModelClean.length >= 2 && partClean.includes(bModelClean)) {
-    return { tier: 'match', reason: `Modèle ${bModel || fullEngineStr}`, know };
-  }
-  const isConsumable = isOil(part) || /\b(graisse|grease|joint|durite|collier|fusible|batterie|relais|cosse|silicone|wd40|nettoyant|degrippant)\b/i.test(partText);
-  if (!know.brands.length && (isConsumable || ['Huiles & Chimie', 'Sécurité', 'Castillage', 'Électricité'].includes(part.cat))) {
-    return { tier: 'univ', reason: 'Universel / Consommable', know };
-  }
-  return { tier: 'other', reason: '', know };
-}
-
-window.openEquivalenceModal = () => {
-  resetEquivalenceForm();
-  renderCustomEquivalencesList();
-  $('equiv-modal').classList.add('active');
-};
-
-window.resetEquivalenceForm = () => {
-  $('eq-id').value = '';
-  $('eq-type').value = '';
-  $('eq-brands').value = '';
-  $('eq-models').value = '';
-  $('eq-refs').value = '';
-  $('eq-submit').textContent = "💾 Enregistrer l'équivalence";
-  $('eq-reset').classList.add('hide');
-};
-
-window.editCustomEquivalence = id => {
-  const item = customEquivs.find(x => x.id === id);
-  if (!item) return;
-  $('eq-id').value = item.id;
-  $('eq-type').value = item.type || '';
-  $('eq-brands').value = (item.brands || []).join(', ');
-  $('eq-models').value = (item.models || []).join(', ');
-  $('eq-refs').value = (item.refs || []).join(', ');
-  $('eq-submit').textContent = '✏️ Mettre à jour';
-  $('eq-reset').classList.remove('hide');
-};
-
-window.saveCustomEquivalence = () => {
-  const type = $('eq-type').value.trim();
-  const brands = $('eq-brands').value.split(',').map(s => s.trim()).filter(Boolean);
-  const models = $('eq-models').value.split(',').map(s => s.trim()).filter(Boolean);
-  const refs = $('eq-refs').value.split(',').map(s => s.trim()).filter(Boolean);
-  if (!type || !refs.length) return alert('Renseigne au moins un type de pièce et une référence.');
-  const payload = { type, brands, models, refs, updatedAt: new Date().toISOString() };
-  const editId = $('eq-id').value;
-  safe(async () => {
-    if (editId) await updateDoc(doc(db, 'part_equivalences', editId), payload);
-    else await addDoc(collection(db, 'part_equivalences'), payload);
-    resetEquivalenceForm();
-  }, editId ? 'Équivalence mise à jour' : 'Équivalence ajoutée');
-};
-
-window.deleteCustomEquivalence = id => {
-  if (!confirm('Supprimer cette équivalence personnalisée ?')) return;
-  safe(() => deleteDoc(doc(db, 'part_equivalences', id)), 'Équivalence supprimée');
-};
-
-function renderCustomEquivalencesList() {
-  if ($('eq-count')) $('eq-count').textContent = String(customEquivs.length);
-  const box = $('eq-list');
-  if (!box) return;
-  if (!customEquivs.length) {
-    box.innerHTML = `<div class="lbl">Aucune équivalence personnalisée enregistrée pour l'instant.</div>`;
-    return;
-  }
-  box.innerHTML = customEquivs.map(item => `
-    <div class="eq-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <b>${esc(item.type)}</b>
-        <div style="display:flex;gap:6px">
-          <button type="button" class="btn b-s hbtn" style="font-size:.72rem;padding:4px 8px" onclick="editCustomEquivalence('${item.id}')">✏️</button>
-          <button type="button" class="btn b-d hbtn" style="font-size:.72rem;padding:4px 8px" onclick="deleteCustomEquivalence('${item.id}')">🗑</button>
-        </div>
-      </div>
-      <div style="font-size:.76rem;color:var(--cy)">Marques : <b>${esc((item.brands || []).join(', ') || 'Toutes')}</b> • Modèles : <b>${esc((item.models || []).join(', ') || 'Tous')}</b></div>
-      <div style="font-size:.76rem;color:#fff">Réfs : ${esc((item.refs || []).join(', '))}</div>
-    </div>`).join('');
-}
-
-window.previewPartMatch = () => {
-  const el = $('s-auto-preview');
-  if (!el) return;
-  const know = getPartKnowledge({ name: $('s-name').value, ref: $('s-ref').value, cat: $('s-cat').value });
-  if (!know.brands.length && !know.models.length && !know.equivRefs.length) { el.innerHTML = ''; return; }
-  const brTxt = know.brands.map(b => b.toUpperCase()).join(', ');
-  const modTxt = know.models.slice(0, 8).join(', ') + (know.models.length > 8 ? '...' : '');
-  const eqTxt = know.equivRefs.slice(0, 6).join(', ');
-  el.innerHTML = `<div class="equiv-box">
-    <b>🤖 Reconnaissance base hors-bord :</b>${know.hasCustom ? '<span class="custom-tag">Perso</span>' : ''} ${know.detectedType ? esc(know.detectedType) + ' • ' : ''}${brTxt ? 'Marques : <b>' + esc(brTxt) + '</b>' : ''}
-    ${modTxt ? `<br>Moteurs : ${esc(modTxt)}` : ''}${eqTxt ? `<br>Équivalences : ${esc(eqTxt)}` : ''}
-  </div>`;
-};
-
-window.openSettingsModal = () => {
-  $('cfg-rate').value = cfg.hourlyRate ?? 60;
-  $('cfg-vat').value = cfg.vatRate ?? 0;
-  $('cfg-biz').value = cfg.bizName || '';
-  $('cfg-addr').value = cfg.bizAddr || '';
-  $('cfg-legal').value = cfg.bizLegal || '';
-  $('cfg-invnum').value = cfg.nextInvNum || 1;
-  $('settings-modal').classList.add('active');
-};
-window.saveSettings = () => {
-  const data = {
-    hourlyRate: parseFloat($('cfg-rate').value) || 0,
-    vatRate: parseFloat($('cfg-vat').value) || 0,
-    bizName: $('cfg-biz').value.trim() || 'Meca Manager',
-    bizAddr: $('cfg-addr').value.trim(),
-    bizLegal: $('cfg-legal').value.trim(),
-    nextInvNum: parseInt($('cfg-invnum').value, 10) || 1
-  };
-  safe(async () => {
-    await setDoc(doc(db, 'settings', 'general'), data, { merge: true });
-    cfg = { ...cfg, ...data };
-    if (activeBoatId) { $('m-rate').value = cfg.hourlyRate; updateLiveTotal(); }
-    closeModals();
-  }, 'Tarifs et paramètres enregistrés');
-};
-
+/* ===== Rappels & rendu général ===== */
 function reminder(b) {
   if (b.nextServiceHours == null || b.nextServiceHours === '') return null;
   const left = fmt(Number(b.nextServiceHours) - Number(b.hours || 0));
@@ -855,192 +636,31 @@ function reminder(b) {
   const txt = left <= 0 ? `⚠️ Révision en retard de ${Math.abs(left)} h` : `🔧 Prochaine révision dans ${left} h`;
   return { left, html: `<div class="rem ${cls}">${txt}</div>` };
 }
-
-function getAllInvoices() {
-  const list = [];
-  boats.forEach(b => {
-    (b.logs || []).forEach((l, logIdx) => {
-      if (l.invoice || (l.totalHT != null && l.totalHT > 0)) {
-        const status = l.invoice?.status || 'impayee';
-        list.push({
-          boatId: b.id, boatName: b.name || 'Bateau', boatModel: b.model || '',
-          owner: b.owner || 'Client comptoir', logIdx, log: l,
-          number: l.invoice?.number || `INT-${logIdx + 1}`,
-          date: l.invoice?.issuedAt || l.date || '', dateISO: l.dateISO || '',
-          status, totalTTC: Number(l.totalTTC ?? l.totalHT ?? 0), totalHT: Number(l.totalHT ?? 0)
-        });
-      }
-    });
-  });
-  return list.sort((a, b) => (b.dateISO || '').localeCompare(a.dateISO || ''));
-}
-
-function invStatusLabel(st) {
-  return { payee: 'Payée', impayee: 'Non payée', relance: 'Relancée', annulee: 'Annulée' }[st] || 'Non payée';
-}
-
-function lookupDbRefForEngine(boat, typeRegex) {
-  const fullEngine = [boat.engineBrand, boat.engineModel].filter(Boolean).join(' ');
-  const bBrand = detectBrandFromText(boat.engineBrand) || detectBrandFromText(fullEngine);
-  const bModel = boat.engineModel || fullEngine;
-  for (const entry of getCombinedPartsDb()) {
-    if (!typeRegex.test(entry.type)) continue;
-    if (bBrand && entry.brands.length && !entry.brands.includes(bBrand)) continue;
-    const hitModel = entry.models.find(m => modelMatches(m, bModel));
-    if (hitModel || (!bModel && bBrand && entry.brands.includes(bBrand)) || (!entry.models.length && bBrand && entry.brands.includes(bBrand))) {
-      return entry.refs.slice(0, 3).join(' / ');
-    }
-  }
-  return '';
-}
-
-function estimateSparkPlugQty(boat) {
-  const m = cleanRef([boat.engineBrand, boat.engineModel].filter(Boolean).join(' '));
-  if (/(F200|F225|F250|F300|F350|DF200|DF225|DF250|DF300|DF350|BF175|BF200|BF225|BF250|V6)/.test(m)) return 6;
-  if (/(V8)/.test(m)) return 8;
-  if (/(F15|F20|F25|DF15|DF20|DF25|BF15|BF20)/.test(m)) return 2;
-  if (/(F30|F40|DF30|BF30|BF40|BF50)/.test(m)) return 3;
-  return 4;
-}
-
-function getNeededPartsForBoat(boat, maintType) {
-  const oilSpec = getEngineOilSpec(boat);
-  const typeNorm = norm(maintType);
-  const is100 = typeNorm.includes('100');
-  const is300 = typeNorm.includes('300');
-
-  if (!is100 && !is300) {
-    const candidates = stock.filter(s => autoMatchPart(s, boat).tier === 'match');
-    return candidates.map(s => {
-      const neededQty = getSuggestedQty(s, oilSpec);
-      const availQty = Number(s.qty) || 0;
-      const missingQty = Math.max(0, fmt(neededQty - availQty));
-      return {
-        name: s.name, ref: s.ref || 'À vérifier', neededQty, availQty, missingQty,
-        unit: isOil(s) ? 'L' : 'u', ok: missingQty <= 0
-      };
-    });
-  }
-
-  const checklist = [
-    {
-      label: 'Huile moteur hors-bord',
-      qty: oilSpec ? oilSpec.engineL : 4,
-      unit: 'L',
-      fallbackRef: '10W30 / 10W40 Marine 4T',
-      stockMatch: s => isEngineOil(s)
-    },
-    {
-      label: "Huile d'embase",
-      qty: oilSpec ? oilSpec.gearL : 1,
-      unit: 'L',
-      fallbackRef: 'SAE 80W90 / 75W90 GL5',
-      stockMatch: s => isGearOil(s)
-    },
-    {
-      label: 'Filtre à huile',
-      qty: 1,
-      unit: 'u',
-      fallbackRef: lookupDbRefForEngine(boat, /filtre à huile/i) || 'Réf. OEM moteur',
-      stockMatch: s => /filtre.*huile|oil\s*filter/i.test(`${s.name} ${s.cat}`) && autoMatchPart(s, boat).tier === 'match'
-    },
-    {
-      label: 'Filtre carburant / décanteur',
-      qty: 1,
-      unit: 'u',
-      fallbackRef: lookupDbRefForEngine(boat, /carburant/i) || 'Réf. OEM / S3213',
-      stockMatch: s => /(carburant|essence|fuel|décanteur|decanteur|séparateur|separateur)/i.test(`${s.name} ${s.cat}`) && (autoMatchPart(s, boat).tier === 'match' || autoMatchPart(s, boat).tier === 'univ')
-    },
-    {
-      label: 'Joints de vis de vidange (moteur & embase)',
-      qty: 3,
-      unit: 'u',
-      fallbackRef: 'Joints fibre / cuivre vidange',
-      stockMatch: s => /joint.*vidange|washer|gasket/i.test(s.name || '')
-    }
-  ];
-
-  if (is300) {
-    checklist.push(
-      {
-        label: "Bougies d'allumage",
-        qty: estimateSparkPlugQty(boat),
-        unit: 'u',
-        fallbackRef: lookupDbRefForEngine(boat, /bougie/i) || 'Réf. NGK moteur',
-        stockMatch: s => /bougie|spark/i.test(`${s.name} ${s.cat}`) && autoMatchPart(s, boat).tier === 'match'
-      },
-      {
-        label: 'Kit turbine / pompe à eau',
-        qty: 1,
-        unit: 'u',
-        fallbackRef: lookupDbRefForEngine(boat, /(turbine|pompe à eau)/i) || 'Kit turbine OEM / Sierra',
-        stockMatch: s => /(turbine|pompe.*eau|impeller)/i.test(`${s.name} ${s.cat}`) && autoMatchPart(s, boat).tier === 'match'
-      },
-      {
-        label: 'Thermostat + joint',
-        qty: 1,
-        unit: 'u',
-        fallbackRef: lookupDbRefForEngine(boat, /thermostat/i) || 'Thermostat OEM / Sierra',
-        stockMatch: s => /thermostat/i.test(`${s.name} ${s.cat}`) && autoMatchPart(s, boat).tier === 'match'
-      },
-      {
-        label: 'Kit anodes moteur / embase',
-        qty: 1,
-        unit: 'u',
-        fallbackRef: lookupDbRefForEngine(boat, /anode/i) || 'Kit anodes Zinc / Alu',
-        stockMatch: s => /anode/i.test(`${s.name} ${s.cat}`) && (autoMatchPart(s, boat).tier === 'match' || autoMatchPart(s, boat).tier === 'univ')
-      }
-    );
-  }
-
-  return checklist.map(req => {
-    const matchedStock = stock.filter(req.stockMatch);
-    const availQty = fmt(matchedStock.reduce((sum, s) => sum + (Number(s.qty) || 0), 0));
-    const missingQty = Math.max(0, fmt(req.qty - availQty));
-    const refFound = matchedStock.map(s => s.ref).filter(Boolean)[0] || req.fallbackRef;
-    const nameFound = matchedStock[0]?.name || req.label;
-    return {
-      name: nameFound,
-      ref: refFound,
-      neededQty: req.qty,
-      availQty,
-      missingQty,
-      unit: req.unit,
-      ok: missingQty <= 0
-    };
-  });
-}
-
 function getDeadlineInfo(isoDateStr) {
   if (!isoDateStr) return { diffDays: 9999, label: 'Date non définie', cls: 'ok' };
   const today = new Date(toISODay(new Date()) + 'T00:00:00');
   const target = new Date(isoDateStr + 'T00:00:00');
   const diffDays = Math.round((target - today) / 86400000);
   if (diffDays < 0) return { diffDays, label: `En retard de ${Math.abs(diffDays)} j`, cls: 'late' };
-  if (diffDays === 0) return { diffDays, label: "Échéance aujourd'hui", cls: 'soon' };
-  if (diffDays === 1) return { diffDays, label: 'Échéance demain', cls: 'soon' };
-  if (diffDays <= 7) return { diffDays, label: `Dans ${diffDays} jours`, cls: 'soon' };
-  return { diffDays, label: `Dans ${diffDays} jours`, cls: 'ok' };
+  if (diffDays === 0) return { diffDays, label: "Aujourd'hui", cls: 'soon' };
+  if (diffDays === 1) return { diffDays, label: 'Demain', cls: 'soon' };
+  return { diffDays, label: `Dans ${diffDays} jours`, cls: diffDays <= 7 ? 'soon' : 'ok' };
 }
-
 function renderAll() {
   renderMetrics();
   if (!activeBoatId) { renderBoats(); renderPlanning(); renderStock(); renderInvoices(); }
 }
-
 function renderMetrics() {
   const low = stock.filter(s => Number(s.qty) <= Number(s.min));
   $('stock-alert').innerHTML = (tab === 'flotte' && low.length)
     ? `<div class="alert">⚠️ Stock bas : ${low.map(s => esc(s.name)).join(', ')}</div>` : '';
-
   if (tab === 'flotte') {
     const late = boats.filter(b => { const r = reminder(b); return r && r.left <= 0; }).length;
     $('metrics').innerHTML = `
-      <div class="metric"><div class="metric-t">FLOTTE HORS-BORD ⛵</div><div class="metric-v">${boats.length}</div></div>
+      <div class="metric"><div class="metric-t">FLOTTE ⛵</div><div class="metric-v">${boats.length}</div></div>
       <div class="metric"><div class="metric-t">RÉVISIONS EN RETARD 🔧</div><div class="metric-v" style="color:${late ? '#ff4d6d' : '#2ec4b6'}">${late}</div></div>
       <button class="btn-add" onclick="openBoatModal()">+ Ajouter un bateau</button>`;
   } else if (tab === 'planning') {
-    const selDate = planningDay || toISODay(new Date());
     const openItems = planning.filter(p => !p.done);
     let totalMissing = 0;
     openItems.forEach(p => {
@@ -1050,29 +670,24 @@ function renderMetrics() {
     $('metrics').innerHTML = `
       <div class="metric"><div class="metric-t">ENTRETIENS PLANIFIÉS 📅</div><div class="metric-v">${openItems.length}</div></div>
       <div class="metric"><div class="metric-t">PIÈCES À COMMANDER 🛒</div><div class="metric-v" style="color:${totalMissing ? '#ff4d6d' : '#2ec4b6'}">${totalMissing}</div></div>
-      <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openPlanningModal('${esc(selDate)}')">+ Programmer une maintenance bateau</button>`;
+      <button class="btn-add" style="background:#00b4d8;color:#000" onclick="openPlanningModal('${esc(planningDay)}')">+ Programmer une maintenance</button>`;
   } else if (tab === 'stock') {
-    const valAchat = stock.reduce((acc, s) => acc + (Number(s.qty) || 0) * (Number(s.buyPrice) || 0), 0);
+    const val = stock.reduce((a, s) => a + (Number(s.qty) || 0) * (Number(s.buyPrice) || 0), 0);
     $('metrics').innerHTML = `
-      <div class="metric"><div class="metric-t">STOCK (VALEUR ACHAT) 💰</div><div class="metric-v" style="font-size:1.25rem">${eur(valAchat)}</div></div>
+      <div class="metric"><div class="metric-t">VALEUR D'ACHAT 💰</div><div class="metric-v" style="font-size:1.2rem">${eur(val)}</div></div>
       <div class="metric"><div class="metric-t">STOCK BAS ⚠️ (${stock.length} réf.)</div><div class="metric-v" style="color:${low.length ? '#ff4d6d' : '#2ec4b6'}">${low.length}</div></div>
-      <button class="btn-add" style="background:#2ec4b6;color:#000" onclick="openStockModal()">+ Ajouter une pièce / huile</button>
-      <div style="grid-column:span 2"><button type="button" class="btn-sec-wide" onclick="openEquivalenceModal()">🔗 Gérer mes équivalences hors-bord (${customEquivs.length})</button></div>`;
-  } else if (tab === 'factures') {
+      <button class="btn-add" style="background:#2ec4b6;color:#000" onclick="openStockModal()">+ Ajouter une pièce</button>`;
+  } else {
     const invs = getAllInvoices();
     const encaisse = invs.filter(i => i.status === 'payee').reduce((a, b) => a + b.totalTTC, 0);
-    const enAttente = invs.filter(i => i.status === 'impayee' || i.status === 'relance').reduce((a, b) => a + b.totalTTC, 0);
-    const nbRelance = invs.filter(i => i.status === 'relance').length;
+    const attente = invs.filter(i => i.status === 'impayee' || i.status === 'relance').reduce((a, b) => a + b.totalTTC, 0);
     $('metrics').innerHTML = `
       <div class="metric"><div class="metric-t">ENCAISSÉ 🟢</div><div class="metric-v" style="font-size:1.2rem;color:#2ec4b6">${eur(encaisse)}</div></div>
-      <div class="metric"><div class="metric-t">À ENCAISSER 🔴${nbRelance ? ` (${nbRelance} relance)` : ''}</div><div class="metric-v" style="font-size:1.2rem;color:${enAttente > 0 ? '#ff4d6d' : '#8d99ae'}">${eur(enAttente)}</div></div>`;
+      <div class="metric"><div class="metric-t">À ENCAISSER 🔴</div><div class="metric-v" style="font-size:1.2rem;color:${attente > 0 ? '#ff4d6d' : '#8d99ae'}">${eur(attente)}</div></div>`;
   }
 }
-
-function match(q, ...fields) { q = q.toLowerCase(); return fields.some(f => String(f || '').toLowerCase().includes(q)); }
-const query = () => $('search').value;
 function statusLabel(s) { return { eau: "À l'eau", hangar: 'Au hangar', atelier: 'En atelier', hivernage: 'Hivernage' }[s] || "À l'eau"; }
-const engineTxt = b => [b.engineBrand, b.engineModel].filter(Boolean).join(' ') || 'Moteur non renseigné';
+const engTxt = b => engineInfo(b).txt;
 
 function renderBoats() {
   const list = boats.filter(b => match(query(), b.name, b.model, b.owner, b.engineBrand, b.engineModel)).sort(byName);
@@ -1083,7 +698,7 @@ function renderBoats() {
         <span class="badge s-${esc(b.status || 'eau')}">${statusLabel(b.status)}</span></div>
       <div class="grid2">
         <div>👤 ${esc(b.owner) || 'N/C'}</div><div>⏱ ${fmt(b.hours)} h</div>
-        <div class="full">⚙️ ${esc(engineTxt(b))}</div>
+        <div class="full">⚙️ ${esc(engTxt(b))}</div>
       </div>
       ${r && r.left <= 10 ? r.html : ''}
       <div class="actions"><button class="btn b-p" onclick="openBoatDetail('${b.id}')">Fiche & entretien 🛠️</button>
@@ -1092,269 +707,33 @@ function renderBoats() {
   }).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucun bateau trouvé.</div>`;
 }
 
-window.openPlanningModal = (presetDate) => {
-  $('p-date').value = presetDate || planningDay || toISODay(new Date());
-  const sortedBoats = boats.slice().sort(byName);
-  $('p-boat').innerHTML = sortedBoats.length
-    ? sortedBoats.map(b => `<option value="${esc(b.id)}">${esc(b.name)} (${esc(engineTxt(b))})</option>`).join('')
-    : `<option value="">Aucun bateau en flotte</option>`;
-  $('p-type').value = 'Maintenance 100h';
-  $('p-custom').value = '';
-  $('p-note').value = '';
-  toggleCustomType();
-  previewPlanningStock();
-  $('planning-modal').classList.add('active');
-};
-
-window.toggleCustomType = () => {
-  $('p-custom').classList.toggle('hide', $('p-type').value !== 'Autre');
-};
-
-window.previewPlanningStock = () => {
-  const box = $('p-stock-check');
-  if (!box) return;
-  const b = boats.find(x => x.id === $('p-boat').value);
-  if (!b) { box.innerHTML = `<div class="lbl">Sélectionne un bateau pour vérifier le stock.</div>`; return; }
-  const labelType = $('p-type').value === 'Autre' ? ($('p-custom').value.trim() || 'Autre intervention') : $('p-type').value;
-  const checks = getNeededPartsForBoat(b, labelType);
-  if (!checks.length) {
-    box.innerHTML = `<div class="equiv-box">ℹ️ Intervention libre : aucune pièce associée automatiquement dans le stock.</div>`;
-    return;
-  }
-  const missing = checks.filter(c => !c.ok);
-  const okHtml = `<div class="oil-banner">✅ <b>${checks.length - missing.length} / ${checks.length}</b> poste(s) disponible(s) en stock.</div>`;
-  const missHtml = missing.length
-    ? `<div class="alert" style="margin:6px 0 0"><b>⚠️ Pièces à commander :</b><br>${missing.map(m => `• <b>${esc(m.name)}</b> — Réf : <b>${esc(m.ref)}</b> (manque ${fmt(m.missingQty)} ${m.unit}, dispo ${fmt(m.availQty)} ${m.unit})`).join('<br>')}</div>`
-    : '';
-  box.innerHTML = okHtml + missHtml;
-};
-
-window.savePlanningItem = () => {
-  const date = $('p-date').value;
-  const boatId = $('p-boat').value;
-  const b = boats.find(x => x.id === boatId);
-  if (!date || !b) return alert('Choisis une date et un bateau.');
-  const rawType = $('p-type').value;
-  const customLabel = $('p-custom').value.trim();
-  if (rawType === 'Autre' && !customLabel) return alert("Précise le type d'intervention.");
-  const maintType = rawType === 'Autre' ? customLabel : rawType;
-
-  safe(async () => {
-    await addDoc(collection(db, 'planning'), {
-      date,
-      boatId: b.id,
-      boatName: b.name,
-      engineLabel: engineTxt(b),
-      maintType,
-      maintCategory: rawType,
-      note: $('p-note').value.trim(),
-      done: false,
-      createdAt: new Date().toISOString()
-    });
-    planningDay = date;
-    closeModals();
-  }, 'Intervention ajoutée au planning');
-};
-
-window.togglePlanningDone = (id, done) => safe(() => updateDoc(doc(db, 'planning', id), { done }));
-window.deletePlanningItem = (id) => {
-  if (confirm('Supprimer cette intervention du planning ?')) safe(() => deleteDoc(doc(db, 'planning', id)));
-};
-
-window.setPlanningDay = iso => {
-  if (!iso) return;
-  planningDay = iso;
-  renderAll();
-};
-
-window.changePlanningDay = (deltaDays) => {
-  const d = new Date((planningDay || toISODay(new Date())) + 'T12:00:00');
-  d.setDate(d.getDate() + deltaDays);
-  planningDay = toISODay(d);
-  renderAll();
-};
-
-$('v-planning').addEventListener('click', e => {
-  const pill = e.target.closest('.day-pill');
-  if (pill && pill.dataset.day) {
-    setPlanningDay(pill.dataset.day);
-  }
-});
-
-function renderOrderRecapByBoat(q) {
-  const openItems = planning
-    .filter(p => !p.done && p.date)
-    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-
-  const byBoat = new Map();
-  openItems.forEach(p => {
-    const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName || 'Bateau', engineBrand: p.engineLabel, engineModel: '' };
-    if (q && !match(q, b.name, p.maintType, p.engineLabel)) return;
-    const missing = getNeededPartsForBoat(b, p.maintType).filter(c => !c.ok);
-    if (!missing.length) return;
-    const key = b.id || b.name;
-    const dl = getDeadlineInfo(p.date);
-    if (!byBoat.has(key)) {
-      byBoat.set(key, { boat: b, entries: [] });
-    }
-    byBoat.get(key).entries.push({
-      planId: p.id,
-      date: p.date,
-      maintType: p.maintType,
-      dl,
-      missing
-    });
-  });
-
-  if (!byBoat.size) {
-    return `<div class="card" style="grid-column:1/-1">
-      <div style="font-weight:800;color:var(--green)">🛒 Récapitulatif pièces à commander par bateau</div>
-      <div style="font-size:.82rem;color:var(--sec)">Aucune pièce manquante sur les entretiens planifiés.</div>
-    </div>`;
-  }
-
-  const boatBlocks = [...byBoat.values()]
-    .sort((a, b) => {
-      const minA = Math.min(...a.entries.map(e => e.dl.diffDays));
-      const minB = Math.min(...b.entries.map(e => e.dl.diffDays));
-      return minA - minB || byName(a.boat, b.boat);
-    })
-    .map(({ boat, entries }) => {
-      const entryHtml = entries.map(en => {
-        const prettyD = new Date(en.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        return `<div class="recap-boat">
-          <div class="recap-boat-head">
-            <span style="font-weight:700;color:#fff">🛠️ ${esc(en.maintType)} — Prévu le <b>${esc(prettyD)}</b></span>
-            <span class="badge ${en.dl.cls === 'late' ? 's-atelier' : en.dl.cls === 'soon' ? 'st-relance' : 's-hangar'}">${esc(en.dl.label)}</span>
-          </div>
-          ${en.missing.map(m => `<div class="recap-item">• <b>${esc(m.name)}</b> (Réf : <b>${esc(m.ref)}</b>) — manque <b>${fmt(m.missingQty)} ${esc(m.unit)}</b> (dispo ${fmt(m.availQty)} ${esc(m.unit)})</div>`).join('')}
-        </div>`;
-      }).join('');
-
-      return `<div style="border-top:1px solid var(--bd);padding-top:10px;margin-top:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <div>
-            <span style="font-weight:800;font-size:1rem;color:var(--cy)">⛵ ${esc(boat.name)}</span>
-            <span style="font-size:.78rem;color:var(--sec);margin-left:6px">(${esc(engineTxt(boat))})</span>
-          </div>
-          ${boat.id ? `<button class="btn b-p hbtn" style="font-size:.74rem;padding:5px 9px" onclick="openBoatDetail('${boat.id}')">Fiche bateau</button>` : ''}
-        </div>
-        ${entryHtml}
-      </div>`;
-    }).join('');
-
-  return `<div class="card" style="grid-column:1/-1;border-color:var(--red)">
-    <div style="font-weight:800;color:#ff8d99;font-size:.98rem">🛒 Pièces à commander par bateau (échéance vs date d'entretien)</div>
-    ${boatBlocks}
-  </div>`;
+/* ===== Stock ===== */
+function brandGroup(s) {
+  const c = canonBrand(s.brand);
+  return c ? BRAND_LABEL[c] : ((s.brand || '').trim() || NOBRAND);
 }
-
-function renderPlanning() {
-  const selDate = planningDay || toISODay(new Date());
-  const q = query();
-  const dayItems = planning
-    .filter(p => p.date === selDate)
-    .filter(p => !q || match(q, p.boatName, p.engineLabel, p.maintType, p.note));
-
-  const prettyDate = new Date(selDate + 'T12:00:00').toLocaleDateString('fr-FR', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-  });
-
-  const base = new Date(selDate + 'T12:00:00');
-  const daysStripHtml = Array.from({ length: 14 }, (_, idx) => {
-    const d = new Date(base);
-    d.setDate(base.getDate() - 3 + idx);
-    const iso = toISODay(d);
-    const wk = d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '');
-    const num = d.getDate();
-    const count = planning.filter(p => p.date === iso && !p.done).length;
-    const isAct = iso === selDate;
-    return `<button type="button" class="day-pill ${isAct ? 'active' : ''}" data-day="${iso}" onclick="setPlanningDay('${iso}')">
-      <span class="d-wk">${esc(wk)}</span>
-      <span class="d-num">${num}</span>
-      <span class="d-dot">${count ? `• ${count}` : '·'}</span>
-    </button>`;
-  }).join('');
-
-  const headerBar = `<div class="card" style="grid-column:1/-1">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-      <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(-1)">← 1 j</button>
-      <div style="text-align:center;flex:1">
-        <div style="font-weight:800;color:var(--cy);text-transform:capitalize">${esc(prettyDate)}</div>
-        <input type="date" class="inp" style="margin-top:6px;width:auto" value="${esc(selDate)}" onchange="setPlanningDay(this.value)">
-      </div>
-      <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(1)">1 j →</button>
-    </div>
-    <div class="days-strip">${daysStripHtml}</div>
-    <button class="btn b-p" style="margin-top:4px" onclick="openPlanningModal('${esc(selDate)}')">+ Programmer une maintenance bateau</button>
-  </div>`;
-
-  const recapBlock = renderOrderRecapByBoat(q);
-
-  if (!dayItems.length) {
-    $('v-planning').innerHTML = headerBar + recapBlock + `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--sec)">Aucune intervention prévue ce jour.</div>`;
-    return;
-  }
-
-  const cardsHtml = dayItems.map(p => {
-    const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName, engineBrand: p.engineLabel, engineModel: '' };
-    const checks = getNeededPartsForBoat(b, p.maintType);
-    const missing = checks.filter(c => !c.ok);
-    const dl = getDeadlineInfo(p.date);
-
-    return `<div class="card" style="${p.done ? 'opacity:.65' : ''}">
-      <div class="ch">
-        <div>
-          <div class="ct">⛵ ${esc(b.name || p.boatName)}</div>
-          <div class="cs">${esc(p.maintType)} • ⚙️ ${esc(engineTxt(b))}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-          <span class="badge ${p.done ? 's-eau' : 's-atelier'}">${p.done ? 'Terminé' : 'À faire'}</span>
-          ${!p.done ? `<span class="badge ${dl.cls === 'late' ? 's-atelier' : dl.cls === 'soon' ? 'st-relance' : 's-hangar'}">${esc(dl.label)}</span>` : ''}
-        </div>
-      </div>
-      ${p.note ? `<div style="font-size:.82rem;color:var(--sec)">📝 ${esc(p.note)}</div>` : ''}
-      ${missing.length
-        ? `<div class="alert" style="margin:0">
-            <b>🛒 Pièces à commander :</b><br>
-            ${missing.map(m => `• <b>${esc(m.name)}</b> (Réf : <b>${esc(m.ref)}</b>) — manque ${fmt(m.missingQty)} ${m.unit}`).join('<br>')}
-          </div>`
-        : `<div class="oil-banner">✅ Stock complet (${checks.length} poste(s) vérifié(s))</div>`}
-      <div class="actions">
-        <button class="btn ${p.done ? 'b-s' : 'b-g'}" onclick="togglePlanningDone('${p.id}', ${!p.done})">${p.done ? 'Réouvrir' : 'Marquer fait'}</button>
-        ${b.id ? `<button class="btn b-p hbtn" onclick="openBoatDetail('${b.id}')">Fiche</button>` : ''}
-        <button class="btn b-d hbtn" onclick="deletePlanningItem('${p.id}')">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-
-  $('v-planning').innerHTML = headerBar + recapBlock + cardsHtml;
-}
-
 function stockCard(s) {
-  const know = getPartKnowledge(s);
-  const tagTxt = know.brands.length ? know.brands.map(x => x.toUpperCase()).join(' · ') : '';
-  const modPreview = know.models.length ? know.models.slice(0, 5).join(', ') + (know.models.length > 5 ? '...' : '') : '';
-  const equivPreview = know.equivRefs.filter(r => cleanRef(r) !== cleanRef(s.ref)).slice(0, 4).join(', ');
   const buy = Number(s.buyPrice) || 0, sell = Number(s.sellPrice) || 0, margin = sell - buy;
-  const pct = buy > 0 ? Math.round((margin / buy) * 100) : 0;
+  const toks = modelTokens(s.models);
+  const fits = fitBoats(s);
+  const brandTxt = canonBrand(s.brand) ? BRAND_LABEL[canonBrand(s.brand)] : (s.brand || '');
   return `<div class="card">
     <div class="srow">
       ${s.img ? `<img class="thumb" src="${esc(s.img)}" alt="">` : `<div class="thumb">📦</div>`}
       <div style="flex:1;overflow:hidden"><div class="ct" style="font-size:1.02rem">${esc(s.name)}</div>
         <div class="cs">Réf : ${esc(s.ref) || 'N/A'}</div>
-        <div style="font-size:.75rem;color:var(--sec)">${esc(s.cat)}${tagTxt ? ' • 🤖 ' + esc(tagTxt) : ''}${know.hasCustom ? '<span class="custom-tag">Perso</span>' : ''}</div></div>
+        <div style="font-size:.75rem;color:var(--sec)">${esc(partType(s))}${brandTxt ? ' • ' + esc(brandTxt) : ''}</div></div>
       <div class="sq ${Number(s.qty) <= Number(s.min) ? 'low' : ''}">${fmt(s.qty)}${isOil(s) ? ' L' : ''}</div>
     </div>
-    ${(modPreview || equivPreview) ? `<div class="equiv-box">
-      ${modPreview ? `⚙️ Moteurs : <b>${esc(modPreview)}</b>` : ''}
-      ${equivPreview ? `${modPreview ? '<br>' : ''}🔄 Équiv. : ${esc(equivPreview)}` : ''}
-    </div>` : ''}
+    <div class="equiv-box">
+      ⚙️ Modèles : <b>${esc(toks.length ? toks.join(', ') : (brandTxt ? 'tous' : 'universel'))}</b><br>
+      ⛵ Monte sur : <b>${fits.length ? esc(fits.slice(0, 4).join(', ')) + (fits.length > 4 ? ` (+${fits.length - 4})` : '') : 'aucun bateau de la flotte'}</b>
+    </div>
     <div class="grid2">
       <div>📥 Achat : <b>${eur(buy)}</b></div>
       <div>🏷️ Vente : <b style="color:var(--cy)">${eur(sell)}</b></div>
       <div>📍 ${esc(s.loc) || 'Atelier'}</div>
-      <div>📈 Marge : <b style="color:${margin >= 0 ? 'var(--green)' : 'var(--red)'}">${eur(margin)}${buy > 0 ? ` (+${pct}%)` : ''}</b></div>
+      <div>📈 Marge : <b style="color:${margin >= 0 ? 'var(--green)' : 'var(--red)'}">${eur(margin)}</b></div>
     </div>
     <div class="actions">
       <div class="qc" style="flex:1"><button class="bq" onclick="changeQty('${s.id}',-1)">-</button><span style="font-size:.8rem;font-weight:700">Qté</span><button class="bq" onclick="changeQty('${s.id}',1)">+</button></div>
@@ -1363,724 +742,37 @@ function stockCard(s) {
     </div>
   </div>`;
 }
-
 function renderStock() {
-  const list = stock.filter(s => {
-    const know = getPartKnowledge(s);
-    return match(query(), s.name, s.ref, s.cat, s.brand, s.models, know.brands.join(' '), know.models.join(' '), know.equivRefs.join(' '));
-  }).sort(byName);
+  const list = stock.filter(s => match(query(), s.name, s.ref, s.cat, s.brand, s.models, partType(s))).sort(byName);
   if (!list.length) { $('v-stock').innerHTML = `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune pièce en stock.</div>`; return; }
   const groups = {};
-  list.forEach(s => {
-    const know = getPartKnowledge(s);
-    const k = know.brands.length ? know.brands[0].replace(/\b\w/g, c => c.toUpperCase()) : NOBRAND;
-    (groups[k] = groups[k] || []).push(s);
-  });
+  list.forEach(s => { const k = brandGroup(s); (groups[k] = groups[k] || []).push(s); });
   const keys = Object.keys(groups).sort((a, b) => a === NOBRAND ? 1 : b === NOBRAND ? -1 : a.localeCompare(b));
   $('v-stock').innerHTML = keys.map(k => `<div class="gh">${esc(k)}<span>${groups[k].length} réf.</span></div>` + groups[k].map(stockCard).join('')).join('');
 }
-
-window.setInvFilter = f => {
-  invFilter = f;
-  document.querySelectorAll('#inv-filters .fchip').forEach(c => c.classList.toggle('active', c.dataset.f === f));
-  renderInvoices();
+window.previewPartMatch = () => {
+  const el = $('s-auto-preview'); if (!el) return;
+  const p = { name: $('s-name').value, type: $('s-type').value, brand: $('s-brand').value, models: $('s-models').value, cat: $('s-cat').value };
+  const t = partType(p), c = canonBrand(p.brand), toks = modelTokens(p.models);
+  el.innerHTML = `<div class="equiv-box">🤖 Type : <b>${esc(t)}</b> • Marque : <b>${esc(c ? BRAND_LABEL[c] : (p.brand || 'universel'))}</b> • Modèles : <b>${esc(toks.length ? toks.join(', ') : 'tous')}</b></div>`;
 };
-
-function renderInvoices() {
-  let list = getAllInvoices().filter(i => match(query(), i.number, i.owner, i.boatName, i.log.desc));
-  if (invFilter !== 'all') list = list.filter(i => i.status === invFilter);
-  $('v-factures').innerHTML = list.length ? list.map(i => `
-    <div class="card ${i.status === 'annulee' ? 'is-cancelled' : ''}">
-      <div class="ch">
-        <div>
-          <div class="ct">${esc(i.number)} <span style="font-size:.8rem;color:var(--sec);font-weight:400">• ${esc(i.date)}</span></div>
-          <div class="cs">⛵ ${esc(i.boatName)} — 👤 ${esc(i.owner)}</div>
-        </div>
-        <span class="badge st-${esc(i.status)}">${invStatusLabel(i.status)}</span>
-      </div>
-      <div class="grid2">
-        <div class="full">🛠️ ${esc(i.log.desc)}</div>
-        <div>💶 Montant : <b style="color:#fff">${eur(i.totalTTC)}</b></div>
-        <div>${i.log.discountAmount > 0 ? `🏷️ Remise : <b>-${eur(i.log.discountAmount)}</b>` : '🏷️ Sans remise'}</div>
-      </div>
-      <div class="actions">
-        <select style="flex:1;min-width:120px;padding:8px;font-size:.78rem" onchange="changeInvoiceStatus('${i.boatId}', ${i.logIdx}, this.value)">
-          <option value="impayee" ${i.status === 'impayee' ? 'selected' : ''}>🔴 Non payée</option>
-          <option value="relance" ${i.status === 'relance' ? 'selected' : ''}>🟠 Relancée</option>
-          <option value="payee" ${i.status === 'payee' ? 'selected' : ''}>🟢 Payée</option>
-          <option value="annulee" ${i.status === 'annulee' ? 'selected' : ''}>⚪ Annulée</option>
-        </select>
-        <button class="btn b-s hbtn" onclick="openEditInvoice('${i.boatId}', ${i.logIdx})">✏️ Modifier</button>
-        <button class="btn b-p hbtn" onclick="openInvoice('${i.boatId}', ${i.logIdx})">🧾 PDF</button>
-        <button class="btn b-d hbtn" onclick="deleteInvoice('${i.boatId}', ${i.logIdx})">🗑</button>
-      </div>
-    </div>`).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune facture correspondante.</div>`;
-}
-
-$('search').oninput = () => {
-  if (tab === 'flotte') renderBoats();
-  else if (tab === 'planning') renderPlanning();
-  else if (tab === 'stock') renderStock();
-  else renderInvoices();
+window.openStockModal = id => {
+  editStockId = id || null;
+  const s = id ? stock.find(x => x.id === id) : null;
+  $('s-title').textContent = s ? 'Modifier la pièce' : 'Nouvelle pièce';
+  $('s-name').value = s ? s.name || '' : '';
+  $('s-type').value = s && TYPE_KEYS.includes(s.type) ? s.type : '';
+  $('s-brand').value = s ? s.brand || '' : '';
+  $('s-models').value = s ? s.models || '' : '';
+  $('s-ref').value = s ? s.ref || '' : '';
+  $('s-cat').value = s ? s.cat || 'Moteur / Filtres' : 'Moteur / Filtres';
+  $('s-buy').value = s && s.buyPrice != null ? s.buyPrice : '';
+  $('s-sell').value = s && s.sellPrice != null ? s.sellPrice : '';
+  $('s-qty').value = s ? s.qty : ''; $('s-min').value = s ? s.min : ''; $('s-loc').value = s ? s.loc || '' : '';
+  $('s-file').value = '';
+  previewPartMatch();
+  $('stock-modal').classList.add('active');
 };
-
-window.switchTab = t => {
-  tab = t;
-  ['flotte', 'planning', 'stock', 'factures'].forEach(x => {
-    $('n-' + x).classList.toggle('active', x === t);
-    $('v-' + x).classList.toggle('hide', x !== t);
-  });
-  $('inv-filters').classList.toggle('hide', t !== 'factures');
-  $('sub').textContent = t === 'flotte' ? 'Gestion de flotte hors-bord'
-    : t === 'planning' ? 'Planning entretiens & stock'
-    : t === 'stock' ? 'Stock & Base Hors-Bord'
-    : 'Suivi des factures';
-  $('search').value = '';
-  renderMetrics(); renderBoats(); renderPlanning(); renderStock(); renderInvoices();
-};
-
-window.onBoatMaintTypeChange = () => {
-  const val = $('m-type')?.value;
-  $('m-custom-type')?.classList.toggle('hide', val !== 'Autre');
-  if (val === 'Maintenance 100h') {
-    $('m-desc').value = 'Maintenance 100h';
-  } else if (val === 'Maintenance 300h') {
-    $('m-desc').value = 'Maintenance 300h';
-  } else {
-    $('m-desc').value = $('m-custom-type')?.value.trim() || '';
-  }
-  const b = boats.find(x => x.id === activeBoatId);
-  const spec = getEngineOilSpec(b);
-  applyEngineOilAndParts(spec ? spec.engineL : 0, spec ? spec.gearL : 0);
-};
-
-window.onBoatCustomTypeInput = () => {
-  if ($('m-type')?.value === 'Autre') {
-    $('m-desc').value = $('m-custom-type')?.value.trim() || '';
-  }
-};
-
-window.openBoatDetail = id => {
-  activeBoatId = id;
-  checklistState = {};
-  $('main').classList.add('hide'); $('nav').classList.add('hide'); $('detail').classList.remove('hide');
-  const b = boats.find(x => x.id === id);
-  $('upcoming').value = (b && b.upcomingWorks) || '';
-  if ($('part-filter')) $('part-filter').value = '';
-  $('m-type').value = 'Maintenance 100h';
-  $('m-custom-type').value = '';
-  $('m-custom-type').classList.add('hide');
-  $('m-desc').value = 'Maintenance 100h';
-  $('m-hours').value = '';
-  $('m-labor').value = '';
-  $('m-rate').value = cfg.hourlyRate ?? 60;
-  $('m-disc').value = '';
-  renderBoatDetail(); renderChecklist(); updateLiveTotal();
-  window.scrollTo(0, 0);
-};
-window.backToFlotte = () => {
-  activeBoatId = null; checklistState = {};
-  $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
-  $('sub').textContent = tab === 'flotte' ? 'Gestion de flotte hors-bord'
-    : tab === 'planning' ? 'Planning entretiens & stock'
-    : tab === 'stock' ? 'Stock & Base Hors-Bord'
-    : 'Suivi des factures';
-  renderAll();
-};
-
-function renderBoatDetail() {
-  const b = boats.find(x => x.id === activeBoatId);
-  if (!b) return;
-  $('sub').textContent = 'Fiche : ' + (b.name || '');
-  if (document.activeElement !== $('upcoming')) $('upcoming').value = b.upcomingWorks || '';
-  const r = reminder(b);
-  $('boat-content').innerHTML = `
-    <div class="card">
-      <div class="ch"><div><div class="ct">${esc(b.name)}</div><div class="cs">${esc(b.model)}</div></div>
-        <select style="width:auto" onchange="updateStatus('${b.id}',this.value)">
-          ${['eau', 'hangar', 'atelier', 'hivernage'].map(s => `<option value="${s}" ${b.status === s ? 'selected' : ''}>${statusLabel(s)}</option>`).join('')}
-        </select></div>
-      <div class="grid2">
-        <div>👤 ${esc(b.owner) || 'N/C'}</div><div>⏱ ${fmt(b.hours)} h</div>
-        <div class="full">⚙️ ${esc(engineTxt(b))}</div>
-        <div>⚓ ${esc(b.immat) || 'N/C'}</div><div>🔢 ${esc(b.engineSn) || 'N/C'}</div>
-        <div>⛽ ${esc(b.fuel)}</div>
-        ${b.notes ? `<div class="full">📝 ${esc(b.notes)}</div>` : ''}
-      </div>
-      ${r ? r.html : ''}
-    </div>`;
-
-  const oilSpec = getEngineOilSpec(b);
-  if ($('oil-capacity-box')) {
-    $('oil-capacity-box').innerHTML = oilSpec
-      ? `<div class="oil-banner">🛢️ <b>Contenances détectées (${esc(engineTxt(b))}) :</b> ${oilSpec.engineL} L huile moteur • ${oilSpec.gearL} L huile embase</div>`
-      : '';
-  }
-  if ($('btn-auto-check')) {
-    const eL = oilSpec ? oilSpec.engineL : 0;
-    const gL = oilSpec ? oilSpec.gearL : 0;
-    $('btn-auto-check').setAttribute('onclick', `applyEngineOilAndParts(${eL}, ${gL})`);
-  }
-
-  const logs = (b.logs || []).map((l, origIdx) => ({ ...l, origIdx })).reverse();
-  $('history').innerHTML = logs.length ? logs.map(l => {
-    const st = l.invoice?.status || 'impayee';
-    return `<div class="hist">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-        <div style="font-weight:700;color:var(--cy)">📅 ${esc(l.date)} — ⏱ ${fmt(l.newHours)} h</div>
-        <div style="display:flex;gap:6px;align-items:center">
-          ${l.invoice ? `<span class="badge st-${esc(st)}">${invStatusLabel(st)}</span>` : ''}
-          <button class="btn b-s hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openEditInvoice('${b.id}', ${l.origIdx})">✏️</button>
-          <button class="btn b-g hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openInvoice('${b.id}', ${l.origIdx})">🧾 ${l.invoice ? esc(l.invoice.number) : 'Facturer'}</button>
-        </div>
-      </div>
-      <div>${esc(l.desc)}</div>
-      ${l.laborHours ? `<div style="font-size:.8rem;color:var(--green)">⏱ MO : ${fmt(l.laborHours)} h${l.hourlyRate ? ` × ${eur(l.hourlyRate)}/h` : ''}</div>` : ''}
-      ${(l.partsUsed || []).length ? `<div style="font-size:.75rem;color:var(--sec)">📦 ${l.partsUsed.map(esc).join(', ')}</div>` : ''}
-      ${l.totalHT != null ? `<div style="font-size:.82rem;font-weight:700;color:#fff">💶 Total : ${eur(l.totalTTC ?? l.totalHT)}${l.discountAmount > 0 ? ` (dont remise -${eur(l.discountAmount)})` : ''}</div>` : ''}
-    </div>`;
-  }).join('') : `<div style="font-size:.85rem;color:var(--sec);margin-top:6px">Aucune maintenance enregistrée.</div>`;
-}
-
-function getSuggestedQty(s, oilSpec) {
-  if (oilSpec && !isFilter(s)) {
-    if (isGearOil(s) && oilSpec.gearL > 0) return oilSpec.gearL;
-    if (isEngineOil(s) && oilSpec.engineL > 0) return oilSpec.engineL;
-  }
-  return 1;
-}
-
-function syncChecklistStateFromDom() {
-  document.querySelectorAll('.kit-cb').forEach(cb => {
-    const id = cb.dataset.id;
-    const prev = checklistState[id] || {};
-    const qEl = document.querySelector(`[data-qty="${id}"]`);
-    const pEl = document.querySelector(`[data-price="${id}"]`);
-    checklistState[id] = {
-      c: cb.checked,
-      q: qEl ? qEl.value : (prev.q ?? ''),
-      p: pEl ? pEl.value : (prev.p ?? ''),
-      manualQty: prev.manualQty || false
-    };
-  });
-}
-
-window.onPartQtyInput = id => {
-  const qEl = document.querySelector(`[data-qty="${id}"]`);
-  const prev = checklistState[id] || { c: false, p: '' };
-  checklistState[id] = { ...prev, q: qEl ? qEl.value : '', manualQty: true };
-  updateLiveTotal();
-};
-
-function renderChecklist() {
-  const b = boats.find(x => x.id === activeBoatId); if (!b) return;
-  const oilSpec = getEngineOilSpec(b);
-  syncChecklistStateFromDom();
-
-  const pFilter = ($('part-filter')?.value || '').trim();
-  const matched = [], uni = [], oth = [];
-  stock.slice().sort(byName).forEach(s => {
-    if (pFilter && !match(pFilter, s.name, s.ref, s.cat, s.brand, s.models)) return;
-    const res = autoMatchPart(s, b);
-    if (res.tier === 'match') matched.push({ s, reason: res.reason, hasCustom: res.know.hasCustom });
-    else if (res.tier === 'univ') uni.push({ s, reason: res.reason, hasCustom: res.know.hasCustom });
-    else oth.push({ s, reason: '', hasCustom: res.know.hasCustom });
-  });
-
-  const row = ({ s, reason, hasCustom }, grp) => {
-    const defaultPrice = s.sellPrice != null && s.sellPrice !== '' ? s.sellPrice : 0;
-    const suggestedQty = getSuggestedQty(s, oilSpec);
-    const st = checklistState[s.id];
-
-    let qtyVal = suggestedQty;
-    if (st) {
-      if (st.manualQty && st.q !== '') qtyVal = st.q;
-      else if (oilSpec && !isFilter(s) && (isGearOil(s) || isEngineOil(s))) qtyVal = suggestedQty;
-      else if (st.q !== '') qtyVal = st.q;
-    }
-
-    const priceVal = (st && st.p !== '') ? st.p : defaultPrice;
-    const isChecked = st ? !!st.c : false;
-    const isGearFlag = isGearOil(s) ? '1' : '0';
-    const isEngFlag = isEngineOil(s) ? '1' : '0';
-    const oilBadge = (!isFilter(s) && oilSpec && isGearOil(s)) ? `<span class="auto-tag">Embase : ${oilSpec.gearL} L</span>`
-      : (!isFilter(s) && oilSpec && isEngineOil(s)) ? `<span class="auto-tag">Moteur : ${oilSpec.engineL} L</span>` : '';
-    const cTag = hasCustom ? `<span class="custom-tag">Perso</span>` : '';
-
-    return `<div class="row">
-      <input type="checkbox" class="kit-cb" data-grp="${grp}" data-gear="${isGearFlag}" data-engine="${isEngFlag}" data-id="${s.id}" ${isChecked ? 'checked' : ''} onchange="syncChecklistStateFromDom();updateLiveTotal()">
-      <span style="flex:1;min-width:130px">${esc(s.name)}${reason ? `<span class="auto-tag">${esc(reason)}</span>` : ''}${oilBadge}${cTag}<br><small style="color:var(--sec)">Réf : ${esc(s.ref) || 'N/A'} • dispo : ${fmt(s.qty)}${isOil(s) ? ' L' : ''}</small></span>
-      <div style="display:flex;align-items:center;gap:4px">
-        <input type="number" step="0.05" value="${esc(qtyVal)}" class="qin" data-qty="${s.id}" oninput="onPartQtyInput('${s.id}')">
-        <span style="font-size:.75rem;color:var(--sec)">×</span>
-        <input type="number" step="0.01" value="${esc(priceVal)}" class="pin" data-price="${s.id}" oninput="syncChecklistStateFromDom();updateLiveTotal()">
-        <span style="font-size:.75rem;color:var(--cy)">€</span>
-      </div>
-    </div>`;
-  };
-
-  let html = `<div class="sec-t">🤖 Compatibles & huiles pour ${esc(engineTxt(b))} (${matched.length})</div>`;
-  html += matched.length ? matched.map(x => row(x, 'match')).join('')
-    : `<div class="lbl" style="margin-top:6px">Aucune pièce spécifique détectée dans ton stock pour ce moteur.</div>`;
-  if (uni.length) html += `<div class="sec-t">Huiles, consommables & génériques (${uni.length})</div>` + uni.map(x => row(x, 'uni')).join('');
-  if (oth.length) html += `<details${pFilter ? ' open' : ''}><summary>Autres pièces / autres moteurs (${oth.length})</summary>${oth.map(x => row(x, 'oth')).join('')}</details>`;
-  if (!stock.length) html = `<span class="lbl">Aucune pièce en stock</span>`;
-  $('checklist').innerHTML = html;
-  syncChecklistStateFromDom();
-  updateLiveTotal();
-}
-
-window.applyEngineOilAndParts = (engineOilL, gearOilL) => {
-  const eL = parseFloat(engineOilL) || 0;
-  const gL = parseFloat(gearOilL) || 0;
-
-  document.querySelectorAll('.kit-cb').forEach(cb => {
-    const id = cb.dataset.id;
-    const isGear = cb.dataset.gear === '1';
-    const isEng = cb.dataset.engine === '1';
-    const isMatch = cb.dataset.grp === 'match';
-    const qEl = document.querySelector(`[data-qty="${id}"]`);
-
-    if (isGear && gL > 0) {
-      if (qEl) qEl.value = gL;
-      cb.checked = true;
-    } else if (isEng && eL > 0) {
-      if (qEl) qEl.value = eL;
-      cb.checked = true;
-    } else if (isMatch) {
-      cb.checked = true;
-    }
-  });
-
-  syncChecklistStateFromDom();
-  if (typeof updateLiveTotal === 'function') updateLiveTotal();
-};
-
-window.checkEngineParts = () => {
-  const b = boats.find(x => x.id === activeBoatId);
-  const spec = getEngineOilSpec(b);
-  applyEngineOilAndParts(spec ? spec.engineL : 0, spec ? spec.gearL : 0);
-};
-
-function calcDiscount(subtotal, discVal, discType) {
-  const val = Math.max(0, parseFloat(discVal) || 0);
-  if (!val || subtotal <= 0) return 0;
-  const amount = discType === 'pct' ? subtotal * (Math.min(val, 100) / 100) : Math.min(val, subtotal);
-  return Math.round(amount * 100) / 100;
-}
-
-window.updateLiveTotal = () => {
-  const labor = parseFloat($('m-labor')?.value) || 0;
-  const rate = parseFloat($('m-rate')?.value) || 0;
-  let subtotalHT = labor * rate, totalCost = 0;
-
-  document.querySelectorAll('.kit-cb:checked').forEach(cb => {
-    const s = stock.find(x => x.id === cb.dataset.id);
-    const q = parseFloat(document.querySelector(`[data-qty="${cb.dataset.id}"]`)?.value) || 0;
-    const p = parseFloat(document.querySelector(`[data-price="${cb.dataset.id}"]`)?.value) || 0;
-    if (s && q > 0) { subtotalHT += q * p; totalCost += q * (Number(s.buyPrice) || 0); }
-  });
-
-  const discountAmount = calcDiscount(subtotalHT, $('m-disc')?.value, $('m-disctype')?.value || 'eur');
-  const totalHT = Math.max(0, subtotalHT - discountAmount);
-  const vat = Number(cfg.vatRate) || 0;
-  const totalTTC = totalHT * (1 + vat / 100);
-
-  if ($('live-total')) $('live-total').textContent = vat > 0 ? `${eur(totalTTC)} TTC` : `${eur(totalHT)} HT`;
-  if ($('live-ttc')) {
-    const discTxt = discountAmount > 0 ? `Remise -${eur(discountAmount)} • ` : '';
-    $('live-ttc').textContent = vat > 0 ? `${discTxt}${eur(totalHT)} HT + TVA ${vat}%` : `${discTxt}TVA non applicable (0%)`;
-  }
-  if ($('live-margin')) $('live-margin').textContent = `Marge nette : ${eur(totalHT - totalCost)}`;
-};
-
-window.saveMaintenance = async (openInvAfter = false) => {
-  const b = boats.find(x => x.id === activeBoatId); if (!b) return;
-  const desc = $('m-desc').value.trim();
-  if (!desc) return alert('Entre une description des travaux.');
-
-  let hours = Number(b.hours || 0);
-  const hIn = $('m-hours').value;
-  if (hIn !== '') {
-    const h = parseFloat(hIn);
-    if (isNaN(h)) return alert('Heures moteur invalides.');
-    if (h < hours && !confirm(`${h} h est inférieur à l'index actuel (${fmt(hours)} h). Continuer ?`)) return;
-    hours = h;
-  }
-  const labor = parseFloat($('m-labor').value) || 0;
-  const hourlyRate = parseFloat($('m-rate').value) || 0;
-
-  const batch = writeBatch(db);
-  const used = [], short = [], items = [];
-  let partsTotalHT = 0;
-
-  document.querySelectorAll('.kit-cb:checked').forEach(cb => {
-    const s = stock.find(x => x.id === cb.dataset.id);
-    const q = parseFloat(document.querySelector(`[data-qty="${cb.dataset.id}"]`).value);
-    const unitPrice = parseFloat(document.querySelector(`[data-price="${cb.dataset.id}"]`).value) || 0;
-    if (!s || !(q > 0)) return;
-    if (q > Number(s.qty)) short.push(s.name);
-    batch.update(doc(db, 'stock', s.id), q > Number(s.qty) ? { qty: 0 } : { qty: increment(-q) });
-    const lineTotal = q * unitPrice;
-    partsTotalHT += lineTotal;
-    used.push(`${s.name}${s.ref ? ' [' + s.ref + ']' : ''} (x${q}${isOil(s) ? ' L' : ''} à ${eur(unitPrice)})`);
-    items.push({ label: s.name, ref: s.ref || '', qty: q, unit: isOil(s) ? 'L' : 'u', unitPrice, total: lineTotal });
-  });
-
-  if (short.length && !confirm(`Stock insuffisant pour : ${short.join(', ')}.\nLe stock passera à 0. Continuer ?`)) return;
-
-  const subtotalHT = partsTotalHT + (labor * hourlyRate);
-  const discountVal = parseFloat($('m-disc').value) || 0;
-  const discountType = $('m-disctype').value || 'eur';
-  const discountAmount = calcDiscount(subtotalHT, discountVal, discountType);
-  const totalHT = Math.max(0, subtotalHT - discountAmount);
-  const vatRate = Number(cfg.vatRate) || 0;
-  const vatAmount = totalHT * (vatRate / 100);
-  const totalTTC = totalHT + vatAmount;
-
-  const invSeq = Number(cfg.nextInvNum) || 1;
-  const now = new Date();
-  const invNumber = `FAC-${now.getFullYear()}-${String(invSeq).padStart(3, '0')}`;
-
-  const log = {
-    date: now.toLocaleDateString('fr-FR'), dateISO: now.toISOString(), desc, newHours: hours,
-    laborHours: labor, hourlyRate, partsUsed: used, items, subtotalHT, discountVal,
-    discountType, discountAmount, totalHT, vatRate, vatAmount, totalTTC,
-    invoice: { number: invNumber, issuedAt: now.toLocaleDateString('fr-FR'), status: 'impayee' }
-  };
-
-  batch.update(doc(db, 'boats', b.id), { hours, logs: arrayUnion(log) });
-  batch.set(doc(db, 'settings', 'general'), { nextInvNum: invSeq + 1 }, { merge: true });
-
-  const btn1 = $('save-maint'), btn2 = $('save-maint-inv');
-  btn1.disabled = true; btn2.disabled = true;
-
-  try {
-    await batch.commit();
-    ['m-desc', 'm-custom-type', 'm-hours', 'm-labor', 'm-disc'].forEach(i => $(i).value = '');
-    $('m-type').value = 'Maintenance 100h';
-    $('m-custom-type').classList.add('hide');
-    $('m-desc').value = 'Maintenance 100h';
-    $('m-rate').value = cfg.hourlyRate ?? 60;
-    checklistState = {};
-    document.querySelectorAll('.kit-cb').forEach(cb => cb.checked = false);
-    updateLiveTotal();
-    toast('Entretien enregistré & stock mis à jour');
-    if (openInvAfter) {
-      const updatedBoat = boats.find(x => x.id === b.id) || b;
-      openInvoice(b.id, (updatedBoat.logs?.length || 1) - 1);
-    }
-  } catch (e) {
-    console.error(e);
-    toast("Erreur : rien n'a été enregistré.", true);
-  }
-  btn1.disabled = false; btn2.disabled = false;
-};
-
-window.openEditInvoiceFromPreview = () => {
-  if (!currentInvRef) return;
-  const { boatId, logIdx } = currentInvRef;
-  closeModals(); openEditInvoice(boatId, logIdx);
-};
-
-window.cancelInvoiceFromPreview = () => {
-  if (!currentInvRef) return;
-  const { boatId, logIdx } = currentInvRef;
-  if (!confirm('Passer cette facture au statut Annulée ?')) return;
-  changeInvoiceStatus(boatId, logIdx, 'annulee');
-  closeModals();
-};
-
-function populateStockDropdown() {
-  const sel = $('ed-stock-pick');
-  if (!sel) return;
-  const b = currentInvRef ? boats.find(x => x.id === currentInvRef.boatId) : null;
-  const sorted = stock.slice().sort((a, x) => {
-    if (b) {
-      const ma = autoMatchPart(a, b).tier === 'match' ? 0 : 1;
-      const mx = autoMatchPart(x, b).tier === 'match' ? 0 : 1;
-      if (ma !== mx) return ma - mx;
-    }
-    return byName(a, x);
-  });
-  sel.innerHTML = `<option value="">+ Pièce du stock...</option>` + sorted.map(s => {
-    const tag = b && autoMatchPart(s, b).tier === 'match' ? ' 🤖' : '';
-    return `<option value="${esc(s.id)}">${esc(s.name)}${tag} (${eur(s.sellPrice || 0)})</option>`;
-  }).join('');
-}
-
-window.addSelectedStockLine = sel => {
-  const id = sel.value; if (!id) return;
-  const s = stock.find(x => x.id === id); sel.value = ''; if (!s) return;
-  const b = currentInvRef ? boats.find(x => x.id === currentInvRef.boatId) : null;
-  const q = getSuggestedQty(s, getEngineOilSpec(b));
-  appendEditorLine({ label: s.name, ref: s.ref || '', qty: q, unit: isOil(s) ? 'L' : 'u', unitPrice: Number(s.sellPrice) || 0, total: q * (Number(s.sellPrice) || 0) });
-  recalcEditorTotals();
-};
-
-window.openEditInvoice = (boatId, logIdx) => {
-  const b = boats.find(x => x.id === boatId);
-  if (!b || !b.logs || !b.logs[logIdx]) return;
-  currentInvRef = { boatId, logIdx };
-  const l = b.logs[logIdx];
-  populateStockDropdown();
-  $('ed-inv-num').value = l.invoice?.number || `FAC-${new Date().getFullYear()}-${logIdx + 1}`;
-  $('ed-inv-date').value = l.invoice?.issuedAt || l.date || new Date().toLocaleDateString('fr-FR');
-  $('ed-inv-status').value = l.invoice?.status || 'impayee';
-  $('ed-inv-desc').value = l.desc || '';
-  $('ed-inv-labor').value = l.laborHours ?? 0;
-  $('ed-inv-rate').value = l.hourlyRate ?? cfg.hourlyRate ?? 60;
-  $('ed-inv-disc').value = l.discountVal ?? '';
-  $('ed-inv-disctype').value = l.discountType || 'eur';
-  $('ed-inv-note').value = l.invoice?.note || '';
-
-  const lines = Array.isArray(l.items) && l.items.length
-    ? l.items : (l.partsUsed || []).map(p => ({ label: p, ref: '', qty: 1, unit: 'u', unitPrice: 0, total: 0 }));
-  $('ed-inv-lines').innerHTML = '';
-  lines.forEach(it => appendEditorLine(it));
-  recalcEditorTotals();
-  $('inv-editor-modal').classList.add('active');
-};
-
-function appendEditorLine(it = {}) {
-  const div = document.createElement('div');
-  div.className = 'ed-line';
-  div.innerHTML = `
-    <div style="display:flex;gap:6px;align-items:center">
-      <input class="inp ed-l-label" style="flex:1" placeholder="Désignation (pièce ou forfait)" value="${esc(it.label || '')}" oninput="recalcEditorTotals()">
-      <input class="inp ed-l-ref" style="width:95px" placeholder="Réf" value="${esc(it.ref || '')}">
-      <button type="button" class="btn b-d hbtn" onclick="this.closest('.ed-line').remove(); recalcEditorTotals()">🗑</button>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:6px">
-      <input type="number" step="0.05" class="inp ed-l-qty" placeholder="Qté" value="${esc(it.qty ?? 1)}" oninput="recalcEditorTotals()">
-      <input class="inp ed-l-unit" style="text-align:center" placeholder="Unité" value="${esc(it.unit || 'u')}">
-      <input type="number" step="0.01" class="inp ed-l-price" placeholder="P.U. HT (€)" value="${esc(it.unitPrice ?? 0)}" oninput="recalcEditorTotals()">
-    </div>`;
-  $('ed-inv-lines').appendChild(div);
-}
-
-window.addEditorLine = () => appendEditorLine({ label: '', ref: '', qty: 1, unit: 'u', unitPrice: 0 });
-
-window.recalcEditorTotals = () => {
-  const labor = parseFloat($('ed-inv-labor')?.value) || 0;
-  const rate = parseFloat($('ed-inv-rate')?.value) || 0;
-  let sub = labor * rate;
-  document.querySelectorAll('#ed-inv-lines .ed-line').forEach(el => {
-    sub += (parseFloat(el.querySelector('.ed-l-qty')?.value) || 0) * (parseFloat(el.querySelector('.ed-l-price')?.value) || 0);
-  });
-  const ht = Math.max(0, sub - calcDiscount(sub, $('ed-inv-disc')?.value, $('ed-inv-disctype')?.value || 'eur'));
-  const vat = Number(cfg.vatRate) || 0;
-  if ($('ed-inv-total')) $('ed-inv-total').textContent = vat > 0 ? `${eur(ht * (1 + vat / 100))} TTC` : `${eur(ht)} HT`;
-};
-
-window.saveEditedInvoice = () => {
-  if (!currentInvRef) return;
-  const { boatId, logIdx } = currentInvRef;
-  const b = boats.find(x => x.id === boatId);
-  if (!b || !b.logs || !b.logs[logIdx]) return;
-
-  const invNumber = $('ed-inv-num').value.trim() || `FAC-${new Date().getFullYear()}-${logIdx + 1}`;
-  const issuedAt = $('ed-inv-date').value.trim() || b.logs[logIdx].invoice?.issuedAt || b.logs[logIdx].date;
-  const status = $('ed-inv-status').value;
-  const desc = $('ed-inv-desc').value.trim() || b.logs[logIdx].desc;
-  const laborHours = parseFloat($('ed-inv-labor').value) || 0;
-  const hourlyRate = parseFloat($('ed-inv-rate').value) || 0;
-  const discVal = parseFloat($('ed-inv-disc').value) || 0;
-  const discType = $('ed-inv-disctype').value || 'eur';
-  const note = $('ed-inv-note').value.trim();
-
-  const items = [], partsUsed = [];
-  let partsTotalHT = 0;
-  document.querySelectorAll('#ed-inv-lines .ed-line').forEach(el => {
-    const label = el.querySelector('.ed-l-label')?.value.trim();
-    const ref = el.querySelector('.ed-l-ref')?.value.trim() || '';
-    const qty = parseFloat(el.querySelector('.ed-l-qty')?.value) || 0;
-    const unit = el.querySelector('.ed-l-unit')?.value.trim() || 'u';
-    const unitPrice = parseFloat(el.querySelector('.ed-l-price')?.value) || 0;
-    if (!label && qty === 0 && unitPrice === 0) return;
-    const total = qty * unitPrice;
-    partsTotalHT += total;
-    items.push({ label: label || 'Prestation', ref, qty, unit, unitPrice, total });
-    partsUsed.push(`${label || 'Prestation'}${ref ? ' [' + ref + ']' : ''} (x${qty}${unit && unit !== 'u' ? ' ' + unit : ''} à ${eur(unitPrice)})`);
-  });
-
-  const subtotalHT = laborHours * hourlyRate + partsTotalHT;
-  const discountAmount = calcDiscount(subtotalHT, discVal, discType);
-  const totalHT = Math.max(0, subtotalHT - discountAmount);
-  const vatRate = b.logs[logIdx].vatRate ?? cfg.vatRate ?? 0;
-  const vatAmount = totalHT * (vatRate / 100);
-  const totalTTC = totalHT + vatAmount;
-
-  const updatedLogs = b.logs.map((l, idx) => idx !== logIdx ? l : ({
-    ...l, desc, laborHours, hourlyRate, items, partsUsed, subtotalHT,
-    discountVal: discVal, discountType: discType, discountAmount, totalHT, vatRate, vatAmount, totalTTC,
-    invoice: { ...(l.invoice || {}), number: invNumber, issuedAt, status, note }
-  }));
-
-  safe(async () => { await updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs }); closeModals(); }, 'Facture mise à jour');
-};
-
-window.changeInvoiceStatus = (boatId, logIdx, newStatus) => {
-  const b = boats.find(x => x.id === boatId);
-  if (!b || !b.logs || !b.logs[logIdx]) return;
-  const updatedLogs = b.logs.map((l, idx) => idx !== logIdx ? l : ({
-    ...l, invoice: { ...(l.invoice || { number: `FAC-${new Date().getFullYear()}-${idx + 1}`, issuedAt: l.date }), status: newStatus }
-  }));
-  safe(() => updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs }), 'Statut mis à jour');
-};
-
-window.deleteInvoice = (boatId, logIdx) => {
-  if (!confirm('Supprimer cette facture et cette ligne d’historique ?')) return;
-  const b = boats.find(x => x.id === boatId);
-  if (!b || !b.logs) return;
-  const updatedLogs = b.logs.filter((_, idx) => idx !== logIdx);
-  safe(() => updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs }), 'Facture supprimée');
-};
-
-window.openInvoice = (boatId, logIdx) => {
-  const b = boats.find(x => x.id === boatId);
-  if (!b || !b.logs || !b.logs[logIdx]) return;
-  currentInvRef = { boatId, logIdx };
-  renderInvoiceModal(b, b.logs[logIdx]);
-};
-
-function renderInvoiceModal(b, l) {
-  const invNum = l.invoice?.number || `FAC-${new Date().getFullYear()}-PROV`;
-  const invDate = l.invoice?.issuedAt || l.date || new Date().toLocaleDateString('fr-FR');
-  const isCancelled = l.invoice?.status === 'annulee';
-  const rows = [];
-
-  if (l.laborHours > 0) {
-    const rate = l.hourlyRate ?? cfg.hourlyRate ?? 0;
-    rows.push(`<tr><td><b>Main d'œuvre mécanique</b><br><small style="color:#555">${esc(l.desc)}</small></td><td class="num">${fmt(l.laborHours)} h</td><td class="num">${eur(rate)}</td><td class="num">${eur(l.laborHours * rate)}</td></tr>`);
-  } else {
-    rows.push(`<tr><td><b>Intervention : ${esc(l.desc)}</b></td><td class="num">1</td><td class="num">-</td><td class="num">-</td></tr>`);
-  }
-  if (l.items && l.items.length) {
-    l.items.forEach(it => rows.push(`<tr><td>${esc(it.label)}${it.ref ? ` <small style="color:#555">(Réf: ${esc(it.ref)})</small>` : ''}</td><td class="num">${fmt(it.qty)} ${esc(it.unit || '')}</td><td class="num">${eur(it.unitPrice)}</td><td class="num">${eur(it.total)}</td></tr>`));
-  } else if (l.partsUsed && l.partsUsed.length) {
-    l.partsUsed.forEach(p => rows.push(`<tr><td colspan="4">${esc(p)}</td></tr>`));
-  }
-
-  const totalHT = l.totalHT ?? 0, discountAmount = l.discountAmount ?? 0;
-  const subtotalHT = l.subtotalHT ?? (totalHT + discountAmount);
-  const vatRate = l.vatRate ?? cfg.vatRate ?? 0, vatAmount = totalHT * vatRate / 100;
-  const totalTTC = l.totalTTC ?? (totalHT + vatAmount), noteTxt = l.invoice?.note || '';
-
-  $('invoice-render').innerHTML = `
-    <div class="inv-paper">
-      <div class="inv-head">
-        <div>
-          <div style="font-size:1.15rem;font-weight:800;color:#0b132b">${esc(cfg.bizName || 'Meca Manager')}</div>
-          <div style="white-space:pre-line;color:#444;font-size:.78rem;margin-top:4px">${esc(cfg.bizAddr || '')}</div>
-        </div>
-        <div style="text-align:right">
-          <div class="inv-title">FACTURE</div>
-          <div style="font-weight:700;margin-top:4px">N° ${esc(invNum)}</div>
-          <div style="color:#555;font-size:.8rem">Date : ${esc(invDate)}</div>
-          ${isCancelled ? `<div class="stamp-cancel">Annulée</div>` : ''}
-        </div>
-      </div>
-      <div class="inv-grid">
-        <div class="inv-box">
-          <div style="font-size:.7rem;text-transform:uppercase;color:#666;font-weight:700">Client</div>
-          <div style="font-weight:700;margin-top:3px;white-space:pre-line">${esc(b.owner || 'Client comptoir')}</div>
-        </div>
-        <div class="inv-box">
-          <div style="font-size:.7rem;text-transform:uppercase;color:#666;font-weight:700">Navire & Motorisation</div>
-          <div style="font-weight:700;margin-top:3px">${esc(b.name)} (${esc(b.model)})</div>
-          <div style="font-size:.78rem;color:#444">Moteur : ${esc(engineTxt(b))} • Index : ${fmt(l.newHours)} h</div>
-          ${b.immat ? `<div style="font-size:.78rem;color:#444">Immat : ${esc(b.immat)}</div>` : ''}
-        </div>
-      </div>
-      <table class="inv-tbl">
-        <thead><tr><th>Désignation</th><th class="num">Qté</th><th class="num">P.U. HT</th><th class="num">Total HT</th></tr></thead>
-        <tbody>${rows.join('')}</tbody>
-      </table>
-      <div class="inv-tot">
-        ${discountAmount > 0 ? `<div><span>Sous-total HT :</span><span>${eur(subtotalHT)}</span></div><div style="color:#c1121f"><span>Remise${l.discountType === 'pct' ? ` (${l.discountVal}%)` : ''} :</span><span>-${eur(discountAmount)}</span></div>` : ''}
-        <div><span>Total HT :</span><b>${eur(totalHT)}</b></div>
-        ${vatRate > 0 ? `<div><span>TVA (${vatRate}%) :</span><span>${eur(vatAmount)}</span></div>` : ''}
-        <div class="grand"><span>NET À PAYER ${vatRate > 0 ? 'TTC' : ''} :</span><span>${eur(totalTTC)}</span></div>
-      </div>
-      ${noteTxt ? `<div style="margin-top:14px;padding:8px 10px;background:#f4f6fa;border-radius:6px;font-size:.78rem;color:#333"><b>Note :</b> ${esc(noteTxt)}</div>` : ''}
-      <div class="inv-foot">
-        <div style="white-space:pre-line">${esc(cfg.bizLegal || '')}</div>
-        <div style="margin-top:4px">Merci de votre confiance.</div>
-      </div>
-    </div>`;
-  $('invoice-modal').classList.add('active');
-}
-
-window.downloadInvoicePDF = () => {
-  const el = document.querySelector('#invoice-render .inv-paper');
-  if (!el) return;
-  const invTitle = el.querySelector('.inv-head > div:last-child > div:nth-child(2)')?.textContent || '';
-  const cleanNum = invTitle.replace(/^N°\s*/i, '').trim() || 'Facture';
-  if (typeof html2pdf === 'undefined') { toast("Librairie PDF indisponible, ouverture de l'impression.", true); window.print(); return; }
-  html2pdf().set({
-    margin: [8, 8, 8, 8], filename: `${cleanNum}.pdf`,
-    image: { type: 'jpeg', quality: 0.96 }, html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).from(el).save().then(() => toast(`${cleanNum}.pdf téléchargé`));
-};
-
-window.autoSaveWorks = text => {
-  if (!activeBoatId) return;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => safe(() => updateDoc(doc(db, 'boats', activeBoatId), { upcomingWorks: text })), 600);
-};
-window.completeWorks = () => {
-  const b = boats.find(x => x.id === activeBoatId); if (!b) return;
-  const txt = $('upcoming').value.trim();
-  if (!txt) return alert('Aucun travail renseigné.');
-  const now = new Date();
-  const log = { date: now.toLocaleDateString('fr-FR'), dateISO: now.toISOString(), desc: '[Travaux réalisés] ' + txt, newHours: Number(b.hours || 0), laborHours: 0, partsUsed: [] };
-  safe(async () => { await updateDoc(doc(db, 'boats', b.id), { logs: arrayUnion(log), upcomingWorks: '' }); $('upcoming').value = ''; }, 'Travaux archivés');
-};
-window.updateStatus = (id, status) => safe(() => updateDoc(doc(db, 'boats', id), { status }));
-
-window.openBoatModal = () => $('boat-modal').classList.add('active');
-window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-
-window.saveBoat = () => {
-  const name = $('b-name').value.trim(), model = $('b-model').value.trim();
-  if (!name || !model) return alert('Remplis le nom et le modèle.');
-  safe(async () => {
-    await addDoc(collection(db, 'boats'), {
-      name, model, owner: $('b-owner').value.trim(), immat: $('b-immat').value.trim(),
-      engineBrand: $('b-ebrand').value.trim(), engineModel: $('b-emodel').value.trim(), engineSn: $('b-sn').value.trim(),
-      status: $('b-status').value, hours: parseFloat($('b-hours').value) || 0, fuel: $('b-fuel').value,
-      notes: $('b-notes').value.trim(), upcomingWorks: '', logs: []
-    });
-    ['b-name', 'b-model', 'b-owner', 'b-immat', 'b-ebrand', 'b-emodel', 'b-sn', 'b-hours', 'b-notes'].forEach(i => $(i).value = '');
-    closeModals();
-  }, 'Bateau ajouté');
-};
-window.openEditBoat = () => {
-  const b = boats.find(x => x.id === activeBoatId); if (!b) return;
-  $('e-name').value = b.name || ''; $('e-model').value = b.model || ''; $('e-owner').value = b.owner || '';
-  $('e-immat').value = b.immat || ''; $('e-ebrand').value = b.engineBrand || ''; $('e-emodel').value = b.engineModel || '';
-  $('e-sn').value = b.engineSn || ''; $('e-fuel').value = b.fuel || 'Essence'; $('e-notes').value = b.notes || '';
-  $('edit-modal').classList.add('active');
-};
-window.updateBoat = () => {
-  const name = $('e-name').value.trim(), model = $('e-model').value.trim();
-  if (!name || !model) return alert('Nom et modèle obligatoires.');
-  safe(async () => {
-    await updateDoc(doc(db, 'boats', activeBoatId), {
-      name, model, owner: $('e-owner').value.trim(), immat: $('e-immat').value.trim(),
-      engineBrand: $('e-ebrand').value.trim(), engineModel: $('e-emodel').value.trim(),
-      engineSn: $('e-sn').value.trim(), fuel: $('e-fuel').value, notes: $('e-notes').value.trim()
-    });
-    closeModals();
-  }, 'Bateau mis à jour');
-};
-window.deleteBoat = id => {
-  const b = boats.find(x => x.id === id);
-  if (confirm(`Supprimer « ${b ? b.name : 'ce bateau'} » et tout son historique ?`)) safe(() => deleteDoc(doc(db, 'boats', id)));
-};
-
 function compress(file) {
   return new Promise(res => {
     const r = new FileReader();
@@ -2098,26 +790,16 @@ function compress(file) {
     r.onerror = () => res(null); r.readAsDataURL(file);
   });
 }
-window.openStockModal = id => {
-  editStockId = id || null;
-  const s = id ? stock.find(x => x.id === id) : null;
-  $('s-title').textContent = s ? 'Modifier la référence' : 'Nouvelle référence';
-  $('s-name').value = s ? s.name || '' : ''; $('s-ref').value = s ? s.ref || '' : '';
-  $('s-cat').value = s ? s.cat || 'Moteur / Filtres' : 'Moteur / Filtres';
-  $('s-buy').value = s && s.buyPrice != null ? s.buyPrice : '';
-  $('s-sell').value = s && s.sellPrice != null ? s.sellPrice : '';
-  $('s-qty').value = s ? s.qty : ''; $('s-min').value = s ? s.min : ''; $('s-loc').value = s ? s.loc || '' : '';
-  $('s-file').value = '';
-  previewPartMatch();
-  $('stock-modal').classList.add('active');
-};
 window.saveStock = async () => {
   const name = $('s-name').value.trim(), qty = parseFloat($('s-qty').value);
   if (!name || isNaN(qty)) return alert('Nom et quantité requis.');
   const btn = $('s-save'); btn.disabled = true;
+  const cat = $('s-cat').value;
   const data = {
-    name, ref: $('s-ref').value.trim(), cat: $('s-cat').value,
-    buyPrice: parseFloat($('s-buy').value) || 0, sellPrice: parseFloat($('s-sell').value) || 0,
+    name, ref: $('s-ref').value.trim(),
+    type: $('s-type').value || partType({ name, cat }),
+    brand: $('s-brand').value.trim(), models: $('s-models').value.trim(),
+    cat, buyPrice: parseFloat($('s-buy').value) || 0, sellPrice: parseFloat($('s-sell').value) || 0,
     qty, min: parseFloat($('s-min').value) || 2, loc: $('s-loc').value.trim()
   };
   const f = $('s-file').files[0];
@@ -2136,17 +818,742 @@ window.changeQty = (id, d) => {
 };
 window.deleteStock = id => {
   const s = stock.find(x => x.id === id);
-  if (confirm(`Supprimer « ${s ? s.name : 'cette référence'} » ?`)) safe(() => deleteDoc(doc(db, 'stock', id)));
+  if (confirm(`Supprimer « ${s ? s.name : 'cette pièce'} » ?`)) safe(() => deleteDoc(doc(db, 'stock', id)));
 };
 
+/* ===== Flotte & fiche bateau ===== */
+window.openBoatDetail = id => {
+  activeBoatId = id; sel = {};
+  $('main').classList.add('hide'); $('nav').classList.add('hide'); $('detail').classList.remove('hide');
+  const b = currentBoat();
+  $('upcoming').value = (b && b.upcomingWorks) || '';
+  if ($('part-filter')) $('part-filter').value = '';
+  $('m-type').value = 'Maintenance 100h';
+  $('m-custom-type').value = ''; $('m-custom-type').classList.add('hide');
+  $('m-desc').value = 'Maintenance 100h';
+  $('m-hours').value = ''; $('m-labor').value = ''; $('m-disc').value = '';
+  $('m-rate').value = cfg.hourlyRate ?? 60;
+  renderBoatDetail(); renderChecklist(true); updateLiveTotal();
+  window.scrollTo(0, 0);
+};
+window.backToFlotte = () => {
+  activeBoatId = null; sel = {};
+  $('detail').classList.add('hide'); $('main').classList.remove('hide'); $('nav').classList.remove('hide');
+  $('sub').textContent = subtitleFor(tab);
+  renderAll();
+};
+function subtitleFor(t) {
+  return t === 'flotte' ? 'Gestion de flotte hors-bord'
+    : t === 'planning' ? 'Planning entretiens & stock'
+    : t === 'stock' ? 'Stock par marque de hors-bord'
+    : 'Suivi des factures';
+}
+function renderBoatDetail() {
+  const b = currentBoat(); if (!b) return;
+  $('sub').textContent = 'Fiche : ' + (b.name || '');
+  if (document.activeElement !== $('upcoming')) $('upcoming').value = b.upcomingWorks || '';
+  const r = reminder(b);
+  $('boat-content').innerHTML = `
+    <div class="card">
+      <div class="ch"><div><div class="ct">${esc(b.name)}</div><div class="cs">${esc(b.model)}</div></div>
+        <select style="width:auto" onchange="updateStatus('${b.id}',this.value)">
+          ${['eau', 'hangar', 'atelier', 'hivernage'].map(s => `<option value="${s}" ${b.status === s ? 'selected' : ''}>${statusLabel(s)}</option>`).join('')}
+        </select></div>
+      <div class="grid2">
+        <div>👤 ${esc(b.owner) || 'N/C'}</div><div>⏱ ${fmt(b.hours)} h</div>
+        <div class="full">⚙️ ${esc(engTxt(b))}${b.engineSn ? ' • N° ' + esc(b.engineSn) : ''}</div>
+        <div>⚓ ${esc(b.immat) || 'N/C'}</div><div>⛽ ${esc(b.fuel)}</div>
+        ${b.notes ? `<div class="full">📝 ${esc(b.notes)}</div>` : ''}
+      </div>
+      ${r ? r.html : ''}
+    </div>`;
+  const eL = Number(b.oilEngineL) || 0, gL = Number(b.oilGearL) || 0;
+  $('oil-capacity-box').innerHTML = (eL || gL)
+    ? `<div class="oil-banner">🛢️ Huile à prévoir : ${eL ? eL + ' L moteur' : ''}${eL && gL ? ' • ' : ''}${gL ? gL + ' L embase' : ''}</div>`
+    : `<div class="note">Renseigne les litres d'huile et le nombre de bougies (✏️ Modifier) pour que les quantités se calculent.</div>`;
+
+  const logs = (b.logs || []).map((l, origIdx) => ({ ...l, origIdx })).reverse();
+  $('history').innerHTML = logs.length ? logs.map(l => {
+    const st = l.invoice?.status || 'impayee';
+    return `<div class="hist">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="font-weight:700;color:var(--cy)">📅 ${esc(l.date)} — ⏱ ${fmt(l.newHours)} h</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${l.invoice ? `<span class="badge st-${esc(st)}">${invStatusLabel(st)}</span>` : ''}
+          <button class="btn b-s hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openEditInvoice('${b.id}', ${l.origIdx})">✏️</button>
+          <button class="btn b-g hbtn" style="font-size:.72rem;padding:4px 8px" onclick="openInvoice('${b.id}', ${l.origIdx})">🧾 ${l.invoice ? esc(l.invoice.number) : 'Facturer'}</button>
+        </div>
+      </div>
+      <div>${esc(l.desc)}</div>
+      ${l.laborHours ? `<div style="font-size:.8rem;color:var(--green)">⏱ MO : ${fmt(l.laborHours)} h${l.hourlyRate ? ` × ${eur(l.hourlyRate)}/h` : ''}</div>` : ''}
+      ${(l.partsUsed || []).length ? `<div style="font-size:.75rem;color:var(--sec)">📦 ${l.partsUsed.map(esc).join(', ')}</div>` : ''}
+      ${l.totalHT != null ? `<div style="font-size:.82rem;font-weight:700;color:#fff">💶 Total : ${eur(l.totalTTC ?? l.totalHT)}</div>` : ''}
+    </div>`;
+  }).join('') : `<div style="font-size:.85rem;color:var(--sec);margin-top:6px">Aucune maintenance enregistrée.</div>`;
+}
+window.updateStatus = (id, status) => safe(() => updateDoc(doc(db, 'boats', id), { status }));
+window.onBoatMaintTypeChange = () => {
+  const val = $('m-type').value;
+  $('m-custom-type').classList.toggle('hide', val !== 'Autre');
+  $('m-desc').value = val === 'Autre' ? ($('m-custom-type').value.trim() || '') : val;
+  if (val !== 'Autre') checkEngineParts();
+};
+window.onBoatCustomTypeInput = () => {
+  if ($('m-type').value === 'Autre') $('m-desc').value = $('m-custom-type').value.trim();
+};
+
+/* ===== Checklist : pièces compatibles avec le moteur de la fiche ===== */
+function readSel() {
+  document.querySelectorAll('.kit-cb').forEach(cb => {
+    const id = cb.dataset.id;
+    const q = document.querySelector(`[data-qty="${id}"]`), p = document.querySelector(`[data-price="${id}"]`);
+    sel[id] = { c: cb.checked, q: q ? q.value : sel[id]?.q, p: p ? p.value : sel[id]?.p };
+  });
+}
+function renderChecklist(fresh) {
+  const b = currentBoat(); if (!b) return;
+  if (!fresh) readSel();
+  const f = ($('part-filter')?.value || '').trim();
+  const groups = { match: [], univ: [], todo: [], other: [] };
+  stock.slice().sort(byName).forEach(s => {
+    if (f && !match(f, s.name, s.ref, s.brand, s.models, partType(s))) return;
+    const c = compat(s, b);
+    groups[c.level].push({ s, c });
+  });
+  const row = ({ s, c }) => {
+    const st = sel[s.id] || {};
+    const q = st.q ?? defaultQty(s, b);
+    const p = st.p ?? (s.sellPrice || 0);
+    return `<div class="row">
+      <input type="checkbox" class="kit-cb" data-id="${s.id}" ${st.c ? 'checked' : ''} onchange="readSel();updateLiveTotal()">
+      <span style="flex:1;min-width:130px">${esc(s.name)}${c.reason ? `<span class="auto-tag">${esc(c.reason)}</span>` : ''}<br><small style="color:var(--sec)">${esc(partType(s))} • Réf : ${esc(s.ref) || 'N/A'} • dispo : ${fmt(s.qty)}${isOil(s) ? ' L' : ''}</small></span>
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="number" step="0.05" value="${esc(q)}" class="qin" data-qty="${s.id}" oninput="readSel();updateLiveTotal()">
+        <span style="font-size:.75rem;color:var(--sec)">×</span>
+        <input type="number" step="0.01" value="${esc(p)}" class="pin" data-price="${s.id}" oninput="readSel();updateLiveTotal()">
+        <span style="font-size:.75rem;color:var(--cy)">€</span>
+      </div></div>`;
+  };
+  const e = engineInfo(b);
+  let html = '';
+  if (!e.brand) html += `<div class="note">Renseigne la marque du hors-bord (✏️ Modifier) pour voir les pièces compatibles.</div>`;
+  else if (!e.code) html += `<div class="note">Renseigne le modèle du hors-bord (ex : F150) pour un tri précis.</div>`;
+  html += `<div class="sec-t">✅ Compatibles avec ${esc(e.txt)} (${groups.match.length})</div>`;
+  html += groups.match.length ? groups.match.map(row).join('')
+    : `<div class="lbl" style="margin-top:6px">Aucune pièce compatible en stock. Ajoute-la dans Stock avec la marque « ${esc(BRAND_LABEL[e.brand] || e.brand || '…')} ».</div>`;
+  if (groups.univ.length) html += `<div class="sec-t">Huiles & consommables (${groups.univ.length})</div>` + groups.univ.map(row).join('');
+  if (groups.todo.length) html += `<div class="sec-t" style="color:#ffa94d">À compléter (${groups.todo.length})</div>` + groups.todo.map(row).join('');
+  if (groups.other.length) html += `<details><summary>Autres marques / autres modèles (${groups.other.length})</summary>${groups.other.map(row).join('')}</details>`;
+  if (!stock.length) html = `<span class="lbl">Aucune pièce en stock</span>`;
+  $('checklist').innerHTML = html;
+  updateLiveTotal();
+}
+window.checkEngineParts = () => {
+  const b = currentBoat(); if (!b) return;
+  readSel();
+  const type = $('m-type').value;
+  const needs = (type === 'Autre' ? null : maintNeeds(b, type)) || [];
+  needs.forEach(n => {
+    const cand = stock.find(s => partType(s) === n.type && isOk(compat(s, b)));
+    if (cand) sel[cand.id] = { c: true, q: String(n.qty), p: sel[cand.id]?.p ?? (cand.sellPrice || 0) };
+  });
+  renderChecklist(true);
+};
+
+/* ===== Totaux & enregistrement d'un entretien ===== */
+function calcDiscount(subtotal, discVal, discType) {
+  const val = Math.max(0, parseFloat(discVal) || 0);
+  if (!val || subtotal <= 0) return 0;
+  const amount = discType === 'pct' ? subtotal * (Math.min(val, 100) / 100) : Math.min(val, subtotal);
+  return Math.round(amount * 100) / 100;
+}
+window.updateLiveTotal = () => {
+  const labor = parseFloat($('m-labor')?.value) || 0;
+  const rate = parseFloat($('m-rate')?.value) || 0;
+  let subtotalHT = labor * rate, totalCost = 0;
+  document.querySelectorAll('.kit-cb:checked').forEach(cb => {
+    const s = stock.find(x => x.id === cb.dataset.id);
+    const q = parseFloat(document.querySelector(`[data-qty="${cb.dataset.id}"]`)?.value) || 0;
+    const p = parseFloat(document.querySelector(`[data-price="${cb.dataset.id}"]`)?.value) || 0;
+    if (s && q > 0) { subtotalHT += q * p; totalCost += q * (Number(s.buyPrice) || 0); }
+  });
+  const discountAmount = calcDiscount(subtotalHT, $('m-disc')?.value, $('m-disctype')?.value || 'eur');
+  const totalHT = Math.max(0, subtotalHT - discountAmount);
+  const vat = Number(cfg.vatRate) || 0;
+  const totalTTC = totalHT * (1 + vat / 100);
+  if ($('live-total')) $('live-total').textContent = vat > 0 ? `${eur(totalTTC)} TTC` : `${eur(totalHT)} HT`;
+  if ($('live-ttc')) $('live-ttc').textContent = (discountAmount > 0 ? `Remise -${eur(discountAmount)} • ` : '') + (vat > 0 ? `TVA ${vat}%` : 'TVA non applicable');
+  if ($('live-margin')) $('live-margin').textContent = `Marge nette : ${eur(totalHT - totalCost)}`;
+};
+
+window.saveMaintenance = async (openInvAfter = false) => {
+  const b = currentBoat(); if (!b) return;
+  const desc = $('m-desc').value.trim();
+  if (!desc) return alert('Entre une description des travaux.');
+  let hours = Number(b.hours || 0);
+  const hIn = $('m-hours').value;
+  if (hIn !== '') {
+    const h = parseFloat(hIn);
+    if (isNaN(h)) return alert('Heures moteur invalides.');
+    if (h < hours && !confirm(`${h} h est inférieur à l'index actuel (${fmt(hours)} h). Continuer ?`)) return;
+    hours = h;
+  }
+  const labor = parseFloat($('m-labor').value) || 0;
+  const hourlyRate = parseFloat($('m-rate').value) || 0;
+
+  const batch = writeBatch(db);
+  const used = [], short = [], items = [];
+  let partsTotalHT = 0;
+  document.querySelectorAll('.kit-cb:checked').forEach(cb => {
+    const s = stock.find(x => x.id === cb.dataset.id);
+    const q = parseFloat(document.querySelector(`[data-qty="${cb.dataset.id}"]`).value);
+    const unitPrice = parseFloat(document.querySelector(`[data-price="${cb.dataset.id}"]`).value) || 0;
+    if (!s || !(q > 0)) return;
+    if (q > Number(s.qty)) short.push(s.name);
+    batch.update(doc(db, 'stock', s.id), q > Number(s.qty) ? { qty: 0 } : { qty: increment(-q) });
+    const lineTotal = q * unitPrice;
+    partsTotalHT += lineTotal;
+    used.push(`${s.name}${s.ref ? ' [' + s.ref + ']' : ''} (x${q}${isOil(s) ? ' L' : ''} à ${eur(unitPrice)})`);
+    items.push({ label: s.name, ref: s.ref || '', qty: q, unit: isOil(s) ? 'L' : 'u', unitPrice, total: lineTotal });
+  });
+  if (short.length && !confirm(`Stock insuffisant pour : ${short.join(', ')}.\nLe stock passera à 0. Continuer ?`)) return;
+
+  const subtotalHT = partsTotalHT + labor * hourlyRate;
+  const discountVal = parseFloat($('m-disc').value) || 0;
+  const discountType = $('m-disctype').value || 'eur';
+  const discountAmount = calcDiscount(subtotalHT, discountVal, discountType);
+  const totalHT = Math.max(0, subtotalHT - discountAmount);
+  const vatRate = Number(cfg.vatRate) || 0;
+  const totalTTC = totalHT + totalHT * (vatRate / 100);
+
+  const invSeq = Number(cfg.nextInvNum) || 1;
+  const now = new Date();
+  const invNumber = `FAC-${now.getFullYear()}-${String(invSeq).padStart(3, '0')}`;
+  const log = {
+    date: now.toLocaleDateString('fr-FR'), dateISO: now.toISOString(), desc, newHours: hours,
+    laborHours: labor, hourlyRate, partsUsed: used, items, subtotalHT, discountVal, discountType,
+    discountAmount, totalHT, vatRate, vatAmount: totalHT * (vatRate / 100), totalTTC,
+    invoice: { number: invNumber, issuedAt: now.toLocaleDateString('fr-FR'), status: 'impayee' }
+  };
+  batch.update(doc(db, 'boats', b.id), { hours, logs: arrayUnion(log) });
+  batch.set(doc(db, 'settings', 'general'), { nextInvNum: invSeq + 1 }, { merge: true });
+
+  const btn1 = $('save-maint'), btn2 = $('save-maint-inv');
+  btn1.disabled = true; btn2.disabled = true;
+  try {
+    await batch.commit();
+    ['m-desc', 'm-custom-type', 'm-hours', 'm-labor', 'm-disc'].forEach(i => $(i).value = '');
+    $('m-type').value = 'Maintenance 100h';
+    $('m-custom-type').classList.add('hide');
+    $('m-desc').value = 'Maintenance 100h';
+    $('m-rate').value = cfg.hourlyRate ?? 60;
+    sel = {};
+    renderChecklist(true);
+    toast('Entretien enregistré & stock mis à jour');
+    if (openInvAfter) {
+      const ub = currentBoat() || b;
+      openInvoice(b.id, (ub.logs?.length || 1) - 1);
+    }
+  } catch (e) {
+    console.error(e);
+    toast("Erreur : rien n'a été enregistré.", true);
+  }
+  btn1.disabled = false; btn2.disabled = false;
+};
+
+window.autoSaveWorks = text => {
+  if (!activeBoatId) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => safe(() => updateDoc(doc(db, 'boats', activeBoatId), { upcomingWorks: text })), 600);
+};
+window.completeWorks = () => {
+  const b = currentBoat(); if (!b) return;
+  const txt = $('upcoming').value.trim();
+  if (!txt) return alert('Aucun travail renseigné.');
+  const now = new Date();
+  const log = { date: now.toLocaleDateString('fr-FR'), dateISO: now.toISOString(), desc: '[Travaux réalisés] ' + txt, newHours: Number(b.hours || 0), laborHours: 0, partsUsed: [] };
+  safe(async () => { await updateDoc(doc(db, 'boats', b.id), { logs: arrayUnion(log), upcomingWorks: '' }); $('upcoming').value = ''; }, 'Travaux archivés');
+};
+
+/* ===== Bateaux (ajout / modification / suppression) ===== */
+window.openBoatModal = () => $('boat-modal').classList.add('active');
+window.closeModals = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+window.saveBoat = () => {
+  const name = $('b-name').value.trim(), model = $('b-model').value.trim();
+  if (!name || !model) return alert('Remplis le nom et le modèle.');
+  safe(async () => {
+    await addDoc(collection(db, 'boats'), {
+      name, model, owner: $('b-owner').value.trim(), immat: $('b-immat').value.trim(),
+      engineBrand: $('b-ebrand').value.trim(), engineModel: $('b-emodel').value.trim(), engineSn: $('b-sn').value.trim(),
+      oilEngineL: num($('b-oilE').value), oilGearL: num($('b-oilG').value), sparkCount: num($('b-spark').value),
+      status: $('b-status').value, hours: num($('b-hours').value), fuel: $('b-fuel').value,
+      notes: $('b-notes').value.trim(), upcomingWorks: '', logs: []
+    });
+    ['b-name', 'b-model', 'b-owner', 'b-immat', 'b-ebrand', 'b-emodel', 'b-sn', 'b-oilE', 'b-oilG', 'b-spark', 'b-hours', 'b-notes'].forEach(i => $(i).value = '');
+    closeModals();
+  }, 'Bateau ajouté');
+};
+window.openEditBoat = () => {
+  const b = currentBoat(); if (!b) return;
+  $('e-name').value = b.name || ''; $('e-model').value = b.model || ''; $('e-owner').value = b.owner || '';
+  $('e-immat').value = b.immat || ''; $('e-ebrand').value = b.engineBrand || ''; $('e-emodel').value = b.engineModel || '';
+  $('e-sn').value = b.engineSn || ''; $('e-oilE').value = b.oilEngineL || ''; $('e-oilG').value = b.oilGearL || '';
+  $('e-spark').value = b.sparkCount || ''; $('e-fuel').value = b.fuel || 'Essence'; $('e-notes').value = b.notes || '';
+  $('edit-modal').classList.add('active');
+};
+window.updateBoat = () => {
+  const name = $('e-name').value.trim(), model = $('e-model').value.trim();
+  if (!name || !model) return alert('Nom et modèle obligatoires.');
+  safe(async () => {
+    await updateDoc(doc(db, 'boats', activeBoatId), {
+      name, model, owner: $('e-owner').value.trim(), immat: $('e-immat').value.trim(),
+      engineBrand: $('e-ebrand').value.trim(), engineModel: $('e-emodel').value.trim(), engineSn: $('e-sn').value.trim(),
+      oilEngineL: num($('e-oilE').value), oilGearL: num($('e-oilG').value), sparkCount: num($('e-spark').value),
+      fuel: $('e-fuel').value, notes: $('e-notes').value.trim()
+    });
+    closeModals();
+  }, 'Bateau mis à jour');
+};
+window.deleteBoat = id => {
+  const b = boats.find(x => x.id === id);
+  if (confirm(`Supprimer « ${b ? b.name : 'ce bateau'} » et tout son historique ?`)) safe(() => deleteDoc(doc(db, 'boats', id)));
+};
+
+/* ===== Planning ===== */
+window.openPlanningModal = presetDate => {
+  $('p-date').value = presetDate || planningDay || toISODay(new Date());
+  const sorted = boats.slice().sort(byName);
+  $('p-boat').innerHTML = sorted.length
+    ? sorted.map(b => `<option value="${esc(b.id)}">${esc(b.name)} (${esc(engTxt(b))})</option>`).join('')
+    : `<option value="">Aucun bateau en flotte</option>`;
+  $('p-type').value = 'Maintenance 100h'; $('p-custom').value = ''; $('p-note').value = '';
+  toggleCustomType(); previewPlanningStock();
+  $('planning-modal').classList.add('active');
+};
+window.toggleCustomType = () => $('p-custom').classList.toggle('hide', $('p-type').value !== 'Autre');
+window.previewPlanningStock = () => {
+  const box = $('p-stock-check');
+  const b = boats.find(x => x.id === $('p-boat').value);
+  if (!b) { box.innerHTML = `<div class="lbl">Sélectionne un bateau.</div>`; return; }
+  const label = $('p-type').value === 'Autre' ? ($('p-custom').value.trim() || 'Autre intervention') : $('p-type').value;
+  const checks = getNeededPartsForBoat(b, label);
+  if (!checks.length) { box.innerHTML = `<div class="equiv-box">ℹ️ Intervention libre : pas de pièces prévues automatiquement.</div>`; return; }
+  const missing = checks.filter(c => !c.ok);
+  box.innerHTML = `<div class="oil-banner">✅ ${checks.length - missing.length} / ${checks.length} poste(s) disponible(s).</div>`
+    + (missing.length ? `<div class="alert" style="margin:6px 0 0"><b>⚠️ À commander :</b><br>${missing.map(m => `• <b>${esc(m.name)}</b> — ${esc(m.ref)} (manque ${fmt(m.missingQty)} ${m.unit})`).join('<br>')}</div>` : '');
+};
+window.savePlanningItem = () => {
+  const date = $('p-date').value, b = boats.find(x => x.id === $('p-boat').value);
+  if (!date || !b) return alert('Choisis une date et un bateau.');
+  const raw = $('p-type').value, custom = $('p-custom').value.trim();
+  if (raw === 'Autre' && !custom) return alert("Précise le type d'intervention.");
+  safe(async () => {
+    await addDoc(collection(db, 'planning'), {
+      date, boatId: b.id, boatName: b.name, engineLabel: engTxt(b),
+      maintType: raw === 'Autre' ? custom : raw, maintCategory: raw,
+      note: $('p-note').value.trim(), done: false, createdAt: new Date().toISOString()
+    });
+    planningDay = date;
+    closeModals();
+  }, 'Intervention planifiée');
+};
+window.togglePlanningDone = (id, done) => safe(() => updateDoc(doc(db, 'planning', id), { done }));
+window.deletePlanningItem = id => { if (confirm('Supprimer cette intervention ?')) safe(() => deleteDoc(doc(db, 'planning', id))); };
+window.setPlanningDay = iso => { if (!iso) return; planningDay = iso; renderAll(); };
+window.changePlanningDay = delta => {
+  const d = new Date(planningDay + 'T12:00:00'); d.setDate(d.getDate() + delta);
+  planningDay = toISODay(d); renderAll();
+};
+$('v-planning').addEventListener('click', e => {
+  const pill = e.target.closest('.day-pill');
+  if (pill && pill.dataset.day) setPlanningDay(pill.dataset.day);
+});
+function renderOrderRecapByBoat(q) {
+  const open = planning.filter(p => !p.done && p.date).sort((a, b) => a.date.localeCompare(b.date));
+  const byBoat = new Map();
+  open.forEach(p => {
+    const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName || 'Bateau', engineBrand: p.engineLabel, engineModel: '' };
+    if (q && !match(q, b.name, p.maintType, p.engineLabel)) return;
+    const missing = getNeededPartsForBoat(b, p.maintType).filter(c => !c.ok);
+    if (!missing.length) return;
+    const key = b.id || b.name;
+    if (!byBoat.has(key)) byBoat.set(key, { boat: b, entries: [] });
+    byBoat.get(key).entries.push({ date: p.date, maintType: p.maintType, dl: getDeadlineInfo(p.date), missing });
+  });
+  if (!byBoat.size) {
+    return `<div class="card" style="grid-column:1/-1"><div style="font-weight:800;color:var(--green)">🛒 Pièces à commander</div><div style="font-size:.82rem;color:var(--sec)">Rien à commander pour les entretiens planifiés.</div></div>`;
+  }
+  const blocks = [...byBoat.values()].map(({ boat, entries }) => `
+    <div style="border-top:1px solid var(--bd);padding-top:10px;margin-top:8px">
+      <div style="font-weight:800;color:var(--cy)">⛵ ${esc(boat.name)} <span style="font-size:.78rem;color:var(--sec);font-weight:400">(${esc(engTxt(boat))})</span></div>
+      ${entries.map(en => {
+        const pretty = new Date(en.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        return `<div class="recap-boat">
+          <div class="recap-boat-head"><span style="font-weight:700">🛠️ ${esc(en.maintType)} — ${esc(pretty)}</span>
+          <span class="badge ${en.dl.cls === 'late' ? 's-atelier' : en.dl.cls === 'soon' ? 'st-relance' : 's-hangar'}">${esc(en.dl.label)}</span></div>
+          ${en.missing.map(m => `<div class="recap-item">• <b>${esc(m.name)}</b> (${esc(m.ref)}) — manque <b>${fmt(m.missingQty)} ${esc(m.unit)}</b></div>`).join('')}
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+  return `<div class="card" style="grid-column:1/-1;border-color:var(--red)"><div style="font-weight:800;color:#ff8d99">🛒 Pièces à commander par bateau</div>${blocks}</div>`;
+}
+function renderPlanning() {
+  const q = query();
+  const dayItems = planning.filter(p => p.date === planningDay).filter(p => !q || match(q, p.boatName, p.engineLabel, p.maintType, p.note));
+  const prettyDate = new Date(planningDay + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const base = new Date(planningDay + 'T12:00:00');
+  const strip = Array.from({ length: 14 }, (_, idx) => {
+    const d = new Date(base); d.setDate(base.getDate() - 3 + idx);
+    const iso = toISODay(d);
+    const wk = d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '');
+    const count = planning.filter(p => p.date === iso && !p.done).length;
+    return `<button type="button" class="day-pill ${iso === planningDay ? 'active' : ''}" data-day="${iso}">
+      <span class="d-wk">${esc(wk)}</span><span class="d-num">${d.getDate()}</span><span class="d-dot">${count ? '• ' + count : '·'}</span></button>`;
+  }).join('');
+  const header = `<div class="card" style="grid-column:1/-1">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(-1)">← 1 j</button>
+      <div style="text-align:center;flex:1"><div style="font-weight:800;color:var(--cy);text-transform:capitalize">${esc(prettyDate)}</div>
+        <input type="date" class="inp" style="margin-top:6px;width:auto" value="${esc(planningDay)}" onchange="setPlanningDay(this.value)"></div>
+      <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(1)">1 j →</button>
+    </div>
+    <div class="days-strip">${strip}</div>
+    <button class="btn b-p" onclick="openPlanningModal('${esc(planningDay)}')">+ Programmer une maintenance</button>
+  </div>`;
+  const recap = renderOrderRecapByBoat(q);
+  if (!dayItems.length) {
+    $('v-planning').innerHTML = header + recap + `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--sec)">Aucune intervention ce jour.</div>`;
+    return;
+  }
+  const cards = dayItems.map(p => {
+    const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName, engineBrand: p.engineLabel, engineModel: '' };
+    const checks = getNeededPartsForBoat(b, p.maintType);
+    const missing = checks.filter(c => !c.ok);
+    const dl = getDeadlineInfo(p.date);
+    return `<div class="card" style="${p.done ? 'opacity:.65' : ''}">
+      <div class="ch"><div><div class="ct">⛵ ${esc(b.name || p.boatName)}</div><div class="cs">${esc(p.maintType)} • ${esc(engTxt(b))}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span class="badge ${p.done ? 's-eau' : 's-atelier'}">${p.done ? 'Terminé' : 'À faire'}</span>
+          ${!p.done ? `<span class="badge ${dl.cls === 'late' ? 's-atelier' : dl.cls === 'soon' ? 'st-relance' : 's-hangar'}">${esc(dl.label)}</span>` : ''}
+        </div></div>
+      ${p.note ? `<div style="font-size:.82rem;color:var(--sec)">📝 ${esc(p.note)}</div>` : ''}
+      ${missing.length
+        ? `<div class="alert" style="margin:0"><b>🛒 À commander :</b><br>${missing.map(m => `• <b>${esc(m.name)}</b> (${esc(m.ref)}) — manque ${fmt(m.missingQty)} ${m.unit}`).join('<br>')}</div>`
+        : `<div class="oil-banner">✅ Stock complet (${checks.length} poste(s))</div>`}
+      <div class="actions">
+        <button class="btn ${p.done ? 'b-s' : 'b-g'}" onclick="togglePlanningDone('${p.id}', ${!p.done})">${p.done ? 'Réouvrir' : 'Marquer fait'}</button>
+        ${b.id ? `<button class="btn b-p hbtn" onclick="openBoatDetail('${b.id}')">Fiche</button>` : ''}
+        <button class="btn b-d hbtn" onclick="deletePlanningItem('${p.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+  $('v-planning').innerHTML = header + recap + cards;
+}
+
+/* ===== Factures ===== */
+function getAllInvoices() {
+  const list = [];
+  boats.forEach(b => {
+    (b.logs || []).forEach((l, logIdx) => {
+      if (l.invoice || (l.totalHT != null && l.totalHT > 0)) {
+        list.push({
+          boatId: b.id, boatName: b.name || 'Bateau', owner: b.owner || 'Client comptoir', logIdx, log: l,
+          number: l.invoice?.number || `INT-${logIdx + 1}`, date: l.invoice?.issuedAt || l.date || '',
+          dateISO: l.dateISO || '', status: l.invoice?.status || 'impayee',
+          totalTTC: Number(l.totalTTC ?? l.totalHT ?? 0)
+        });
+      }
+    });
+  });
+  return list.sort((a, b) => (b.dateISO || '').localeCompare(a.dateISO || ''));
+}
+function invStatusLabel(st) { return { payee: 'Payée', impayee: 'Non payée', relance: 'Relancée', annulee: 'Annulée' }[st] || 'Non payée'; }
+window.setInvFilter = f => {
+  invFilter = f;
+  document.querySelectorAll('#inv-filters .fchip').forEach(c => c.classList.toggle('active', c.dataset.f === f));
+  renderInvoices();
+};
+function renderInvoices() {
+  let list = getAllInvoices().filter(i => match(query(), i.number, i.owner, i.boatName, i.log.desc));
+  if (invFilter !== 'all') list = list.filter(i => i.status === invFilter);
+  $('v-factures').innerHTML = list.length ? list.map(i => `
+    <div class="card ${i.status === 'annulee' ? 'is-cancelled' : ''}">
+      <div class="ch"><div>
+          <div class="ct">${esc(i.number)} <span style="font-size:.8rem;color:var(--sec);font-weight:400">• ${esc(i.date)}</span></div>
+          <div class="cs">⛵ ${esc(i.boatName)} — 👤 ${esc(i.owner)}</div></div>
+        <span class="badge st-${esc(i.status)}">${invStatusLabel(i.status)}</span></div>
+      <div class="grid2">
+        <div class="full">🛠️ ${esc(i.log.desc)}</div>
+        <div>💶 <b style="color:#fff">${eur(i.totalTTC)}</b></div>
+        <div>${i.log.discountAmount > 0 ? `🏷️ Remise : <b>-${eur(i.log.discountAmount)}</b>` : 'Sans remise'}</div>
+      </div>
+      <div class="actions">
+        <select style="flex:1;min-width:120px;padding:8px;font-size:.78rem" onchange="changeInvoiceStatus('${i.boatId}', ${i.logIdx}, this.value)">
+          <option value="impayee" ${i.status === 'impayee' ? 'selected' : ''}>🔴 Non payée</option>
+          <option value="relance" ${i.status === 'relance' ? 'selected' : ''}>🟠 Relancée</option>
+          <option value="payee" ${i.status === 'payee' ? 'selected' : ''}>🟢 Payée</option>
+          <option value="annulee" ${i.status === 'annulee' ? 'selected' : ''}>⚪ Annulée</option>
+        </select>
+        <button class="btn b-s hbtn" onclick="openEditInvoice('${i.boatId}', ${i.logIdx})">✏️</button>
+        <button class="btn b-p hbtn" onclick="openInvoice('${i.boatId}', ${i.logIdx})">🧾 PDF</button>
+        <button class="btn b-d hbtn" onclick="deleteInvoice('${i.boatId}', ${i.logIdx})">🗑</button>
+      </div>
+    </div>`).join('') : `<div style="text-align:center;padding:30px;color:var(--sec)">Aucune facture.</div>`;
+}
+window.changeInvoiceStatus = (boatId, logIdx, newStatus) => {
+  const b = boats.find(x => x.id === boatId); if (!b || !b.logs || !b.logs[logIdx]) return;
+  const updated = b.logs.map((l, idx) => idx !== logIdx ? l : ({
+    ...l, invoice: { ...(l.invoice || { number: `FAC-${new Date().getFullYear()}-${idx + 1}`, issuedAt: l.date }), status: newStatus }
+  }));
+  safe(() => updateDoc(doc(db, 'boats', boatId), { logs: updated }), 'Statut mis à jour');
+};
+window.deleteInvoice = (boatId, logIdx) => {
+  if (!confirm('Supprimer cette facture et cette ligne d’historique ?')) return;
+  const b = boats.find(x => x.id === boatId); if (!b || !b.logs) return;
+  safe(() => updateDoc(doc(db, 'boats', boatId), { logs: b.logs.filter((_, idx) => idx !== logIdx) }), 'Facture supprimée');
+};
+window.openInvoice = (boatId, logIdx) => {
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs || !b.logs[logIdx]) return;
+  currentInvRef = { boatId, logIdx };
+  renderInvoiceModal(b, b.logs[logIdx]);
+};
+function renderInvoiceModal(b, l) {
+  const invNum = l.invoice?.number || `FAC-${new Date().getFullYear()}-PROV`;
+  const invDate = l.invoice?.issuedAt || l.date || '';
+  const rows = [];
+  if (l.laborHours > 0) {
+    const rate = l.hourlyRate ?? cfg.hourlyRate ?? 0;
+    rows.push(`<tr><td><b>Main d'œuvre mécanique</b><br><small style="color:#555">${esc(l.desc)}</small></td><td class="num">${fmt(l.laborHours)} h</td><td class="num">${eur(rate)}</td><td class="num">${eur(l.laborHours * rate)}</td></tr>`);
+  } else {
+    rows.push(`<tr><td><b>Intervention : ${esc(l.desc)}</b></td><td class="num">1</td><td class="num">-</td><td class="num">-</td></tr>`);
+  }
+  if (l.items && l.items.length) {
+    l.items.forEach(it => rows.push(`<tr><td>${esc(it.label)}${it.ref ? ` <small style="color:#555">(Réf : ${esc(it.ref)})</small>` : ''}</td><td class="num">${fmt(it.qty)} ${esc(it.unit || '')}</td><td class="num">${eur(it.unitPrice)}</td><td class="num">${eur(it.total)}</td></tr>`));
+  } else if (l.partsUsed && l.partsUsed.length) {
+    l.partsUsed.forEach(p => rows.push(`<tr><td colspan="4">${esc(p)}</td></tr>`));
+  }
+  const totalHT = l.totalHT ?? 0, discountAmount = l.discountAmount ?? 0;
+  const subtotalHT = l.subtotalHT ?? (totalHT + discountAmount);
+  const vatRate = l.vatRate ?? cfg.vatRate ?? 0, vatAmount = totalHT * vatRate / 100;
+  const totalTTC = l.totalTTC ?? (totalHT + vatAmount);
+  const noteTxt = l.invoice?.note || '';
+
+  $('invoice-render').innerHTML = `
+    <div class="inv-paper" id="inv-paper">
+      <div class="inv-head">
+        <div>
+          <div style="font-size:1.15rem;font-weight:800;color:#0b132b">${esc(cfg.bizName || 'Meca Manager')}</div>
+          <div style="white-space:pre-line;color:#444;font-size:.78rem;margin-top:4px">${esc(cfg.bizAddr || '')}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="inv-title">FACTURE</div>
+          <div style="font-weight:700;margin-top:4px">N° ${esc(invNum)}</div>
+          <div style="color:#555;font-size:.8rem">Date : ${esc(invDate)}</div>
+          ${l.invoice?.status === 'annulee' ? `<div class="stamp-cancel">Annulée</div>` : ''}
+        </div>
+      </div>
+      <div class="inv-grid">
+        <div class="inv-box">
+          <div style="font-size:.7rem;text-transform:uppercase;color:#666;font-weight:700">Client</div>
+          <div style="font-weight:700;margin-top:3px;white-space:pre-line">${esc(b.owner || 'Client comptoir')}</div>
+        </div>
+        <div class="inv-box">
+          <div style="font-size:.7rem;text-transform:uppercase;color:#666;font-weight:700">Bateau & moteur</div>
+          <div style="font-weight:700;margin-top:3px">${esc(b.name)} (${esc(b.model)})</div>
+          <div style="font-size:.78rem;color:#444">Moteur : ${esc(engTxt(b))} • Index : ${fmt(l.newHours)} h</div>
+          ${b.immat ? `<div style="font-size:.78rem;color:#444">Immat : ${esc(b.immat)}</div>` : ''}
+        </div>
+      </div>
+      <table class="inv-tbl">
+        <thead><tr><th>Désignation</th><th class="num">Qté</th><th class="num">P.U. HT</th><th class="num">Total HT</th></tr></thead>
+        <tbody>${rows.join('')}</tbody>
+      </table>
+      <div class="inv-tot">
+        ${discountAmount > 0 ? `<div><span>Sous-total HT :</span><span>${eur(subtotalHT)}</span></div><div style="color:#c1121f"><span>Remise :</span><span>-${eur(discountAmount)}</span></div>` : ''}
+        <div><span>Total HT :</span><b>${eur(totalHT)}</b></div>
+        ${vatRate > 0 ? `<div><span>TVA (${vatRate}%) :</span><span>${eur(vatAmount)}</span></div>` : ''}
+        <div class="grand"><span>NET À PAYER :</span><span>${eur(totalTTC)}</span></div>
+      </div>
+      ${noteTxt ? `<div style="margin-top:14px;padding:8px 10px;background:#f4f6fa;border-radius:6px;font-size:.78rem;color:#333"><b>Note :</b> ${esc(noteTxt)}</div>` : ''}
+      <div class="inv-foot"><div style="white-space:pre-line">${esc(cfg.bizLegal || '')}</div><div style="margin-top:4px">Merci de votre confiance.</div></div>
+    </div>`;
+  $('invoice-modal').classList.add('active');
+}
+window.downloadInvoicePDF = () => {
+  const el = document.getElementById('inv-paper');
+  if (!el) return;
+  const m = (el.querySelector('.inv-tot')?.closest('.inv-paper')?.innerHTML || '').match(/N°\s*(FAC[^<\s]*)/);
+  const fileName = (m ? m[1] : 'Facture') + '.pdf';
+  if (typeof html2pdf === 'undefined') { toast("Export PDF indisponible (connexion requise)", true); return; }
+  html2pdf().set({
+    margin: 8, filename: fileName, image: { type: 'jpeg', quality: 0.96 },
+    html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(el).save().then(() => toast(fileName + ' téléchargé'));
+};
+window.openEditInvoice = (boatId, logIdx) => {
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs || !b.logs[logIdx]) return;
+  currentInvRef = { boatId, logIdx };
+  const l = b.logs[logIdx];
+  populateStockDropdown(b);
+  $('ed-inv-num').value = l.invoice?.number || `FAC-${new Date().getFullYear()}-${logIdx + 1}`;
+  $('ed-inv-date').value = l.invoice?.issuedAt || l.date || '';
+  $('ed-inv-status').value = l.invoice?.status || 'impayee';
+  $('ed-inv-desc').value = l.desc || '';
+  $('ed-inv-labor').value = l.laborHours ?? 0;
+  $('ed-inv-rate').value = l.hourlyRate ?? cfg.hourlyRate ?? 60;
+  $('ed-inv-disc').value = l.discountVal ?? '';
+  $('ed-inv-disctype').value = l.discountType || 'eur';
+  $('ed-inv-note').value = l.invoice?.note || '';
+  const lines = Array.isArray(l.items) && l.items.length ? l.items
+    : (l.partsUsed || []).map(p => ({ label: p, ref: '', qty: 1, unit: 'u', unitPrice: 0 }));
+  $('ed-inv-lines').innerHTML = '';
+  lines.forEach(appendEditorLine);
+  recalcEditorTotals();
+  $('inv-editor-modal').classList.add('active');
+};
+function populateStockDropdown(b) {
+  const sorted = stock.slice().sort((x, y) => {
+    const mx = compat(x, b).level === 'match' ? 0 : 1, my = compat(y, b).level === 'match' ? 0 : 1;
+    return mx !== my ? mx - my : byName(x, y);
+  });
+  $('ed-stock-pick').innerHTML = `<option value="">+ Pièce du stock...</option>` + sorted.map(s =>
+    `<option value="${esc(s.id)}">${esc(s.name)}${compat(s, b).level === 'match' ? ' ✅' : ''} (${eur(s.sellPrice || 0)})</option>`).join('');
+}
+window.addSelectedStockLine = picker => {
+  const id = picker.value; if (!id) return;
+  const s = stock.find(x => x.id === id); picker.value = ''; if (!s) return;
+  const b = currentInvRef ? boats.find(x => x.id === currentInvRef.boatId) : null;
+  appendEditorLine({ label: s.name, ref: s.ref || '', qty: defaultQty(s, b), unit: isOil(s) ? 'L' : 'u', unitPrice: Number(s.sellPrice) || 0 });
+  recalcEditorTotals();
+};
+function appendEditorLine(it = {}) {
+  const div = document.createElement('div');
+  div.className = 'ed-line';
+  div.innerHTML = `
+    <div style="display:flex;gap:6px;align-items:center">
+      <input class="inp ed-l-label" style="flex:1" placeholder="Désignation" value="${esc(it.label || '')}" oninput="recalcEditorTotals()">
+      <input class="inp ed-l-ref" style="width:95px" placeholder="Réf" value="${esc(it.ref || '')}">
+      <button type="button" class="btn b-d hbtn" onclick="this.closest('.ed-line').remove();recalcEditorTotals()">🗑</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:6px">
+      <input type="number" step="0.05" class="inp ed-l-qty" placeholder="Qté" value="${esc(it.qty ?? 1)}" oninput="recalcEditorTotals()">
+      <input class="inp ed-l-unit" style="text-align:center" placeholder="Unité" value="${esc(it.unit || 'u')}">
+      <input type="number" step="0.01" class="inp ed-l-price" placeholder="P.U. HT (€)" value="${esc(it.unitPrice ?? 0)}" oninput="recalcEditorTotals()">
+    </div>`;
+  $('ed-inv-lines').appendChild(div);
+}
+window.addEditorLine = () => appendEditorLine({ label: '', ref: '', qty: 1, unit: 'u', unitPrice: 0 });
+window.recalcEditorTotals = () => {
+  let sub = (parseFloat($('ed-inv-labor').value) || 0) * (parseFloat($('ed-inv-rate').value) || 0);
+  document.querySelectorAll('#ed-inv-lines .ed-line').forEach(el => {
+    sub += (parseFloat(el.querySelector('.ed-l-qty').value) || 0) * (parseFloat(el.querySelector('.ed-l-price').value) || 0);
+  });
+  const ht = Math.max(0, sub - calcDiscount(sub, $('ed-inv-disc').value, $('ed-inv-disctype').value));
+  const vat = Number(cfg.vatRate) || 0;
+  $('ed-inv-total').textContent = vat > 0 ? `${eur(ht * (1 + vat / 100))} TTC` : `${eur(ht)} HT`;
+};
+window.saveEditedInvoice = () => {
+  if (!currentInvRef) return;
+  const { boatId, logIdx } = currentInvRef;
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs || !b.logs[logIdx]) return;
+  const old = b.logs[logIdx];
+  const laborHours = parseFloat($('ed-inv-labor').value) || 0;
+  const hourlyRate = parseFloat($('ed-inv-rate').value) || 0;
+  const discVal = parseFloat($('ed-inv-disc').value) || 0;
+  const discType = $('ed-inv-disctype').value || 'eur';
+  const items = [], partsUsed = [];
+  let partsTotalHT = 0;
+  document.querySelectorAll('#ed-inv-lines .ed-line').forEach(el => {
+    const label = el.querySelector('.ed-l-label').value.trim();
+    const ref = el.querySelector('.ed-l-ref').value.trim();
+    const qty = parseFloat(el.querySelector('.ed-l-qty').value) || 0;
+    const unit = el.querySelector('.ed-l-unit').value.trim() || 'u';
+    const unitPrice = parseFloat(el.querySelector('.ed-l-price').value) || 0;
+    if (!label && qty === 0 && unitPrice === 0) return;
+    const total = qty * unitPrice;
+    partsTotalHT += total;
+    items.push({ label: label || 'Prestation', ref, qty, unit, unitPrice, total });
+    partsUsed.push(`${label || 'Prestation'}${ref ? ' [' + ref + ']' : ''} (x${qty} à ${eur(unitPrice)})`);
+  });
+  const subtotalHT = laborHours * hourlyRate + partsTotalHT;
+  const discountAmount = calcDiscount(subtotalHT, discVal, discType);
+  const totalHT = Math.max(0, subtotalHT - discountAmount);
+  const vatRate = old.vatRate ?? cfg.vatRate ?? 0;
+  const totalTTC = totalHT + totalHT * (vatRate / 100);
+  const updated = b.logs.map((l, idx) => idx !== logIdx ? l : ({
+    ...l, desc: $('ed-inv-desc').value.trim() || old.desc, laborHours, hourlyRate, items, partsUsed, subtotalHT,
+    discountVal: discVal, discountType: discType, discountAmount, totalHT, vatRate,
+    vatAmount: totalHT * (vatRate / 100), totalTTC,
+    invoice: {
+      ...(l.invoice || {}),
+      number: $('ed-inv-num').value.trim() || old.invoice?.number || `FAC-${new Date().getFullYear()}-${logIdx + 1}`,
+      issuedAt: $('ed-inv-date').value.trim() || old.invoice?.issuedAt || old.date,
+      status: $('ed-inv-status').value, note: $('ed-inv-note').value.trim()
+    }
+  }));
+  safe(async () => { await updateDoc(doc(db, 'boats', boatId), { logs: updated }); closeModals(); }, 'Facture mise à jour');
+};
+window.openEditInvoiceFromPreview = () => {
+  if (!currentInvRef) return;
+  const { boatId, logIdx } = currentInvRef;
+  closeModals(); openEditInvoice(boatId, logIdx);
+};
+window.cancelInvoiceFromPreview = () => {
+  if (!currentInvRef || !confirm('Passer cette facture au statut Annulée ?')) return;
+  changeInvoiceStatus(currentInvRef.boatId, currentInvRef.logIdx, 'annulee');
+  closeModals();
+};
+
+/* ===== Paramètres & sauvegarde ===== */
+window.openSettingsModal = () => {
+  $('cfg-rate').value = cfg.hourlyRate ?? 60; $('cfg-vat').value = cfg.vatRate ?? 0;
+  $('cfg-biz').value = cfg.bizName || ''; $('cfg-addr').value = cfg.bizAddr || '';
+  $('cfg-legal').value = cfg.bizLegal || ''; $('cfg-invnum').value = cfg.nextInvNum || 1;
+  $('settings-modal').classList.add('active');
+};
+window.saveSettings = () => {
+  const data = {
+    hourlyRate: parseFloat($('cfg-rate').value) || 0, vatRate: parseFloat($('cfg-vat').value) || 0,
+    bizName: $('cfg-biz').value.trim() || 'Meca Manager', bizAddr: $('cfg-addr').value.trim(),
+    bizLegal: $('cfg-legal').value.trim(), nextInvNum: parseInt($('cfg-invnum').value, 10) || 1
+  };
+  safe(async () => {
+    await setDoc(doc(db, 'settings', 'general'), data, { merge: true });
+    cfg = { ...cfg, ...data };
+    if (activeBoatId) { $('m-rate').value = cfg.hourlyRate; updateLiveTotal(); }
+    closeModals();
+  }, 'Paramètres enregistrés');
+};
 window.backup = () => {
-  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), cfg, boats, stock, planning, customEquivs }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), cfg, boats, stock, planning }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'meca-manager-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   toast('Sauvegarde téléchargée');
+};
+
+/* ===== Navigation ===== */
+window.switchTab = t => {
+  tab = t;
+  ['flotte', 'planning', 'stock', 'factures'].forEach(x => {
+    $('n-' + x).classList.toggle('active', x === t);
+    $('v-' + x).classList.toggle('hide', x !== t);
+  });
+  $('inv-filters').classList.toggle('hide', t !== 'factures');
+  $('sub').textContent = subtitleFor(t);
+  $('search').value = '';
+  renderAll();
+};
+$('search').oninput = () => {
+  if (tab === 'flotte') renderBoats();
+  else if (tab === 'planning') renderPlanning();
+  else if (tab === 'stock') renderStock();
+  else renderInvoices();
 };
 </script>
 </body>
