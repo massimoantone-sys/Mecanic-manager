@@ -30,8 +30,9 @@ h1{font-size:1.15rem}.subtitle{font-size:.78rem;color:var(--sec)}
 .filters{display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto}
 .fchip{padding:7px 12px;border-radius:20px;background:var(--card);border:1px solid var(--bd);color:var(--sec);font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap}
 .fchip.active{background:var(--cy);color:#000;border-color:var(--cy)}
-.days-strip{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 8px;position:relative;z-index:2}
-.day-pill{min-width:58px;padding:8px 6px;border-radius:12px;background:var(--bg);border:1px solid var(--bd);color:var(--sec);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;flex-shrink:0;touch-action:manipulation}
+.days-strip{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 8px;position:relative;z-index:2;-webkit-overflow-scrolling:touch}
+.day-pill{min-width:58px;padding:8px 6px;border-radius:12px;background:var(--bg);border:1px solid var(--bd);color:var(--sec);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;flex-shrink:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.day-pill *{pointer-events:none}
 .day-pill.active{background:var(--cy);color:#000;border-color:var(--cy);font-weight:800}
 .day-pill .d-wk{font-size:.68rem;text-transform:uppercase}
 .day-pill .d-num{font-size:1rem;font-weight:800}
@@ -1173,6 +1174,13 @@ window.changePlanningDay = (deltaDays) => {
   renderAll();
 };
 
+$('v-planning').addEventListener('click', e => {
+  const pill = e.target.closest('.day-pill');
+  if (pill && pill.dataset.day) {
+    setPlanningDay(pill.dataset.day);
+  }
+});
+
 function renderOrderRecapByBoat(q) {
   const openItems = planning
     .filter(p => !p.done && p.date)
@@ -1261,7 +1269,7 @@ function renderPlanning() {
     const num = d.getDate();
     const count = planning.filter(p => p.date === iso && !p.done).length;
     const isAct = iso === selDate;
-    return `<button type="button" class="day-pill ${isAct ? 'active' : ''}" onclick="setPlanningDay('${iso}')">
+    return `<button type="button" class="day-pill ${isAct ? 'active' : ''}" data-day="${iso}" onclick="setPlanningDay('${iso}')">
       <span class="d-wk">${esc(wk)}</span>
       <span class="d-num">${num}</span>
       <span class="d-dot">${count ? `• ${count}` : '·'}</span>
@@ -1269,19 +1277,13 @@ function renderPlanning() {
   }).join('');
 
   const headerBar = `<div class="card" style="grid-column:1/-1">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap">
-      <div style="display:flex;gap:4px">
-        <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(-7)">-7 j</button>
-        <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(-1)">← 1 j</button>
-      </div>
-      <div style="text-align:center">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(-1)">← 1 j</button>
+      <div style="text-align:center;flex:1">
         <div style="font-weight:800;color:var(--cy);text-transform:capitalize">${esc(prettyDate)}</div>
         <input type="date" class="inp" style="margin-top:6px;width:auto" value="${esc(selDate)}" onchange="setPlanningDay(this.value)">
       </div>
-      <div style="display:flex;gap:4px">
-        <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(1)">1 j →</button>
-        <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(7)">+7 j</button>
-      </div>
+      <button type="button" class="btn b-s hbtn" onclick="changePlanningDay(1)">1 j →</button>
     </div>
     <div class="days-strip">${daysStripHtml}</div>
     <button class="btn b-p" style="margin-top:4px" onclick="openPlanningModal('${esc(selDate)}')">+ Programmer une maintenance bateau</button>
@@ -1916,6 +1918,23 @@ window.saveEditedInvoice = () => {
   }));
 
   safe(async () => { await updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs }); closeModals(); }, 'Facture mise à jour');
+};
+
+window.changeInvoiceStatus = (boatId, logIdx, newStatus) => {
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs || !b.logs[logIdx]) return;
+  const updatedLogs = b.logs.map((l, idx) => idx !== logIdx ? l : ({
+    ...l, invoice: { ...(l.invoice || { number: `FAC-${new Date().getFullYear()}-${idx + 1}`, issuedAt: l.date }), status: newStatus }
+  }));
+  safe(() => updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs }), 'Statut mis à jour');
+};
+
+window.deleteInvoice = (boatId, logIdx) => {
+  if (!confirm('Supprimer cette facture et cette ligne d’historique ?')) return;
+  const b = boats.find(x => x.id === boatId);
+  if (!b || !b.logs) return;
+  const updatedLogs = b.logs.filter((_, idx) => idx !== logIdx);
+  safe(() => updateDoc(doc(db, 'boats', boatId), { logs: updatedLogs }), 'Facture supprimée');
 };
 
 window.openInvoice = (boatId, logIdx) => {
