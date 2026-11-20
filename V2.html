@@ -343,6 +343,10 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
   <textarea id="cfg-legal" style="min-height:60px"></textarea>
   <label class="lbl">Prochain N° de facture</label>
   <input id="cfg-invnum" type="number" step="1" class="inp">
+  <div class="sec-t">📥 Importer des références de pièces</div>
+  <div class="lbl">Une ligne par référence : <b>référence;type;marque;modèles;confiance;source</b><br>Exemple : 17400-96J04;Turbine / pompe à eau;Suzuki;DF150, DF175;source revendeur;Wakeboss<br>Types : Filtre à huile, Filtre carburant / décanteur, Bougie, Turbine / pompe à eau, Thermostat, Anode, Huile moteur, Huile embase, Joint, Autre.</div>
+  <textarea id="imp-text" style="min-height:120px;font-size:.78rem" placeholder="Colle ici tes lignes..."></textarea>
+  <button class="btn b-g" onclick="importRefs()">Importer les références</button>
   <div class="mb"><button class="btn b-s" onclick="closeModals()">Annuler</button><button class="btn b-p" onclick="saveSettings()">Enregistrer</button></div>
 </div></div>
 
@@ -516,8 +520,14 @@ const isOil = p => isEngineOil(p) || isGearOil(p);
 /* ===== Compatibilité pièce <-> hors-bord ===== */
 // Si la référence est dans la base, l'app complète toute seule ce qui manque sur la fiche
 // (ce que tu as saisi n'est jamais écrasé). Ces infos restent « à vérifier ».
-function enrich(p) {
-  const hit = REF_DB.find(e => refList(p.ref).includes(cleanRef(e.ref)));
+function enrich(p, boat) {
+  const hits = REF_DB.filter(e => refList(p.ref).includes(cleanRef(e.ref)));
+  if (!hits.length) return { ...p, fromBase: false };
+  let hit = null;
+  const pb = canonBrand(p.brand);
+  if (pb) hit = hits.find(h => h.brand === pb) || null;                       // la marque saisie prime
+  else if (boat) hit = hits.find(h => h.brand === (canonBrand(boat.engineBrand) || canonBrand(boat.engineModel))) || null; // sinon la marque du moteur
+  else if (hits.every(h => h.brand === hits[0].brand)) hit = hits[0];         // une seule marque possible
   if (!hit) return { ...p, fromBase: false };
   const hasModels = !!String(p.models || '').trim();
   return {
@@ -530,7 +540,7 @@ function enrich(p) {
 }
 // level : 'match' (compatible), 'univ' (universel), 'todo' (information manquante), 'other' (pas pour ce moteur)
 function compat(part0, boat) {
-  const part = enrich(part0);
+  const part = enrich(part0, boat);
   const eng = engineInfo(boat);
   if (!eng.brand) return { level: 'todo', reason: 'Marque du hors-bord à renseigner' };
   const type = partType(part);
@@ -559,7 +569,7 @@ function fitBoats(part) {
 // Chaque entrée : une référence, son type, la marque, les modèles, et le niveau de confiance.
 // Ces entrées sont des points de départ, PAS des données vérifiées. Chaque pièce
 // reconnue par cette base reste marquée « à vérifier » tant que tu ne l'as pas validée.
-const REF_DB = [
+const BASE_REF_DB = [
   // ----- Filtres à huile Yamaha -----
   { ref: '69J-13440-04-00', type: 'Filtre à huile', brand: 'yamaha', models: 'F150, LF150, F200, LF200, F225, F250, VF150', conf: 'trouvée chez plusieurs revendeurs', src: 'Recmar, PartsVu, Walmart. Remplacée par 69J-13440-05-00.' },
   { ref: '69J-13440-05-00', type: 'Filtre à huile', brand: 'yamaha', models: 'F150, F200, F225, F250', conf: 'trouvée chez plusieurs revendeurs', src: 'PartsVu, Yamaha Online Parts. Remplace 69J-13440-04-00.' },
@@ -654,8 +664,30 @@ const REF_DB = [
   { ref: '8M0107546', type: 'Anode', brand: 'mercury', models: '40, 50, 60, 75, 90, 115', conf: 'source revendeur', src: 'Walmart (kit remplace 8M0107546) : EFI 40 a 60 HP et 75 a 115 HP.' },
   { ref: '8M6007994', type: 'Anode', brand: 'suzuki', models: 'DF90, DF100, DF115, DF140', conf: 'source Mercury Marine', src: 'Mercury Marine : kit anodes aluminium Suzuki 90 a 140 HP.' },
   { ref: '8M6008005', type: 'Anode', brand: 'suzuki', models: 'DF40, DF50', conf: 'source revendeur', src: 'Walmart : kit zinc Suzuki 40 a 50 HP.' },
-  { ref: '5532190J01', type: 'Anode', brand: 'suzuki', models: 'DF90, DF100, DF115, DF140', conf: 'source revendeur', src: 'Defender : anode de bloc inferieur (kit Martyr CM SZ90140).' }
+  { ref: '5532190J01', type: 'Anode', brand: 'suzuki', models: 'DF90, DF100, DF115, DF140', conf: 'source revendeur', src: 'Defender : anode de bloc inferieur (kit Martyr CM SZ90140).' },
+  { ref: '09482-00427', type: 'Bougie', brand: 'suzuki', models: 'DF9.9, DF15, DF25, DF90, DF115, DF140, DF150, DF175, DF200, DF225, DF250, DF300', conf: 'source constructeur Suzuki', src: 'Site Suzuki Marine : BKR6E, DF9.9/15 2004 a 2010, DF25 V-Twin jusqu a 2010, DF90 non A jusqu a 2009, DF115/140 tous, DF150/175 non AP 2006 a 2018, DF200 non A/AP 2004 a 2014. Liste DF225 a DF300 selon revendeurs.' },
+  { ref: 'BKR6E', type: 'Bougie', brand: 'suzuki', models: 'DF9.9, DF15, DF25, DF90, DF115, DF140, DF150, DF175, DF200, DF225, DF250, DF300', conf: 'source constructeur Suzuki', src: 'Meme bougie que 09482-00427 (NGK BKR6E), voir la fiche Suzuki.' },
+  { ref: 'ZFR5F-11', type: 'Bougie', brand: 'suzuki', models: 'DF15, DF25', conf: 'tableau Champion (revendeur)', src: 'Tableau Champion : DF15 2005 a 2013, DF25 V2 2006 a 2013.' },
+  { ref: 'DPR6EA-9', type: 'Bougie', brand: 'suzuki', models: 'DF15, DF25, DF40', conf: 'tableau Champion (revendeur)', src: 'Tableau Champion : DF15 1997 a 2004, DF25 3 cylindres 2000 a 2005, DF40 3 cylindres 1999 a 2009.' },
+  { ref: 'BP5EA-L', type: 'Bougie', brand: 'suzuki', models: 'DF70', conf: 'tableau Champion (revendeur)', src: 'Tableau Champion : DF70 4 cylindres 1998 a 2004.' },
+  { ref: 'BCP6ES', type: 'Bougie', brand: 'suzuki', models: 'DF90, DF140', conf: 'tableau Champion (revendeur)', src: 'Tableau Champion : DF90 2001 a 2004, DF140 2002 a 2004.' },
+  { ref: 'DCPR6E', type: 'Bougie', brand: 'suzuki', models: 'DF9.9, DF15, DF25, DF30, DF40, DF50, DF60A, DF70A, DF80A, DF90A', conf: 'source revendeur', src: 'Bottomline Marine : DF9.9 et DF15 jusqu a 2004, DF25 a DF90A.' },
+  { ref: 'DCPR6E', type: 'Bougie', brand: 'mercury', models: '25, 30, 40, 50', conf: 'tableau NGK (forum iBoats)', src: 'Tableau Mercury/NGK : 25 et 30 4 temps 2001 et plus, 40 et 50 4 temps 1999 et plus. Vérifier l annee.' },
+  { ref: 'BPR6ES', type: 'Bougie', brand: 'mercury', models: '60, 70', conf: 'tableau NGK (forum iBoats)', src: 'Tableau Mercury/NGK : 60 et 70 4 temps 2002 et plus.' },
+  { ref: 'BKR6E', type: 'Bougie', brand: 'mercury', models: '90, 115', conf: 'tableau NGK (forum iBoats)', src: 'Tableau Mercury/NGK : 90 et 115 4 temps 2003 et plus.' },
+  { ref: 'ZFR5F', type: 'Bougie', brand: 'mercury', models: '150', conf: 'fiche moteur (JLM Marine)', src: 'Fiche Mercury 150 4 temps : bougie NGK ZFR5F. Source unique.' },
+  { ref: '15412-92J00', type: 'Filtre carburant / décanteur', brand: 'suzuki', models: 'DF70A, DF80A, DF90A, DF100A, DF100B, DF115A, DF140A, DF150AP, DF175AP, DF200AP', conf: 'trouvée chez plusieurs revendeurs', src: 'Suzuki (DF100A a DF200AP 2013 et plus), JLM Marine, PartsVu, Fridayparts. Remplacée aussi par 15412-92J01 et Quicksilver 8M6013371.' },
+  { ref: '15412-92J01', type: 'Filtre carburant / décanteur', brand: 'suzuki', models: 'DF100A, DF115A, DF140A, DF150AP, DF175AP, DF200AP', conf: 'source revendeur', src: 'JLM Marine : remplace 15412-92J00 (DF100A a DF200AP, 2013 a 2021).' },
+  { ref: '8M6013371', type: 'Filtre carburant / décanteur', brand: 'suzuki', models: 'DF115A, DF140A, DF150A, DF175A, DF200A', conf: 'source Mercury Marine', src: 'Mercury Marine : filtre carburant Quicksilver, equivalent 15412-92J00.' },
+  { ref: '17400-96J04', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF150, DF150A, DF150AP, DF175, DF175A, DF175AP, DF200A, DF200AP', conf: 'trouvée chez plusieurs revendeurs', src: 'Suzuki, Wakeboss, Westmarine : DF150 et DF175 2006 a 2018 (et A/AP), DF200A/AP 2015 et plus. Quicksilver 8M6012814.' },
+  { ref: '17400-96J00', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF150, DF175, DF200', conf: 'source revendeur', src: 'Sierra 18-4558 : remplace 17400-96J00 a 96J04 (DF200AP 2006 a 2018).' },
+  { ref: '18-4558', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF200AP', conf: 'source revendeur', src: 'Sierra (Defender) : kit pompe a eau DF200AP 2006 a 2018, remplace 17400-96J00 a 96J04.' },
+  { ref: '8M6012814', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF150, DF175, DF200', conf: 'source Mercury Marine', src: 'Quicksilver : kit turbine Suzuki 150 a 200 HP, equivalent 17400-96J04.' },
+  { ref: '17670-90J21', type: 'Thermostat', brand: 'suzuki', models: 'DF100A, DF115A, DF140A, DF150, DF175, DF200, DF250, DF300', conf: 'trouvée chez plusieurs revendeurs', src: 'JLM Marine, PartsVu, Wakeboss : thermostat 50 C, DF100A a DF300AP (2012 et plus). Remplace 17670-90J20.' },
+  { ref: '55321-87J01', type: 'Anode', brand: 'suzuki', models: 'DF4A, DF6A, DF40A, DF50A, DF60A', conf: 'catalogue Suzuki 2026', src: 'Catalogue Suzuki 2026 : anode de protection, DF4A/6A (5 pieces), DF40A/50A/60A (3 pieces). PartsVu : anode aluminium 4 temps.' }
 ];
+let REF_DB = BASE_REF_DB; // remplacée au démarrage par la base + les références importées
+
 const cleanRef = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 const refList = s => String(s || '').split(/[,;\s]+/).map(cleanRef).filter(x => x.length >= 3);
 
@@ -787,6 +819,11 @@ function startListeners() {
     planning = s.docs.map(d => ({ id: d.id, ...d.data() }));
     renderAll();
   }, e => console.error('planning', e)));
+  unsubs.push(onSnapshot(collection(db, 'ref_db'), s => {
+    const extra = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    REF_DB = [...BASE_REF_DB, ...extra];
+    renderAll(); if (activeBoatId) { renderChecklist(); renderBoatDetail(); }
+  }, e => console.error('ref_db', e)));
   unsubs.push(onSnapshot(doc(db, 'settings', 'general'), d => {
     if (d.exists()) cfg = { ...cfg, ...d.data() };
     if (activeBoatId && !$('m-rate').value) $('m-rate').value = cfg.hourlyRate;
@@ -1689,6 +1726,32 @@ window.cancelInvoiceFromPreview = () => {
   if (!currentInvRef || !confirm('Passer cette facture au statut Annulée ?')) return;
   changeInvoiceStatus(currentInvRef.boatId, currentInvRef.logIdx, 'annulee');
   closeModals();
+};
+
+/* ===== Import de références ===== */
+// Une ligne par référence : référence;type;marque;modèles;confiance;source
+window.importRefs = async () => {
+  const lines = $('imp-text').value.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return alert('Colle au moins une ligne.');
+  const batch = writeBatch(db);
+  let ok = 0; const bad = [];
+  lines.forEach(line => {
+    const c = line.split(';').map(x => x.trim());
+    const [ref, type, brand, models, conf, src] = c;
+    const bk = canonBrand(brand);
+    if (!ref || !bk) { bad.push(line.slice(0, 40)); return; }
+    const data = {
+      ref, type: TYPE_KEYS.includes(type) ? type : 'Autre', brand: bk,
+      models: models || '', conf: conf || 'importée (à vérifier)', src: src || 'import manuel'
+    };
+    batch.set(doc(db, 'ref_db', cleanRef(ref) + '_' + bk), data);
+    ok++;
+  });
+  try {
+    await batch.commit();
+    $('imp-text').value = '';
+    toast(`${ok} référence(s) importée(s)` + (bad.length ? ` — ignorées (marque inconnue) : ${bad.length}` : ''), bad.length > 0);
+  } catch (e) { console.error(e); toast("Erreur : l'import n'a pas été enregistré.", true); }
 };
 
 /* ===== Paramètres & sauvegarde ===== */
