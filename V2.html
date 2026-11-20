@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Meca Manager V11</title>
+<title>Meca Manager V12</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MecaManager">
@@ -299,19 +299,19 @@ nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,19,43,.96);border-
 
 <div class="modal" id="stock-modal"><div class="mc">
   <h2 id="s-title">Nouvelle pièce</h2>
+  <input id="s-ref" class="inp" placeholder="Réf(s) OEM / NGK / Sierra : ex 69J-13440-05, 8M0094233..." oninput="previewPartMatch(true)">
+  <div id="s-ref-suggest"></div>
   <input id="s-name" class="inp" placeholder="Nom de la pièce *" oninput="previewPartMatch()">
   <select id="s-type" onchange="previewPartMatch()">
-    <option value="">Type : automatique (d'après le nom)</option>
+    <option value="">Type : automatique (d'après réf / nom)</option>
     <option>Filtre à huile</option><option>Filtre carburant / décanteur</option><option>Bougie</option>
     <option>Turbine / pompe à eau</option><option>Thermostat</option><option>Anode</option>
     <option>Huile moteur</option><option>Huile embase</option><option>Joint</option><option>Autre</option>
   </select>
   <label class="lbl">Marque du hors-bord concerné (vide = universel)</label>
   <input id="s-brand" class="inp" list="brands" placeholder="Ex : Yamaha, Suzuki, Mercury" oninput="previewPartMatch()">
-  <label class="lbl">Modèles compatibles (séparés par des virgules, vide = tous les modèles de la marque)</label>
+  <label class="lbl">Modèles compatibles (rempli automatiquement si réf connue)</label>
   <input id="s-models" class="inp" placeholder="Ex : F115, F150, DF140A, 150 EFI, 250 Verado" oninput="previewPartMatch()">
-  <input id="s-ref" class="inp" placeholder="Réf(s) : une ou plusieurs, séparées par des virgules" oninput="previewPartMatch()">
-  <div id="s-ref-suggest"></div>
   <div id="s-auto-preview"></div>
   <select id="s-cat"><option value="Moteur / Filtres">Moteur & filtres</option><option value="Huiles & Chimie">Huiles & lubrifiants</option><option value="Électricité">Électricité</option><option value="Sécurité">Sécurité</option><option value="Castillage">Accastillage</option></select>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -463,7 +463,7 @@ function canonBrand(raw) {
 function engineCode(raw) {
   let t = String(raw || '').toUpperCase();
   t = t.replace(/YAMAHA|MERCURY|MARINER|QUICKSILVER|SUZUKI|HONDA|TOHATSU|EVINRUDE|JOHNSON|SELVA|PARSUN|NISSAN|HORS[- ]?BORD|OUTBOARD/g, ' ');
-  const m = t.match(/([A-Z]{0,4})\s*(\d{1,3}(?:[.,]\d)?)\s*([A-Z]{0,3})/);
+  const m = t.match(/([A-Z]{0,4})\s*(\d{1,3}(?:[.,]\d)?)\s*([A-Z]{0,4})/);
   return m ? (m[1] + m[2].replace(',', '.') + m[3]) : '';
 }
 function extractModelsFromName(name) {
@@ -471,7 +471,7 @@ function extractModelsFromName(name) {
   t = t.replace(/\b(100|300)\s*(H|HEURE|HEURES|HR|HRS)\b/g, ' ');
   t = t.replace(/\b(4T|2T|10W30|10W40|25W40|5W30|80W90|75W90)\b/g, ' ');
   const found = [];
-  const re = /\b(DF|BF|F|LF|VF|XF|T|MFS|MD)?\s*(\d{1,3}(?:[.,]\d)?)\s*(CV|CH|HP|A|AP|B|F|G|D|LA|EFI|VERADO|PRO\s*XS|SEAPRO)?\b/g;
+  const re = /\b(DF|BF|F|LF|VF|XF|T|MFS|MD)?\s*(\d{1,3}(?:[.,]\d)?)\s*(CV|CH|HP|A|AP|B|F|G|D|LA|EFI|VERADO|PRO\s*XS|SEAPRO|FOURSTROKE)?\b/g;
   let m;
   while ((m = re.exec(t)) !== null) {
     const prefix = m[1] || '';
@@ -533,80 +533,104 @@ const isEngineOil = p => partType(p) === 'Huile moteur';
 const isGearOil = p => partType(p) === 'Huile embase';
 const isOil = p => isEngineOil(p) || isGearOil(p);
 
-/* ===== Base de références complète (Yamaha, Mercury/Mariner, Suzuki) ===== */
+/* ===== Base complète de références OEM / NGK / Sierra / Quicksilver ===== */
 const BASE_REF_DB = [
-  // ==================== YAMAHA ====================
+  // =========================================================================
+  // 1. YAMAHA (F2.5 à XF425 / F450)
+  // =========================================================================
+  // --- Kits entretien complets Yamaha ---
+  { ref: 'MAR-100HR-KT-00, 65W-W0078-A0', type: 'Autre', brand: 'yamaha', models: 'F25, F30, F40', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F25 / F30 / F40' },
+  { ref: 'MAR-100HR-KT-10', type: 'Autre', brand: 'yamaha', models: 'F50, T50, F60, T60', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F50 / T50 / F60 / T60' },
+  { ref: 'MAR-100HR-KT-20', type: 'Autre', brand: 'yamaha', models: 'F75, F80, F90, F100', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F75 / F80 / F90 / F100' },
+  { ref: 'MAR-100HR-KT-30', type: 'Autre', brand: 'yamaha', models: 'F115, LF115', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F115 (2000-2013)' },
+  { ref: 'MAR-100HR-KT-35', type: 'Autre', brand: 'yamaha', models: 'F115B, LF115B, VF115, F130', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F115B / VF115 / F130 (2014+)' },
+  { ref: 'MAR-100HR-KT-40', type: 'Autre', brand: 'yamaha', models: 'F150, LF150', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha F150 (2.7L)' },
+  { ref: 'MAR-100HR-KT-50', type: 'Autre', brand: 'yamaha', models: 'F150B, F175, F200F, F200G', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha 4 cyl 2.8L (F150B/F175/F200)' },
+  { ref: 'MAR-100HR-KT-60', type: 'Autre', brand: 'yamaha', models: 'F200, LF200, F225, F250', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha V6 3.3L' },
+  { ref: 'MAR-100HR-KT-70', type: 'Autre', brand: 'yamaha', models: 'F225F, F250D, F300B, LF300B', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha V6 4.2L Offshore' },
+  { ref: 'MAR-100HR-KT-80', type: 'Autre', brand: 'yamaha', models: 'F350, LF350', conf: 'OEM Yamaha', src: 'Kit entretien 100h Yamaha V8 5.3L' },
+
   // --- Filtres à huile Yamaha ---
-  { ref: '5GH-13440-90-00, 5GH-13440-60-00, 5GH-13440-61-00, 5GH-13440-50-00, 5GH-13440-20-00, 18-7911-1', type: 'Filtre à huile', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, T50, F60, T60, F70', conf: 'OEM Yamaha / Sierra', src: 'Catalogue Yamaha / Sierra 18-7911-1' },
-  { ref: '5GH-13440-71-00, 5GH-13440-70-00, 5GH-13440-30-00, 5GH-13440-00-00, 18-7906-1', type: 'Filtre à huile', brand: 'yamaha', models: 'F30, F40, F50, F75, F80, F90, VF90, F100, F115, LF115', conf: 'OEM Yamaha / Sierra', src: 'Catalogue Yamaha (avant 2014 pour F115) / Sierra 18-7906-1' },
-  { ref: '69J-13440-05-00, 69J-13440-05, 69J-13440-04-00, 69J-13440-03-00, 69J-13440-01-00, 18-7906-2', type: 'Filtre à huile', brand: 'yamaha', models: 'F115B, VF115, F130, F150, LF150, VF150, F175, VF175, F200, LF200, F225, F250, VF250', conf: 'OEM Yamaha / Sierra', src: 'Catalogue Yamaha 4T 115B à 250 / Sierra 18-7906-2' },
-  { ref: 'N26-13440-03-00, N26-13440-02-00, N26-13440-00-00', type: 'Filtre à huile', brand: 'yamaha', models: 'F300, LF300, F350, LF350, F425, XF425', conf: 'OEM Yamaha', src: 'Catalogue Yamaha V6 4.2L / V8 5.3L & 5.6L' },
+  { ref: '5GH-13440-90-00, 5GH-13440-90, 5GH-13440-60-00, 5GH-13440-61-00, 5GH-13440-50-00, 5GH-13440-20-00, 18-7911-1', type: 'Filtre à huile', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, T50, F60, T60, F70', conf: 'OEM Yamaha / Sierra', src: 'Filtre à huile Yamaha petits et moyens 4T' },
+  { ref: '5GH-13440-71-00, 5GH-13440-70-00, 5GH-13440-70, 5GH-13440-30-00, 5GH-13440-00-00, 18-7906-1', type: 'Filtre à huile', brand: 'yamaha', models: 'F30, F40, F50, F75, F80, F90, VF90, F100, F115, LF115', conf: 'OEM Yamaha / Sierra', src: 'Filtre à huile Yamaha 30-115HP (F115 avant 2014)' },
+  { ref: '69J-13440-05-00, 69J-13440-05, 69J-13440-04-00, 69J-13440-04, 69J-13440-03-00, 69J-13440-01-00, 18-7906-2', type: 'Filtre à huile', brand: 'yamaha', models: 'F115B, LF115B, VF115, F130, F150, LF150, VF150, F175, VF175, F200, LF200, F225, F250, VF250', conf: 'OEM Yamaha / Sierra', src: 'Filtre à huile Yamaha 115B à 250HP' },
+  { ref: 'N26-13440-03-00, N26-13440-03, N26-13440-02-00, N26-13440-00-00', type: 'Filtre à huile', brand: 'yamaha', models: 'F300, LF300, F300B, F350, LF350, F425, XF425, F450, XF450', conf: 'OEM Yamaha', src: 'Filtre à huile Yamaha V6 4.2L / V8 5.3L & 5.6L XTO' },
 
   // --- Filtres carburant / décanteurs Yamaha ---
+  { ref: '61N-24560-00-00, 61N-24563-00-00, 61N-24563-10-00, 18-79910', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, F60', conf: 'OEM Yamaha / Sierra', src: 'Tamiz / cartouche carburant petits 4T Yamaha' },
   { ref: '68V-24563-00-00, 68V-24563-01-00, 18-7979', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F50, T50, F60, T60, F75, F80, F90, F100, F115, LF115', conf: 'OEM Yamaha / Sierra', src: 'Cartouche interne bol décanteur Yamaha 50-115HP' },
+  { ref: '6D8-24563-00-00, 6D8-WS24A-00-00, 18-79799', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F30, F40, F50, T50, F60, T60, F70, F75, F90, F115, F115B, F130', conf: 'OEM Yamaha / Sierra', src: 'Cartouche filtre essence Yamaha récents (30-130HP)' },
   { ref: '6P3-24563-01-00, 6P3-24563-00-00, 6P3-WS24A-02, 6P3-WS24A-01-00, 6P3-WS24A-00-00, 18-79809', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F150, LF150, F175, F200, LF200, F225, F250, F300, F350', conf: 'OEM Yamaha / Sierra', src: 'Cartouche interne bol décanteur Yamaha 150-350HP' },
-  { ref: '6D8-24563-00-00, 18-79799', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F30, F40, F50, T50, F60, T60, F70, F75, F90, F115', conf: 'OEM Yamaha / Sierra', src: 'Cartouche filtre essence Yamaha récents' },
-  { ref: 'MAR-10MEL-00-00, MAR-FUELF-IL-TR, 18-7866', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, F60, F70, F75, F80, F90, F100, F115, F130, F150, F175, F200, F225, F250, F300', conf: 'OEM Yamaha', src: 'Filtre séparateur eau/essence 10 microns à visser' },
+  { ref: '6CB-24501-01-00, 6CB-24501-00-00, 6CB-14984-00-00', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F200F, F200G, F225F, F250D, F300B, XF425', conf: 'OEM Yamaha', src: 'Filtre carburant haute pression / VST Yamaha V6 4.2L & 2.8L' },
+  { ref: 'MAR-10MEL-00-00, MAR-FUELF-IL-TR, MAR-24563-03-00, 18-7866', type: 'Filtre carburant / décanteur', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, F60, F70, F75, F80, F90, F100, F115, F130, F150, F175, F200, F225, F250, F300, F350', conf: 'OEM Yamaha', src: 'Filtre séparateur eau/essence 10 microns à visser' },
 
   // --- Bougies Yamaha ---
-  { ref: 'CR6HSB, 94702-00391-00', type: 'Bougie', brand: 'yamaha', models: 'F2.5, F4, F5, F6, F8, F9.9', conf: 'NGK / OEM Yamaha', src: 'Tableau entretien Yamaha portables 4T' },
-  { ref: 'DPR6EB-9, 94702-00418-00', type: 'Bougie', brand: 'yamaha', models: 'F15, F20, F25, F30, F40, F50, T50, F60, T60', conf: 'NGK / OEM Yamaha', src: 'Tableau entretien Yamaha 15-60HP 4T' },
-  { ref: 'LKR7E, 94702-00427-00', type: 'Bougie', brand: 'yamaha', models: 'F70, F70LA', conf: 'NGK / OEM Yamaha', src: 'Tableau entretien Yamaha F70' },
-  { ref: 'LFR5A-11, 94702-00409-00', type: 'Bougie', brand: 'yamaha', models: 'F75, F80, F90, F100, F150, LF150', conf: 'NGK / OEM Yamaha', src: 'Tableau entretien Yamaha 75-100HP & F150' },
-  { ref: 'LFR6A-11, 94702-00395-00', type: 'Bougie', brand: 'yamaha', models: 'F115, LF115, F200, F225, F250', conf: 'NGK / OEM Yamaha', src: 'Tableau entretien Yamaha F115 (2000-2013) & V6 3.3L' },
-  { ref: 'LKR6E, 94702-00437-00', type: 'Bougie', brand: 'yamaha', models: 'F75B, F90B, VF90, F115B, LF115B, VF115, F130', conf: 'NGK / OEM Yamaha', src: 'Tableau entretien Yamaha blocs 1.8L récents' },
-  { ref: 'ILFR6GE, 94702-00425-00', type: 'Bougie', brand: 'yamaha', models: 'F150B, F175, F200F, F200G, F225F, F250D, F300B', conf: 'NGK / OEM Yamaha', src: 'Bougie iridium Yamaha 4 cyl 2.8L & V6 4.2L' },
+  { ref: 'CR6HSB, 94702-00391-00, 94702-00391', type: 'Bougie', brand: 'yamaha', models: 'F2.5, F4, F5, F6, F8, F9.9', conf: 'NGK / OEM Yamaha', src: 'Bougie Yamaha portables 4T 2.5 à 9.9HP' },
+  { ref: 'DPR6EA-9, DPR6EB-9, 94702-00418-00, 94702-00418', type: 'Bougie', brand: 'yamaha', models: 'F9.9, F15, F20, F25, F30, F40, F50, T50, F60, T60', conf: 'NGK / OEM Yamaha', src: 'Bougie Yamaha 9.9 à 60HP 4T' },
+  { ref: 'LKR7E, 94702-00427-00, 94702-00427', type: 'Bougie', brand: 'yamaha', models: 'F70, F70LA', conf: 'NGK / OEM Yamaha', src: 'Bougie Yamaha F70' },
+  { ref: 'LFR5A-11, 94702-00409-00, 947020040900, 94702-00409', type: 'Bougie', brand: 'yamaha', models: 'F75, F80, F90, F100, F150, LF150', conf: 'NGK / OEM Yamaha', src: 'Bougie Yamaha 75-100HP & F150 (2.7L)' },
+  { ref: 'LFR6A-11, 94702-00395-00, 94702-00395', type: 'Bougie', brand: 'yamaha', models: 'F115, LF115, F200, LF200, F225, F250', conf: 'NGK / OEM Yamaha', src: 'Bougie Yamaha F115 (2000-2013) & V6 3.3L' },
+  { ref: 'LKR6E, 94702-00437-00, 94702-00437', type: 'Bougie', brand: 'yamaha', models: 'F75B, F90B, VF90, F115B, LF115B, VF115, F130', conf: 'NGK / OEM Yamaha', src: 'Bougie Yamaha blocs 1.8L (2014+)' },
+  { ref: 'ILFR6GE, ILFR6G-E, 94702-00425-00, 94702-00425', type: 'Bougie', brand: 'yamaha', models: 'F150B, F175, VF175, F200F, F200G, F225F, F250D, VF250, F300B, LF300B', conf: 'NGK / OEM Yamaha', src: 'Bougie iridium Yamaha 4 cyl 2.8L & V6 4.2L' },
+  { ref: 'ILFR7H, 94702-00423-00', type: 'Bougie', brand: 'yamaha', models: 'F350, LF350', conf: 'NGK / OEM Yamaha', src: 'Bougie iridium Yamaha V8 5.3L' },
+  { ref: 'LKAR7C-9, 94702-00445-00', type: 'Bougie', brand: 'yamaha', models: 'F425, XF425, F450, XF450', conf: 'NGK / OEM Yamaha', src: 'Bougie Yamaha V8 5.6L XTO Offshore' },
 
   // --- Turbines / Pompes à eau Yamaha ---
-  { ref: '68T-W0078-00-00, 18-3451', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F6, F8, F9.9', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F6/F8/F9.9' },
-  { ref: '6AH-W0078-00-00, 6AH-W0078-01-00, 18-3479', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F15, F20', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F15C / F20' },
-  { ref: '66T-W0078-00-00, 18-3440', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F25, F30, F40', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F25 / F30 / F40' },
-  { ref: '63D-W0078-01-00, 63D-W0078-03-00, 18-3415, 18-3434', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F40, F50, T50, F60', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha 40-60HP' },
-  { ref: '6CJ-W0078-00-00, 18-3497', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F70', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F70LA' },
+  { ref: '6L5-44352-00-00, 18-3073', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F2.5', conf: 'OEM Yamaha / Sierra', src: 'Turbine Yamaha F2.5' },
+  { ref: '6E0-W0078-A2-00, 6E0-44352-00-00, 18-3073', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F4, F5, F6', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F4 / F5 / F6' },
+  { ref: '68T-W0078-00-00, 68T-44352-00-00, 18-3451', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F6, F8, F9.9', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F6 / F8 / F9.9' },
+  { ref: '6AH-W0078-00-00, 6AH-W0078-01-00, 63V-44352-01-00, 18-3479', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F15, F20', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F15C / F20' },
+  { ref: '66T-W0078-00-00, 6H4-44352-02-00, 18-3440', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F25, F30, F40', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F25 / F30 / F40' },
+  { ref: '63D-W0078-01-00, 63D-W0078-03-00, 6H3-44352-00-00, 18-3415, 18-3434', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F40, F50, T50, F60', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha 40-60HP' },
+  { ref: '6CJ-W0078-00-00, 18-3497', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F70, F70LA', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F70' },
   { ref: '67F-W0078-00-00, 18-3450, 18-3409', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F75, F80, F90, F100', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha 75-100HP' },
   { ref: '68V-W0078-00-00, 68V-W0078-01-00, 18-3442, 18-3442G, 8M6012804', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F75, F90, F90B, F115, LF115, VF115', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha F115' },
-  { ref: '6N6-W0078-02-00, 6N6-W0078-00-00', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F115B, F130', conf: 'OEM Yamaha', src: 'Kit pompe à eau Yamaha F115B / F130' },
+  { ref: '6N6-W0078-02-00, 6N6-W0078-00-00', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F115B, LF115B, F130', conf: 'OEM Yamaha', src: 'Kit pompe à eau Yamaha F115B / F130' },
   { ref: '6P2-W0078-00-00, 18-3515, 18-3396', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F150, LF150, F175, F200, LF200', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha 150-200HP' },
-  { ref: '6CE-W0078-01-00, 6CE-W0078-00-00, 18-3474, 8M6012787', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F150, F175, F200, F225, F250, F300', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha V6 / 4 cyl 2.8L' },
+  { ref: '6CE-W0078-01-00, 6CE-W0078-00-00, 6E5-44352-01-00, 18-3474, 8M6012787', type: 'Turbine / pompe à eau', brand: 'yamaha', models: 'F150, F175, F200, F225, F250, F300, F350', conf: 'OEM Yamaha / Sierra', src: 'Kit pompe à eau Yamaha gros blocs V6 & V8' },
 
   // --- Thermostats, Anodes & Joints Yamaha ---
-  { ref: '66M-12411-01-00, 18-3541', type: 'Thermostat', brand: 'yamaha', models: 'F2.5, F4, F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60', conf: 'OEM Yamaha / Sierra', src: 'Thermostat 60°C petits et moyens 4T Yamaha' },
-  { ref: '67F-12411-01-00, 67F-12411-00-00, 6CB-12411-00-00, 18-3632', type: 'Thermostat', brand: 'yamaha', models: 'F75, F80, F90, F100, F150, F175, F200, F225, F250, VF250', conf: 'OEM Yamaha / Sierra', src: 'Thermostat 60°C Yamaha 75-250HP' },
+  { ref: '66M-12411-01-00, 66M-12411-00-00, 18-3541', type: 'Thermostat', brand: 'yamaha', models: 'F2.5, F4, F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60', conf: 'OEM Yamaha / Sierra', src: 'Thermostat 60°C petits et moyens 4T Yamaha' },
+  { ref: '67F-12411-01-00, 67F-12411-00-00, 6CB-12411-00-00, 18-3632', type: 'Thermostat', brand: 'yamaha', models: 'F75, F80, F90, F100, F150, F175, F200, F225, F250, VF250, F300', conf: 'OEM Yamaha / Sierra', src: 'Thermostat 60°C Yamaha 75-300HP' },
   { ref: '60V-12411-00-00, 68V-12411-00-00, 8M6010295', type: 'Thermostat', brand: 'yamaha', models: 'F115, LF115', conf: 'OEM Yamaha', src: 'Thermostat Yamaha F115' },
   { ref: '6DA-12411-01-00', type: 'Thermostat', brand: 'yamaha', models: 'F150B, F175, F200F, F200G', conf: 'OEM Yamaha', src: 'Thermostat Yamaha 2.8L 4 cylindres' },
-  { ref: '6ML-11325-00, 6ML-11325-00-00, 63P-11325-01-00, 63P-11325-21-00', type: 'Anode', brand: 'yamaha', models: 'F150, LF150, F175, F200, LF200, F225, F250, F300', conf: 'OEM Yamaha', src: 'Anode bloc moteur / culasse Yamaha 4T' },
+  { ref: '6G8-11325-00-00, 68T-11325-00-00', type: 'Anode', brand: 'yamaha', models: 'F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60, F70', conf: 'OEM Yamaha', src: 'Anode pastille bloc moteur Yamaha 6-70HP' },
+  { ref: '6ML-11325-00, 6ML-11325-00-00, 63P-11325-01-00, 63P-11325-21-00', type: 'Anode', brand: 'yamaha', models: 'F75, F90, F115, F130, F150, LF150, F175, F200, LF200, F225, F250, F300, F350', conf: 'OEM Yamaha', src: 'Anode bloc moteur / culasse Yamaha 75-350HP' },
   { ref: '90798-1M682-00, 8M6007986', type: 'Anode', brand: 'yamaha', models: 'F150, LF150, F175, F200', conf: 'OEM Yamaha / Quicksilver', src: 'Kit complet anodes embase/étrier Yamaha 150-200HP' },
+  { ref: '90798-1M679-00, 8M6007985', type: 'Anode', brand: 'yamaha', models: 'F75, F80, F90, F100, F115, LF115', conf: 'OEM Yamaha / Quicksilver', src: 'Kit complet anodes embase/étrier Yamaha 75-115HP' },
   { ref: '90430-14M09, 90430-14M09-00', type: 'Joint', brand: 'yamaha', models: 'F2.5, F4, F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60, F70, F75, F80, F90, F100, F115, F130, F150, F175, F200, F225, F250, F300, F350', conf: 'OEM Yamaha', src: 'Joint vis de vidange carter huile moteur Yamaha 4T' },
   { ref: '90430-08003, 90430-08003-00, 90430-08020-00', type: 'Joint', brand: 'yamaha', models: 'F2.5, F4, F6, F8, F9.9, F15, F20, F25, F30, F40, F50, F60, F70, F75, F80, F90, F100, F115, F130, F150, F175, F200, F225, F250, F300, F350', conf: 'OEM Yamaha', src: 'Joint vis vidange/niveau huile embase Yamaha' },
 
-  // ==================== MERCURY / MARINER ====================
-  // --- Kits entretien complets 100h / 300h Mercury (EFI, FourStroke, Verado, Pro XS, SeaPro) ---
+  // =========================================================================
+  // 2. MERCURY / MARINER (2.5 à 400 Verado / EFI / FourStroke / Pro XS)
+  // =========================================================================
+  // --- Kits entretien complets 100h / 300h Mercury ---
   { ref: '8M0100527, 8M0120840', type: 'Autre', brand: 'mercury', models: '40 EFI, 50 EFI, 60 EFI', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 40/50/60 EFI 4 cylindres (995cc)' },
-  { ref: '8M0097854, 8M0097855', type: 'Autre', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS, 115 SeaPro', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 75-115 EFI 2.1L (n° série 2B095049+)' },
-  { ref: '8M0094232, 8M0094233', type: 'Autre', brand: 'mercury', models: '150 EFI, 150 FourStroke, 150 Pro XS, 150 SeaPro', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 150 EFI 3.0L 4 cylindres (n° série 1B905505+)' },
+  { ref: '8M0097854, 8M0097855', type: 'Autre', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS, 115 SeaPro', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 75-115 EFI 2.1L (série 2B095049+)' },
+  { ref: '8M0094232, 8M0094233', type: 'Autre', brand: 'mercury', models: '150 EFI, 150 FourStroke, 150 Pro XS, 150 SeaPro', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 150 EFI 3.0L 4 cylindres (série 1B905505+)' },
   { ref: '8M0149929, 8M0149930', type: 'Autre', brand: 'mercury', models: '175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 200 Pro XS, 225 Pro XS, 250 Pro XS, 300 Pro XS, 250 Verado V8, 300 Verado V8', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury V6 3.4L & V8 4.6L (2018+)' },
   { ref: '8M0097856, 8M0097857', type: 'Autre', brand: 'mercury', models: '135 Verado, 150 Verado, 175 Verado, 200 Verado', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury Verado 4 cylindres compresseur (L4)' },
   { ref: '8M0097858, 8M0097859', type: 'Autre', brand: 'mercury', models: '200 Verado L6, 225 Verado, 250 Verado L6, 275 Verado, 300 Verado L6, 350 Verado, 400 Verado', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury Verado 6 cylindres en ligne (L6)' },
 
   // --- Filtres à huile Mercury ---
-  { ref: '35-822626Q03, 35-822626A2, 18-7913', type: 'Filtre à huile', brand: 'mercury', models: '8, 9.9, 15, 20, 25, 30 EFI', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver portables 4T 8-30HP' },
-  { ref: '35-8M0065103, 35-8M0065104, 18-7914', type: 'Filtre à huile', brand: 'mercury', models: '25 EFI, 30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver 25-115HP 4T (série 2B094996+)' },
-  { ref: '35-877761Q01, 35-877761K01, 18-7758', type: 'Filtre à huile', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 150 FourStroke, 150 Pro XS', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver 75-115HP (1B366823-2B094995) & 150 EFI 3.0L' },
-  { ref: '35-877767Q01, 35-877767K01', type: 'Filtre à huile', brand: 'mercury', models: '135 Verado, 150 Verado, 175 Verado, 200 Verado', conf: 'OEM Mercury', src: 'Catalogue Quicksilver Verado 4 cylindres L4' },
-  { ref: '35-877769Q01, 35-877769K01', type: 'Filtre à huile', brand: 'mercury', models: '200 Verado L6, 225 Verado, 250 Verado L6, 275 Verado, 300 Verado L6, 350 Verado, 400 Verado', conf: 'OEM Mercury', src: 'Catalogue Quicksilver Verado 6 cylindres L6' },
-  { ref: '35-8M0123025', type: 'Filtre à huile', brand: 'mercury', models: '175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 200 Pro XS, 225 Pro XS, 250 Pro XS, 300 Pro XS, 250 Verado V8, 300 Verado V8', conf: 'OEM Mercury', src: 'Catalogue Quicksilver nouveaux V6 3.4L & V8 4.6L (2018+)' },
+  { ref: '35-822626Q03, 35-822626A2, 35-822626Q04, 18-7913', type: 'Filtre à huile', brand: 'mercury', models: '8, 9.9, 15, 20, 25, 30 EFI', conf: 'OEM Mercury / Sierra', src: 'Filtre à huile Mercury portables 4T 8-30HP' },
+  { ref: '35-8M0065103, 35-8M0065104, 18-7914', type: 'Filtre à huile', brand: 'mercury', models: '25 EFI, 30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS, 115 SeaPro', conf: 'OEM Mercury / Sierra', src: 'Filtre à huile Mercury 25-115HP 4T (série 2B094996+)' },
+  { ref: '35-877761Q01, 35-877761K01, 18-7758', type: 'Filtre à huile', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 150 FourStroke, 150 Pro XS, 150 SeaPro', conf: 'OEM Mercury / Sierra', src: 'Filtre à huile Mercury 75-115HP (avant 2014) & 150 EFI 3.0L' },
+  { ref: '35-877767Q01, 35-877767K01', type: 'Filtre à huile', brand: 'mercury', models: '135 Verado, 150 Verado, 175 Verado, 200 Verado', conf: 'OEM Mercury', src: 'Filtre à huile Mercury Verado 4 cylindres L4' },
+  { ref: '35-877769Q01, 35-877769K01', type: 'Filtre à huile', brand: 'mercury', models: '200 Verado L6, 225 Verado, 250 Verado L6, 275 Verado, 300 Verado L6, 350 Verado, 400 Verado', conf: 'OEM Mercury', src: 'Filtre à huile Mercury Verado 6 cylindres L6' },
+  { ref: '35-8M0123025', type: 'Filtre à huile', brand: 'mercury', models: '175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 200 Pro XS, 225 Pro XS, 250 Pro XS, 300 Pro XS, 250 Verado V8, 300 Verado V8', conf: 'OEM Mercury', src: 'Filtre à huile Mercury nouveaux V6 3.4L & V8 4.6L (2018+)' },
 
   // --- Filtres carburant / décanteurs Mercury ---
-  { ref: '35-8M0088825, 35-879884T', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI', conf: 'OEM Mercury', src: 'Filtre essence haute pression EFI 30-115HP' },
-  { ref: '35-879885Q, 35-879885T, 18-7718', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 135 Verado, 150 Verado, 175 Verado, 200 Verado, 225 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury / Sierra', src: 'Filtre en ligne translucide sous capot Mercury EFI / Verado' },
-  { ref: '35-8M0106635, 35-8M0060041', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 250 Verado V8, 300 Verado V8', conf: 'OEM Mercury', src: 'Cartouche décanteur eau/carburant Mercury 2.1L / 3.0L / V6 / V8' },
-  { ref: '35-802893Q01, 35-60494A1, 18-7845', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '40 EFI, 50 EFI, 60 EFI, 75 EFI, 90 EFI, 115 EFI, 150 EFI, 135 Verado, 150 Verado, 200 Verado, 225 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury / Sierra', src: 'Cartouche séparatrice eau/essence à visser Quicksilver' },
+  { ref: '35-8M0088825, 35-879884T', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI', conf: 'OEM Mercury', src: 'Filtre essence haute pression Mercury EFI 30-115HP' },
+  { ref: '35-879885Q, 35-879885T, 35-879885K, 18-7718', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 135 Verado, 150 Verado, 175 Verado, 200 Verado, 225 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury / Sierra', src: 'Filtre en ligne translucide sous capot Mercury EFI / Verado' },
+  { ref: '35-8M0106635, 35-8M0060041, 35-8M0020349', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 250 Verado V8, 300 Verado V8, 225 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury', src: 'Cartouche décanteur eau/carburant Mercury 2.1L / 3.0L / V6 / V8 / Verado' },
+  { ref: '35-802893Q01, 35-802893T, 35-60494A1, 18-7845', type: 'Filtre carburant / décanteur', brand: 'mercury', models: '40 EFI, 50 EFI, 60 EFI, 75 EFI, 90 EFI, 115 EFI, 150 EFI, 135 Verado, 150 Verado, 200 Verado, 225 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury / Sierra', src: 'Cartouche séparatrice eau/essence à visser Quicksilver' },
 
   // --- Bougies Mercury ---
-  { ref: 'DCPR6E, 33-855672', type: 'Bougie', brand: 'mercury', models: '8, 9.9, 15, 20, 25 EFI, 30 EFI, 40 EFI, 50 EFI, 60 EFI', conf: 'NGK / OEM Mercury', src: 'Tableau NGK / Mercury 4T 8-60HP' },
-  { ref: 'LFR6A-11, 33-889246Q', type: 'Bougie', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI', conf: 'NGK / OEM Mercury', src: 'Tableau Mercury 75-115HP 1.7L (avant 2014)' },
-  { ref: 'ZFR5F, 33-8M0058931', type: 'Bougie', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS, 150 EFI, 150 FourStroke', conf: 'NGK / OEM Mercury', src: 'Tableau Mercury 75-115HP 2.1L (2014+) & 150 EFI 3.0L' },
-  { ref: 'ILFR6G-E, 33-889246Q39', type: 'Bougie', brand: 'mercury', models: '135 Verado, 150 Verado, 175 Verado, 200 Verado, 225 Verado, 250 Verado L6, 300 Verado L6, 350 Verado', conf: 'NGK / OEM Mercury', src: 'Bougie iridium Verado L4 & L6' },
+  { ref: 'DCPR6E, 33-855672', type: 'Bougie', brand: 'mercury', models: '2.5, 3.5, 4, 5, 6, 8, 9.9, 15, 20, 25 EFI, 30 EFI, 40 EFI, 50 EFI, 60 EFI', conf: 'NGK / OEM Mercury', src: 'Bougie Mercury 4T 2.5 à 60HP' },
+  { ref: 'LFR6A-11, 33-889246Q', type: 'Bougie', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI', conf: 'NGK / OEM Mercury', src: 'Bougie Mercury 75-115HP 1.7L (avant 2014)' },
+  { ref: 'ZFR5F, 33-8M0058931', type: 'Bougie', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 115 Pro XS, 150 EFI, 150 FourStroke', conf: 'NGK / OEM Mercury', src: 'Bougie Mercury 75-115HP 2.1L (2014+) & 150 EFI 3.0L' },
+  { ref: 'ILFR6G-E, ILFR6GE, 33-889246Q39', type: 'Bougie', brand: 'mercury', models: '135 Verado, 150 Verado, 175 Verado, 200 Verado, 225 Verado, 250 Verado L6, 300 Verado L6, 350 Verado, 400 Verado', conf: 'NGK / OEM Mercury', src: 'Bougie iridium Mercury Verado L4 & L6' },
   { ref: 'LKAR7C-9, 33-8M0135348', type: 'Bougie', brand: 'mercury', models: '175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 200 Pro XS, 225 Pro XS, 250 Pro XS, 300 Pro XS, 250 Verado V8, 300 Verado V8', conf: 'NGK / OEM Mercury', src: 'Bougie Mercury V6 3.4L & V8 4.6L' },
 
   // --- Turbines / Pompes à eau Mercury ---
@@ -614,67 +638,94 @@ const BASE_REF_DB = [
   { ref: '46-8M0113799, 46-821354A2, 18-4531', type: 'Turbine / pompe à eau', brand: 'mercury', models: '25 EFI, 30 EFI, 40 EFI, 45, 50 EFI', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 25-50HP' },
   { ref: '46-812966A12, 46-812966A11, 18-3445', type: 'Turbine / pompe à eau', brand: 'mercury', models: '40 EFI, 45, 50 EFI, 55, 60 EFI', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 40-60HP EFI (embase standard)' },
   { ref: '46-43024A7, 18-3688', type: 'Turbine / pompe à eau', brand: 'mercury', models: '60 BigFoot, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 125', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau Mercury 60 BigFoot / 75-115HP' },
-  { ref: '47-8M0100526, 47-43026Q06, 18-3214', type: 'Turbine / pompe à eau', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 135 Verado, 150 Verado, 175 Verado, 200 Verado, 225 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau universel grosses embases Mercury / Verado' },
+  { ref: '47-8M0100526, 47-43026Q06, 47-43026K06, 18-3214', type: 'Turbine / pompe à eau', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 150 FourStroke, 175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 135 Verado, 150 Verado, 175 Verado, 200 Verado, 225 Verado, 250 Verado, 300 Verado, 350 Verado', conf: 'OEM Mercury / Sierra', src: 'Kit pompe à eau universel grosses embases Mercury / V6 / V8 / Verado' },
 
-  // --- Thermostats & Anodes Mercury ---
-  { ref: '8M0090819, 892864T06, 18-3635', type: 'Thermostat', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 150 FourStroke', conf: 'OEM Mercury / Sierra', src: 'Thermostat complet avec boîtier 75-115HP 2.1L & 150 EFI' },
+  // --- Thermostats, Anodes & Joints Mercury ---
+  { ref: '8M0117413, 8M0168892', type: 'Thermostat', brand: 'mercury', models: '40 EFI, 50 EFI, 60 EFI', conf: 'OEM Mercury', src: 'Thermostat Mercury 40/50/60 EFI' },
+  { ref: '8M0090819, 892864T06, 18-3635', type: 'Thermostat', brand: 'mercury', models: '75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI, 150 EFI, 150 FourStroke', conf: 'OEM Mercury / Sierra', src: 'Thermostat complet avec boîtier Mercury 75-115HP 2.1L & 150 EFI' },
   { ref: '8M0107546, 8M0107547', type: 'Anode', brand: 'mercury', models: '40 EFI, 50 EFI, 60 EFI, 75 EFI, 80 EFI, 90 EFI, 100 EFI, 115 EFI', conf: 'OEM Mercury', src: 'Kit anodes aluminium Mercury 40-115HP' },
   { ref: '8M0107548, 97-8M0107548', type: 'Anode', brand: 'mercury', models: '150 EFI, 150 FourStroke, 135 Verado, 150 Verado, 175 Verado, 200 Verado', conf: 'OEM Mercury', src: 'Kit anodes aluminium Mercury 150 EFI / Verado 4 cyl' },
+  { ref: '8M0137814, 97-8M0137814', type: 'Anode', brand: 'mercury', models: '175 FourStroke, 200 FourStroke, 225 FourStroke, 250 FourStroke, 300 FourStroke, 250 Verado V8, 300 Verado V8', conf: 'OEM Mercury', src: 'Kit anodes aluminium Mercury V6 3.4L & V8 4.6L' },
+  { ref: '12-19183Q02, 12-191833, 26-830749', type: 'Joint', brand: 'mercury', models: '2.5, 4, 5, 6, 8, 9.9, 15, 20, 25 EFI, 30 EFI, 40 EFI, 50 EFI, 60 EFI, 75 EFI, 90 EFI, 115 EFI, 150 EFI, 200 FourStroke, 250 FourStroke, 300 FourStroke, 150 Verado, 200 Verado, 250 Verado, 300 Verado', conf: 'OEM Mercury', src: 'Joint vis vidange/niveau embase Mercury / Quicksilver' },
 
-  // ==================== SUZUKI ====================
+  // =========================================================================
+  // 3. SUZUKI (DF2.5 à DF350A)
+  // =========================================================================
+  // --- Kits entretien complets 100h / 300h Suzuki ---
+  { ref: '17400-88811, 17400-88812', type: 'Autre', brand: 'suzuki', models: 'DF40A, DF50A, DF60A', conf: 'OEM Suzuki', src: 'Kit entretien 100h / 300h Suzuki DF40A / DF50A / DF60A' },
+  { ref: '17400-87811, 17400-87812', type: 'Autre', brand: 'suzuki', models: 'DF70A, DF80A, DF90A', conf: 'OEM Suzuki', src: 'Kit entretien 100h / 300h Suzuki DF70A / DF80A / DF90A' },
+  { ref: '17400-92821, 17400-92822, 17400-92823', type: 'Autre', brand: 'suzuki', models: 'DF100A, DF115A, DF140A', conf: 'OEM Suzuki', src: 'Kit entretien 100h / 300h Suzuki DF100A / DF115A / DF140A' },
+  { ref: '17400-96821, 17400-96822, 17400-96823', type: 'Autre', brand: 'suzuki', models: 'DF150, DF150A, DF150AP, DF175, DF175A, DF175AP, DF200A, DF200AP', conf: 'OEM Suzuki', src: 'Kit entretien 100h / 300h Suzuki 150-200HP 4 cylindres' },
+  { ref: '17400-98811, 17400-98812, 17400-98813', type: 'Autre', brand: 'suzuki', models: 'DF200, DF225, DF250, DF250AP, DF300, DF300AP', conf: 'OEM Suzuki', src: 'Kit entretien 100h / 300h Suzuki V6 200-300HP' },
+
   // --- Filtres à huile Suzuki ---
-  { ref: '16510-05240, 18-7895', type: 'Filtre à huile', brand: 'suzuki', models: 'DF8A, DF9.9, DF9.9A, DF15, DF25, DF30', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki petits 4T (1996-2010)' },
-  { ref: '16510-45H10, 18-8870', type: 'Filtre à huile', brand: 'suzuki', models: 'DF9.9B, DF15A, DF20A, DF25A, DF30A', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki portables EFI (2011+)' },
-  { ref: '16510-87J00, 16510-87J01, 18-7915-1', type: 'Filtre à huile', brand: 'suzuki', models: 'DF40, DF50, DF60, DF70', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki anciens blocs 40-70HP (avant 2010)' },
-  { ref: '16510-61A33, 16510-61A32, 16510-61A31, 16510-61A30, 16510-90J00, 18-7896', type: 'Filtre à huile', brand: 'suzuki', models: 'DF40A, DF50A, DF60A, DF70A, DF80A, DF90A, DF100A, DF100B, DF115A, DF140A', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki série A 40A à 140A' },
-  { ref: '16510-82703, 18-7897', type: 'Filtre à huile', brand: 'suzuki', models: 'DF90, DF115, DF140', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki DF90/115/140 non-A (2001-2012)' },
-  { ref: '16510-96J00, 16510-96J10, 18-7905-1', type: 'Filtre à huile', brand: 'suzuki', models: 'DF150, DF150A, DF150AP, DF175, DF175A, DF175AP, DF200, DF200A, DF200AP, DF225, DF250, DF250AP, DF300, DF300AP', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki gros blocs 4 cyl & V6 (150-300HP)' },
-  { ref: '16510-98J00', type: 'Filtre à huile', brand: 'suzuki', models: 'DF325A, DF350A', conf: 'OEM Suzuki', src: 'Catalogue Suzuki V6 4.4L Dual Prop' },
+  { ref: '16510-05240, 18-7895', type: 'Filtre à huile', brand: 'suzuki', models: 'DF8A, DF9.9, DF9.9A, DF15, DF25, DF30', conf: 'OEM Suzuki / Sierra', src: 'Filtre à huile Suzuki petits 4T (1996-2010)' },
+  { ref: '16510-45H10, 18-8870', type: 'Filtre à huile', brand: 'suzuki', models: 'DF9.9B, DF15A, DF20A, DF25A, DF30A', conf: 'OEM Suzuki / Sierra', src: 'Filtre à huile Suzuki portables EFI (2011+)' },
+  { ref: '16510-87J00, 16510-87J01, 18-7915-1', type: 'Filtre à huile', brand: 'suzuki', models: 'DF40, DF50, DF60, DF70', conf: 'OEM Suzuki / Sierra', src: 'Filtre à huile Suzuki anciens blocs 40-70HP (avant 2010)' },
+  { ref: '16510-61A33, 16510-61A32, 16510-61A31, 16510-61A30, 16510-90J00, 18-7896', type: 'Filtre à huile', brand: 'suzuki', models: 'DF40A, DF50A, DF60A, DF70A, DF80A, DF90A, DF100A, DF100B, DF115A, DF140A', conf: 'OEM Suzuki / Sierra', src: 'Filtre à huile Suzuki série A 40A à 140A' },
+  { ref: '16510-82703, 18-7897', type: 'Filtre à huile', brand: 'suzuki', models: 'DF90, DF100, DF115, DF140', conf: 'OEM Suzuki / Sierra', src: 'Filtre à huile Suzuki DF90/115/140 non-A (2001-2012)' },
+  { ref: '16510-96J00, 16510-96J10, 18-7905-1', type: 'Filtre à huile', brand: 'suzuki', models: 'DF150, DF150A, DF150AP, DF175, DF175A, DF175AP, DF200, DF200A, DF200AP, DF225, DF250, DF250AP, DF300, DF300AP', conf: 'OEM Suzuki / Sierra', src: 'Filtre à huile Suzuki gros blocs 4 cyl & V6 (150-300HP)' },
+  { ref: '16510-98J00', type: 'Filtre à huile', brand: 'suzuki', models: 'DF325A, DF350A', conf: 'OEM Suzuki', src: 'Filtre à huile Suzuki V6 4.4L Dual Prop' },
 
   // --- Filtres carburant / décanteurs Suzuki ---
+  { ref: '15410-87L00, 15410-88L00', type: 'Filtre carburant / décanteur', brand: 'suzuki', models: 'DF40A, DF50A, DF60A', conf: 'OEM Suzuki', src: 'Filtre carburant basse pression Suzuki DF40A/50A/60A' },
   { ref: '15410-87J10, 15410-87J30', type: 'Filtre carburant / décanteur', brand: 'suzuki', models: 'DF40, DF50, DF60, DF70, DF90, DF115, DF140', conf: 'OEM Suzuki', src: 'Filtre essence haute pression Suzuki (2001-2012)' },
   { ref: '15412-92J00, 15412-92J01, 8M6013371', type: 'Filtre carburant / décanteur', brand: 'suzuki', models: 'DF70A, DF80A, DF90A, DF100A, DF100B, DF115A, DF140A, DF150AP, DF175AP, DF200AP', conf: 'OEM Suzuki / Quicksilver', src: 'Cartouche filtre séparateur eau/carburant basse pression Suzuki' },
-  { ref: '15412-93J00, 15412-93J10', type: 'Filtre carburant / décanteur', brand: 'suzuki', models: 'DF200A, DF225, DF250, DF250AP, DF300, DF300AP, DF350A', conf: 'OEM Suzuki', src: 'Cartouche filtre séparateur eau/carburant V6 Suzuki' },
+  { ref: '15412-93J00, 15412-93J10', type: 'Filtre carburant / décanteur', brand: 'suzuki', models: 'DF200A, DF225, DF250, DF250AP, DF300, DF300AP, DF325A, DF350A', conf: 'OEM Suzuki', src: 'Cartouche filtre séparateur eau/carburant V6 Suzuki' },
   { ref: '15440-93J00, 15440-90J00', type: 'Filtre carburant / décanteur', brand: 'suzuki', models: 'DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Suzuki', src: 'Filtre essence haute pression en ligne Suzuki' },
 
   // --- Bougies Suzuki ---
-  { ref: 'CPR6EA-9, 09482-00549', type: 'Bougie', brand: 'suzuki', models: 'DF4, DF5, DF6, DF8A, DF9.9A, DF9.9B, DF15A, DF20A', conf: 'NGK / OEM Suzuki', src: 'Tableau entretien Suzuki portables 4T' },
-  { ref: 'DCPR6E, 09482-00550', type: 'Bougie', brand: 'suzuki', models: 'DF25, DF25A, DF30, DF30A, DF40, DF40A, DF50, DF50A, DF60A, DF70A, DF80A, DF90A', conf: 'NGK / OEM Suzuki', src: 'Tableau entretien Suzuki 25 à 90A' },
-  { ref: 'BKR6E, 09482-00427', type: 'Bougie', brand: 'suzuki', models: 'DF90, DF100, DF115, DF115A, DF140, DF140A, DF150, DF175, DF200, DF225, DF250', conf: 'NGK / OEM Suzuki', src: 'Tableau entretien Suzuki 90 à 250HP standards' },
-  { ref: 'ILFR6J-11K, 09482-00615', type: 'Bougie', brand: 'suzuki', models: 'DF150AP, DF175AP, DF200A, DF200AP, DF250AP, DF300AP', conf: 'NGK / OEM Suzuki', src: 'Bougie iridium Suzuki série AP Lean Burn' },
+  { ref: 'CPR6EA-9, 09482-00549', type: 'Bougie', brand: 'suzuki', models: 'DF2.5, DF4, DF5, DF6, DF8A, DF9.9A, DF9.9B, DF15A, DF20A', conf: 'NGK / OEM Suzuki', src: 'Bougie Suzuki portables 4T 2.5 à 20A' },
+  { ref: 'DCPR6E, 09482-00550', type: 'Bougie', brand: 'suzuki', models: 'DF25, DF25A, DF30, DF30A, DF40, DF40A, DF50, DF50A, DF60A, DF70A, DF80A, DF90A', conf: 'NGK / OEM Suzuki', src: 'Bougie Suzuki 25 à 90A' },
+  { ref: 'BKR6E, 09482-00427', type: 'Bougie', brand: 'suzuki', models: 'DF90, DF100, DF100A, DF115, DF115A, DF140, DF140A, DF150, DF175, DF200, DF225, DF250', conf: 'NGK / OEM Suzuki', src: 'Bougie Suzuki 90 à 250HP standards' },
+  { ref: 'ILFR6J-11K, 09482-00615', type: 'Bougie', brand: 'suzuki', models: 'DF150AP, DF175AP, DF200A, DF200AP, DF250AP, DF300AP, DF325A, DF350A', conf: 'NGK / OEM Suzuki', src: 'Bougie iridium Suzuki série AP Lean Burn' },
 
   // --- Turbines / Pompes à eau Suzuki ---
-  { ref: '17400-98661, 18-3259', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF4, DF5, DF6', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki DF4/DF5/DF6' },
+  { ref: '17400-98661, 18-3259', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF2.5, DF4, DF5, DF6', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki DF2.5/4/5/6' },
   { ref: '17400-99J02, 17400-99J01, 18-3262', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF8A, DF9.9A, DF9.9B, DF15, DF15A, DF20A', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki 8-20HP 4T' },
   { ref: '17400-96403, 17400-96404, 18-3242, 8M6012809', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF20, DF25, DF30, DF40, DF50', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki 25-50HP' },
   { ref: '17400-88L00, 17400-88L01', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF40A, DF50A, DF60A', conf: 'OEM Suzuki', src: 'Kit pompe à eau Suzuki DF40A/50A/60A' },
   { ref: '17400-99E11, 17400-99E12, 18-3254, 8M6012817', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF60, DF70', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki DF60/DF70 (avant 2009)' },
   { ref: '17400-87L00, 17400-87L01, 17400-87L02', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF70A, DF80A, DF90A', conf: 'OEM Suzuki', src: 'Kit pompe à eau Suzuki DF70A/80A/90A' },
-  { ref: '17400-92J21, 17400-92J22, 17400-92J23, 18-3256', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF90, DF100, DF115, DF115A, DF140, DF140A', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki 90-140HP' },
+  { ref: '17400-92J21, 17400-92J22, 17400-92J23, 18-3256', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF90, DF100, DF100A, DF115, DF115A, DF140, DF140A', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki 90-140HP' },
   { ref: '17400-96J04, 17400-96J03, 17400-96J02, 17400-96J00, 18-4558, 8M6012814', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF150, DF150A, DF150AP, DF175, DF175A, DF175AP, DF200, DF200A, DF200AP', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki 150-200HP 4 cylindres' },
-  { ref: '17400-98J03, 17400-98J02, 17400-98J01, 18-3267', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF200, DF225, DF250, DF250AP, DF300, DF300AP', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki V6 200-300HP' },
+  { ref: '17400-98J03, 17400-98J02, 17400-98J01, 18-3267', type: 'Turbine / pompe à eau', brand: 'suzuki', models: 'DF200, DF225, DF250, DF250AP, DF300, DF300AP, DF325A, DF350A', conf: 'OEM Suzuki / Sierra', src: 'Kit pompe à eau Suzuki V6 200-350HP' },
 
-  // --- Thermostats & Anodes Suzuki ---
-  { ref: '17670-90J00, 17670-90J01, 17670-90J10, 17670-90J20, 17670-90J21, 17670-93J00', type: 'Thermostat', brand: 'suzuki', models: 'DF70A, DF80A, DF90, DF90A, DF100, DF100A, DF115, DF115A, DF140, DF140A, DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Suzuki', src: 'Thermostat Suzuki 70A à 300HP' },
+  // --- Thermostats, Anodes & Joints Suzuki ---
+  { ref: '17670-90J00, 17670-90J01, 17670-90J10, 17670-90J20, 17670-90J21, 17670-93J00', type: 'Thermostat', brand: 'suzuki', models: 'DF40A, DF50A, DF60A, DF70A, DF80A, DF90, DF90A, DF100, DF100A, DF115, DF115A, DF140, DF140A, DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Suzuki', src: 'Thermostat Suzuki 40A à 300HP' },
   { ref: '55321-87J01, 55321-87J00', type: 'Anode', brand: 'suzuki', models: 'DF4A, DF6A, DF40A, DF50A, DF60A, DF70A, DF80A, DF90A, DF115A, DF140A, DF150, DF175, DF200, DF250, DF300', conf: 'OEM Suzuki', src: 'Anode pastille bloc moteur / culasse Suzuki 4T' },
   { ref: '55320-94910, 55320-94900, 55320-95310, 55320-95311', type: 'Anode', brand: 'suzuki', models: 'DF60, DF70, DF70A, DF80A, DF90, DF90A, DF100, DF115, DF115A, DF140, DF140A, DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Suzuki', src: 'Anode d\'étrier / presse de trim Suzuki' },
-  { ref: '8M6007994, 55321-90J01', type: 'Anode', brand: 'suzuki', models: 'DF90, DF100, DF115, DF115A, DF140, DF140A', conf: 'OEM Suzuki / Quicksilver', src: 'Kit anodes aluminium Suzuki 90-140HP' },
-  { ref: '8M6007995', type: 'Anode', brand: 'suzuki', models: 'DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Quicksilver', src: 'Kit anodes aluminium Suzuki 150-300HP' }
+  { ref: '8M6007994, 55321-90J01', type: 'Anode', brand: 'suzuki', models: 'DF90, DF100, DF100A, DF115, DF115A, DF140, DF140A', conf: 'OEM Suzuki / Quicksilver', src: 'Kit anodes aluminium Suzuki 90-140HP' },
+  { ref: '8M6007995', type: 'Anode', brand: 'suzuki', models: 'DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Quicksilver', src: 'Kit anodes aluminium Suzuki 150-300HP' },
+  { ref: '09168-10022, 09168-12012', type: 'Joint', brand: 'suzuki', models: 'DF2.5, DF4, DF5, DF6, DF8A, DF9.9A, DF15A, DF20A, DF25A, DF30A, DF40A, DF50A, DF60A, DF70A, DF80A, DF90A, DF100A, DF115A, DF140A, DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Suzuki', src: 'Joint vis vidange huile moteur / embase Suzuki' }
 ];
 let REF_DB = BASE_REF_DB;
 
 const cleanRef = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 const refList = s => String(s || '').split(/[,;\s]+/).map(cleanRef).filter(x => x.length >= 3);
 
+function findRefEntries(rawRef, rawBrand) {
+  const pRefs = refList(rawRef);
+  if (!pRefs.length) return [];
+  const hits = REF_DB.filter(e => refList(e.ref).some(r => pRefs.includes(r)));
+  if (!hits.length) return [];
+  const pb = canonBrand(rawBrand);
+  if (pb) {
+    const exact = hits.filter(h => h.brand === pb);
+    return exact.length ? exact : hits;
+  }
+  return hits;
+}
+
 function enrich(p, boat) {
   const pRefs = refList(p.ref);
-  const hits = REF_DB.filter(e => refList(e.ref).some(r => pRefs.includes(r)));
+  const hits = findRefEntries(p.ref, p.brand);
   let hit = null;
   const pb = canonBrand(p.brand);
   if (hits.length) {
-    if (pb) hit = hits.find(h => h.brand === pb) || null;
-    else if (boat) hit = hits.find(h => h.brand === (canonBrand(boat.engineBrand) || canonBrand(boat.engineModel))) || null;
-    else if (hits.every(h => h.brand === hits[0].brand)) hit = hits[0];
+    if (pb) hit = hits.find(h => h.brand === pb) || hits[0];
+    else if (boat) hit = hits.find(h => h.brand === (canonBrand(boat.engineBrand) || canonBrand(boat.engineModel))) || hits[0];
+    else hit = hits[0];
   }
   const hasModels = !!String(p.models || '').trim();
   const fromName = (!hasModels && !hit) ? extractModelsFromName(p.name) : '';
@@ -745,12 +796,14 @@ function renderRefLookup(q) {
     ⛵ Bateaux concernés : <b>${r.boats.length ? esc(r.boats.join(', ')) : 'aucun de la flotte'}</b>
   </div>`).join('');
 }
-window.useRefSuggestion = () => {
-  const q = $('s-ref').value;
-  const e = REF_DB.find(x => refList(x.ref).includes(cleanRef(q)));
+window.useRefSuggestion = (idx = 0) => {
+  const hits = findRefEntries($('s-ref').value, $('s-brand').value);
+  const e = hits[idx] || hits[0];
   if (!e) return;
-  $('s-type').value = e.type; $('s-brand').value = BRAND_LABEL[e.brand] || e.brand; $('s-models').value = e.models;
-  previewPartMatch();
+  $('s-type').value = e.type;
+  $('s-brand').value = BRAND_LABEL[e.brand] || e.brand;
+  $('s-models').value = e.models;
+  previewPartMatch(false);
 };
 
 /* ===== Entretien : pièces nécessaires selon le type ===== */
@@ -795,7 +848,7 @@ function defaultQty(s, b) {
 /* ===== État ===== */
 let boats = [], stock = [], planning = [], unsubs = [];
 let cfg = { hourlyRate: 60, vatRate: 0, bizName: 'Meca Manager', bizAddr: '', bizLegal: 'TVA non applicable, art. 293 B du CGI', nextInvNum: 1 };
-let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null;
+let tab = 'flotte', activeBoatId = null, saveTimer = null, editStockId = null, lastAutoRef = '';
 let invFilter = 'all', currentInvRef = null, planningDay = toISODay(new Date());
 let sel = {};
 const currentBoat = () => boats.find(x => x.id === activeBoatId);
@@ -999,29 +1052,51 @@ function renderStock() {
   const keys = Object.keys(groups).sort((a, b) => a === NOBRAND ? 1 : b === NOBRAND ? -1 : a.localeCompare(b));
   $('v-stock').innerHTML = lookup + keys.map(k => `<div class="gh">${esc(k)}<span>${groups[k].length} réf.</span></div>` + groups[k].map(stockCard).join('')).join('');
 }
-window.previewPartMatch = () => {
+window.previewPartMatch = (fromRefInput = false) => {
   const el = $('s-auto-preview'); if (!el) return;
-  const p = { name: $('s-name').value, type: $('s-type').value, brand: $('s-brand').value, models: $('s-models').value, cat: $('s-cat').value };
-  const hit = REF_DB.find(x => refList($('s-ref').value).some(r => refList(x.ref).includes(r)));
-  if (hit) {
-    if (!$('s-type').value) $('s-type').value = hit.type;
-    if (!$('s-brand').value.trim()) $('s-brand').value = BRAND_LABEL[hit.brand] || hit.brand;
-    if (!$('s-models').value.trim()) $('s-models').value = hit.models;
-  } else if (!$('s-models').value.trim()) {
+  const rawRef = $('s-ref').value;
+  const hits = findRefEntries(rawRef, $('s-brand').value);
+  const hit = hits[0] || null;
+  const curClean = cleanRef(rawRef);
+
+  if (hit && (fromRefInput || curClean !== lastAutoRef)) {
+    lastAutoRef = curClean;
+    $('s-type').value = hit.type;
+    $('s-brand').value = BRAND_LABEL[hit.brand] || hit.brand;
+    $('s-models').value = hit.models;
+    if (!$('s-name').value.trim()) $('s-name').value = `${hit.type} ${BRAND_LABEL[hit.brand] || ''}`.trim();
+  } else if (!hit && !$('s-models').value.trim()) {
     const fromName = extractModelsFromName($('s-name').value);
     if (fromName) $('s-models').value = fromName;
   }
-  p.type = $('s-type').value; p.brand = $('s-brand').value; p.models = $('s-models').value;
+
+  const p = { name: $('s-name').value, type: $('s-type').value, brand: $('s-brand').value, models: $('s-models').value, cat: $('s-cat').value };
   const t = partType(p), c = canonBrand(p.brand), toks = modelTokens(p.models);
-  el.innerHTML = `<div class="equiv-box">🤖 Type : <b>${esc(t)}</b> • Marque : <b>${esc(c ? BRAND_LABEL[c] : (p.brand || 'universel'))}</b> • Modèles : <b>${esc(toks.length ? toks.join(', ') : (UNIVERSAL_TYPES.includes(t) || !c ? 'tous' : 'à renseigner ⚠️'))}</b></div>`;
+  const matchingFleet = boats.filter(b => compat({ ...p, ref: rawRef }, b).level === 'match').map(b => b.name);
+
+  el.innerHTML = `<div class="equiv-box">
+    ✅ <b>${esc(t)}</b> • Marque : <b>${esc(c ? BRAND_LABEL[c] : (p.brand || 'universel'))}</b><br>
+    ⚙️ Modèles compatibles : <b style="color:#fff">${esc(toks.length ? toks.join(', ') : (UNIVERSAL_TYPES.includes(t) || !c ? 'tous' : 'à renseigner ⚠️'))}</b><br>
+    ⛵ Bateaux de ta flotte : <b style="color:#2ec4b6">${matchingFleet.length ? esc(matchingFleet.join(', ')) : 'aucun'}</b>
+  </div>`;
+
   const sg = $('s-ref-suggest');
   if (sg) {
-    const h = REF_DB.find(x => refList(x.ref).includes(cleanRef($('s-ref').value)));
-    sg.innerHTML = h ? `<div class="note" style="margin:0">Référence reconnue : ${esc(h.type)}, ${esc(BRAND_LABEL[h.brand])}, modèles ${esc(h.models)}.<br><button type="button" class="btn b-o hbtn" style="margin-top:6px" onclick="useRefSuggestion()">Utiliser ces infos</button></div>` : '';
+    if (hits.length > 1) {
+      sg.innerHTML = hits.map((h, idx) => `<div class="note" style="margin:4px 0">
+        Réf commune à plusieurs marques : <b>${esc(BRAND_LABEL[h.brand])}</b> (${esc(h.type)} — ${esc(h.models)})
+        <button type="button" class="btn b-o hbtn" style="margin-top:4px" onclick="useRefSuggestion(${idx})">Choisir ${esc(BRAND_LABEL[h.brand])}</button>
+      </div>`).join('');
+    } else if (hit) {
+      sg.innerHTML = `<div class="oil-banner" style="margin:0">🔎 Référence reconnue : <b>${esc(hit.src)}</b></div>`;
+    } else {
+      sg.innerHTML = '';
+    }
   }
 };
 window.openStockModal = id => {
   editStockId = id || null;
+  lastAutoRef = '';
   const s = id ? stock.find(x => x.id === id) : null;
   $('s-title').textContent = s ? 'Modifier la pièce' : 'Nouvelle pièce';
   $('s-name').value = s ? s.name || '' : '';
@@ -1034,7 +1109,7 @@ window.openStockModal = id => {
   $('s-sell').value = s && s.sellPrice != null ? s.sellPrice : '';
   $('s-qty').value = s ? s.qty : ''; $('s-min').value = s ? s.min : ''; $('s-loc').value = s ? s.loc || '' : '';
   $('s-file').value = '';
-  previewPartMatch();
+  previewPartMatch(!s || !s.models);
   $('stock-modal').classList.add('active');
 };
 function compress(file) {
