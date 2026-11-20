@@ -467,13 +467,36 @@ function engineCode(raw) {
   const m = t.match(/([A-Z]{0,4})\s*(\d{1,3}(?:[.,]\d)?)\s*([A-Z]{0,3})/);
   return m ? (m[1] + m[2].replace(',', '.') + m[3]) : '';
 }
+function extractModelsFromName(name) {
+  let t = String(name || '').toUpperCase();
+  t = t.replace(/\b(100|300)\s*(H|HEURE|HEURES|HR|HRS)\b/g, ' ');
+  t = t.replace(/\b(4T|2T|10W30|10W40|25W40|5W30|80W90|75W90)\b/g, ' ');
+  const found = [];
+  const re = /\b(DF|BF|F|LF|VF|XF|T|MFS|MD)?\s*(\d{1,3}(?:[.,]\d)?)\s*(CV|CH|HP|A|AP|B|F|G|D|LA|EFI|VERADO)?\b/g;
+  let m;
+  while ((m = re.exec(t)) !== null) {
+    const prefix = m[1] || '';
+    const numPart = m[2].replace(',', '.');
+    const suffix = (m[3] && !['CV', 'CH', 'HP', 'EFI', 'VERADO'].includes(m[3])) ? m[3] : '';
+    if (!prefix && !m[3]) continue;
+    const code = prefix + numPart + suffix;
+    if (code && !found.includes(code)) found.push(code);
+  }
+  return found.join(', ');
+}
 function modelTokens(s) {
   return String(s || '').toUpperCase().split(/[;\n\/,]+/).map(x => x.replace(/\s+/g, '')).filter(Boolean);
 }
 function modelMatch(tok, code) {
   if (!tok || !code) return false;
   if (tok === code) return true;
-  return code.startsWith(tok) && /^[A-Z]*$/.test(code.slice(tok.length));
+  if (code.startsWith(tok) && /^[A-Z]*$/.test(code.slice(tok.length))) return true;
+  const numOnly = tok.match(/^(\d{1,3}(?:\.\d)?)$/);
+  if (numOnly) {
+    const cm = code.match(/^[A-Z]*(\d{1,3}(?:\.\d)?)[A-Z]*$/);
+    if (cm && cm[1] === numOnly[1]) return true;
+  }
+  return false;
 }
 function engineInfo(b) {
   const brand = canonBrand(b.engineBrand) || canonBrand(b.engineModel);
@@ -553,6 +576,12 @@ const BASE_REF_DB = [
   { ref: '90798-1M682-00, 8M6007986', type: 'Anode', brand: 'yamaha', models: 'F150, LF150, F175, F200', conf: 'OEM Yamaha / Quicksilver', src: 'Kit complet anodes embase/étrier Yamaha 150-200HP' },
 
   // ==================== MERCURY / MARINER ====================
+  // --- Kits entretien complets 100h / 300h Mercury ---
+  { ref: '8M0097854, 8M0097855', type: 'Autre', brand: 'mercury', models: '75, 80, 90, 100, 115', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 75-115HP 2.1L' },
+  { ref: '8M0094232, 8M0094233', type: 'Autre', brand: 'mercury', models: '150', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 150HP EFI 3.0L' },
+  { ref: '8M0100527, 8M0120840', type: 'Autre', brand: 'mercury', models: '40, 50, 60', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury 40-60HP EFI' },
+  { ref: '8M0149929, 8M0149930', type: 'Autre', brand: 'mercury', models: '175, 200, 225, 250, 300', conf: 'OEM Mercury', src: 'Kit entretien 100h / 300h Mercury V6 3.4L & V8 4.6L' },
+
   // --- Filtres à huile Mercury ---
   { ref: '35-822626Q03, 35-822626A2, 18-7913', type: 'Filtre à huile', brand: 'mercury', models: '8, 9.9, 15, 20, 25, 30', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver portables 4T 8-30HP' },
   { ref: '35-8M0065103, 35-8M0065104, 18-7914', type: 'Filtre à huile', brand: 'mercury', models: '25, 30, 40, 50, 60, 75, 80, 90, 100, 115', conf: 'OEM Mercury / Sierra', src: 'Catalogue Quicksilver 25-115HP 4T (série 2B094996+)' },
@@ -591,7 +620,7 @@ const BASE_REF_DB = [
   { ref: '16510-05240, 18-7895', type: 'Filtre à huile', brand: 'suzuki', models: 'DF8A, DF9.9, DF9.9A, DF15, DF25, DF30', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki petits 4T (1996-2010)' },
   { ref: '16510-45H10, 18-8870', type: 'Filtre à huile', brand: 'suzuki', models: 'DF9.9B, DF15A, DF20A, DF25A, DF30A', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki portables EFI (2011+)' },
   { ref: '16510-87J00, 16510-87J01, 18-7915-1', type: 'Filtre à huile', brand: 'suzuki', models: 'DF40, DF50, DF60, DF70', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki anciens blocs 40-70HP (avant 2010)' },
-  { ref: '16510-61A32, 16510-61A31, 16510-61A30, 16510-90J00, 18-7896', type: 'Filtre à huile', brand: 'suzuki', models: 'DF40A, DF50A, DF60A, DF70A, DF80A, DF90A, DF100A, DF100B, DF115A, DF140A', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki série A 40A à 140A' },
+  { ref: '16510-61A33, 16510-61A32, 16510-61A31, 16510-61A30, 16510-90J00, 18-7896', type: 'Filtre à huile', brand: 'suzuki', models: 'DF40A, DF50A, DF60A, DF70A, DF80A, DF90A, DF100A, DF100B, DF115A, DF140A', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki série A 40A à 140A' },
   { ref: '16510-82703, 18-7897', type: 'Filtre à huile', brand: 'suzuki', models: 'DF90, DF115, DF140', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki DF90/115/140 non-A (2001-2012)' },
   { ref: '16510-96J00, 16510-96J10, 18-7905-1', type: 'Filtre à huile', brand: 'suzuki', models: 'DF150, DF150A, DF150AP, DF175, DF175A, DF175AP, DF200, DF200A, DF200AP, DF225, DF250, DF250AP, DF300, DF300AP', conf: 'OEM Suzuki / Sierra', src: 'Catalogue Suzuki gros blocs 4 cyl & V6 (150-300HP)' },
   { ref: '16510-98J00', type: 'Filtre à huile', brand: 'suzuki', models: 'DF325A, DF350A', conf: 'OEM Suzuki', src: 'Catalogue Suzuki V6 4.4L Dual Prop' },
@@ -622,6 +651,7 @@ const BASE_REF_DB = [
   // --- Thermostats & Anodes Suzuki ---
   { ref: '17670-90J00, 17670-90J01, 17670-90J10, 17670-90J20, 17670-90J21, 17670-93J00', type: 'Thermostat', brand: 'suzuki', models: 'DF70A, DF80A, DF90, DF90A, DF100, DF100A, DF115, DF115A, DF140, DF140A, DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Suzuki', src: 'Thermostat Suzuki 70A à 300HP' },
   { ref: '55321-87J01, 55321-87J00', type: 'Anode', brand: 'suzuki', models: 'DF4A, DF6A, DF40A, DF50A, DF60A, DF70A, DF80A, DF90A, DF115A, DF140A, DF150, DF175, DF200, DF250, DF300', conf: 'OEM Suzuki', src: 'Anode pastille bloc moteur / culasse Suzuki 4T' },
+  { ref: '55320-94910, 55320-94900, 55320-95310, 55320-95311', type: 'Anode', brand: 'suzuki', models: 'DF60, DF70, DF70A, DF80A, DF90, DF90A, DF100, DF115, DF115A, DF140, DF140A, DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Suzuki', src: 'Anode d\'étrier / presse de trim Suzuki' },
   { ref: '8M6007994, 55321-90J01', type: 'Anode', brand: 'suzuki', models: 'DF90, DF100, DF115, DF115A, DF140, DF140A', conf: 'OEM Suzuki / Quicksilver', src: 'Kit anodes aluminium Suzuki 90-140HP' },
   { ref: '8M6007995', type: 'Anode', brand: 'suzuki', models: 'DF150, DF175, DF200, DF225, DF250, DF300', conf: 'OEM Quicksilver', src: 'Kit anodes aluminium Suzuki 150-300HP' }
 ];
@@ -633,21 +663,22 @@ const refList = s => String(s || '').split(/[,;\s]+/).map(cleanRef).filter(x => 
 function enrich(p, boat) {
   const pRefs = refList(p.ref);
   const hits = REF_DB.filter(e => refList(e.ref).some(r => pRefs.includes(r)));
-  if (!hits.length) return { ...p, fromBase: false, crossRefs: '' };
   let hit = null;
   const pb = canonBrand(p.brand);
-  if (pb) hit = hits.find(h => h.brand === pb) || null;
-  else if (boat) hit = hits.find(h => h.brand === (canonBrand(boat.engineBrand) || canonBrand(boat.engineModel))) || null;
-  else if (hits.every(h => h.brand === hits[0].brand)) hit = hits[0];
-  if (!hit) return { ...p, fromBase: false, crossRefs: '' };
+  if (hits.length) {
+    if (pb) hit = hits.find(h => h.brand === pb) || null;
+    else if (boat) hit = hits.find(h => h.brand === (canonBrand(boat.engineBrand) || canonBrand(boat.engineModel))) || null;
+    else if (hits.every(h => h.brand === hits[0].brand)) hit = hits[0];
+  }
   const hasModels = !!String(p.models || '').trim();
-  const extraRefs = refList(hit.ref).filter(r => !pRefs.includes(r));
+  const fromName = (!hasModels && !hit) ? extractModelsFromName(p.name) : '';
+  const extraRefs = hit ? refList(hit.ref).filter(r => !pRefs.includes(r)) : [];
   return {
     ...p,
-    type: (p.type && TYPE_KEYS.includes(p.type)) ? p.type : hit.type,
-    brand: String(p.brand || '').trim() || BRAND_LABEL[hit.brand] || hit.brand,
-    models: hasModels ? p.models : hit.models,
-    fromBase: !hasModels,
+    type: (p.type && TYPE_KEYS.includes(p.type) && p.type !== 'Autre') ? p.type : (hit ? hit.type : partType(p)),
+    brand: String(p.brand || '').trim() || (hit ? (BRAND_LABEL[hit.brand] || hit.brand) : ''),
+    models: hasModels ? p.models : (hit ? hit.models : fromName),
+    fromBase: !hasModels && !!(hit || fromName),
     crossRefs: extraRefs.join(', ')
   };
 }
@@ -972,6 +1003,9 @@ window.previewPartMatch = () => {
     if (!$('s-type').value) $('s-type').value = hit.type;
     if (!$('s-brand').value.trim()) $('s-brand').value = BRAND_LABEL[hit.brand] || hit.brand;
     if (!$('s-models').value.trim()) $('s-models').value = hit.models;
+  } else if (!$('s-models').value.trim()) {
+    const fromName = extractModelsFromName($('s-name').value);
+    if (fromName) $('s-models').value = fromName;
   }
   p.type = $('s-type').value; p.brand = $('s-brand').value; p.models = $('s-models').value;
   const t = partType(p), c = canonBrand(p.brand), toks = modelTokens(p.models);
