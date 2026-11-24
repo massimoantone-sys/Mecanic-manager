@@ -1144,15 +1144,15 @@ window.deleteStock = id => {
   if (confirm(`Supprimer « ${s ? s.name : 'cette pièce'} » ?`)) safe(() => deleteDoc(doc(db, 'stock', id)));
 };
 
-/* ===== Scan IA Claude : factures + photo de pièce ===== */
+/* ===== Scan IA Gemini : factures + photo de pièce ===== */
 let scanMode = 'invoice';
 const SCAN_TITLE = { invoice: '🤖 Facture / bon de commande → Stock', part: '📸 Photo d\'une pièce → Stock' };
-const CLAUDE_MODELS = ['claude-sonnet-5-5', 'claude-haiku-5-5'];
-const getKey = () => /^sk-ant-/.test((cfg.aiKey || '').trim()) ? cfg.aiKey.trim() : '';
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+const getKey = () => /^AIza/.test((cfg.aiKey || '').trim()) ? cfg.aiKey.trim() : '';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-$('cfg-aikey').previousElementSibling.textContent = 'Clé API Claude (console.anthropic.com) — lecture IA factures & pièces';
-$('cfg-aikey').placeholder = 'sk-ant-...';
+$('cfg-aikey').previousElementSibling.textContent = 'Clé API Gemini (aistudio.google.com/apikey) (gratuite) — lecture IA factures & pièces';
+$('cfg-aikey').placeholder = 'AIza...';
 
 function clearScanPreview() {
   if (scanPreviewUrl) { URL.revokeObjectURL(scanPreviewUrl); scanPreviewUrl = ''; }
@@ -1166,7 +1166,7 @@ window.setScanMode = m => {
   document.querySelectorAll('#scan-modes .fchip').forEach(c => c.classList.toggle('active', c.dataset.m === m));
   $('scan-file').multiple = true;
   $('scan-status').textContent = !getKey()
-    ? '⚠️ Ajoute ta clé API Claude (sk-ant-…) dans ⚙️ pour activer la lecture IA.'
+    ? '⚠️ Ajoute ta clé API Gemini (AIza…) dans ⚙️ pour activer la lecture IA.'
     : m === 'part'
       ? 'Photographie la pièce ou son emballage, référence bien visible (tu peux ajouter face + dos). Réf connue : la quantité s\'ajoute. Sinon : la pièce est créée.'
       : 'Choisis une ou plusieurs photos de la facture (une par page, à plat, bien éclairée).';
@@ -1267,7 +1267,7 @@ function buildRowsFromItems(rawItems) {
   }).filter(r => r.ref || r.name);
 }
 
-/* -- Appel Claude : tool use forcé (JSON garanti), 2 modèles, retry -- */
+/* -- Appel Gemini : tool use forcé (JSON garanti), 2 modèles, retry -- */
 const SYS = `Tu es un expert en pièces détachées de moteurs hors-bord (Yamaha, Mercury/Quicksilver/Mariner, Suzuki, Honda, Tohatsu, Sierra, NGK). Tu lis des photos de factures, bons de commande, pièces et emballages, avec une précision maniaque sur les références.
 Formats de références courants :
 - Yamaha : 3 caractères-5 chiffres-2-2 (69J-13440-05-00, 5GH-13440-90-00, 6P3-WS24A-02), 90430-14M09, 94702-00425-00, kits MAR-100HR-KT-30.
@@ -1294,22 +1294,26 @@ const INVOICE_PROMPT = `Lis ce document de pièces hors-bord. Renvoie UNE entré
 - invoiceTotalHT : total HT du document. Ignore en-têtes, port, TVA, adresses, mentions légales.`;
 const PART_PROMPT = `Cette photo montre une pièce de hors-bord ou son emballage. Lis la référence constructeur (OEM Yamaha/Suzuki/Mercury, ou NGK/Sierra pour bougies et filtres) : ref = la plus probable, altRefs = autres références lisibles (max 3). name = désignation courte en français, brand = marque du hors-bord concerné si indiquée, models = modèles compatibles seulement s'ils sont écrits. Si aucune référence n'est lisible, ref = "".`;
 
-async function callClaude(content, tool) {
-  const body = model => JSON.stringify({ model, max_tokens: 8000, system: SYS, tools: [tool], tool_choice: { type: 'tool', name: tool.name }, messages: [{ role: 'user', content }] });
+const toGem = o => Array.isArray(o) ? o.map(toGem) : (o && typeof o === 'object')
+  ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, k === 'type' && typeof v === 'string' ? v.toUpperCase() : toGem(v)])) : o;
+async function callGemini(parts, tool) {
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: 'user', parts }],
+    generationConfig: { temperature: 0, maxOutputTokens: 8192, responseMimeType: 'application/json', responseSchema: toGem(tool.input_schema) }
+  });
   let last;
-  for (const model of CLAUDE_MODELS) for (let t = 0; t < 2; t++) {
+  for (const model of GEMINI_MODELS) for (let t = 0; t < 3; t++) {
     let res;
-    try {
-      res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', body: body(model), headers: {
-        'content-type': 'application/json', 'x-api-key': getKey(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' } });
-    } catch { last = new Error('Réseau indisponible'); await sleep(900); continue; }
-    if (res.status === 404) { last = new Error('Modèle Claude indisponible'); break; }
-    if (res.status === 429 || res.status === 529 || res.status >= 500) { last = new Error(`IA surchargée (${res.status}), réessaie`); await sleep(1200 * (t + 1)); continue; }
+    try { res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { method: 'POST', body,
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': getKey() } }); }
+    catch { last = new Error('Réseau indisponible'); await sleep(900); continue; }
+    if (res.status === 404) { last = new Error('Modèle Gemini indisponible'); break; }
+    if (res.status === 429 || res.status >= 500) { last = new Error(res.status === 429 ? 'Quota gratuit Gemini atteint : attends 1 minute et réessaie' : `IA surchargée (${res.status}), réessaie`); await sleep(2500 * (t + 1)); continue; }
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(res.status === 401 ? 'Clé API Claude invalide (⚙️)' : data?.error?.message || `API Claude (${res.status})`);
-    const tu = (data.content || []).find(c => c.type === 'tool_use');
-    if (!tu) throw new Error('Réponse IA vide');
-    return tu.input;
+    if (!res.ok) throw new Error(res.status === 400 && /API key/i.test(data?.error?.message || '') || res.status === 403 ? 'Clé API Gemini invalide (⚙️)' : data?.error?.message || `API Gemini (${res.status})`);
+    const txt = (data?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+    if (!txt) throw new Error('Réponse IA vide');
+    return JSON.parse(txt.replace(/```json|```/g, '').trim());
   }
   throw last || new Error('IA indisponible');
 }
@@ -1332,7 +1336,7 @@ function cropB64(im, sx, sy, sw, sh, maxSide) {
 }
 async function imageBlocks(file, allowSplit) {
   const im = await loadImg(file), W = im.naturalWidth, H = im.naturalHeight;
-  const blk = d => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: d } });
+  const blk = d => ({ inline_data: { mime_type: 'image/jpeg', data: d } });
   if (allowSplit && H / W > 1.5) {
     const half = H / 2, ov = H * 0.06;
     return { tall: true, blocks: [blk(cropB64(im, 0, 0, W, H, 1200)), blk(cropB64(im, 0, 0, W, half + ov, 1568)), blk(cropB64(im, 0, half - ov, W, half + ov, 1568))] };
@@ -1392,7 +1396,7 @@ function renderScannedRows() {
 window.onScanFileChange = async event => {
   const input = event.target, files = [...(input?.files || [])];
   if (!files.length) return;
-  if (!getKey()) { input.value = ''; return alert('Ajoute ta clé API Claude (sk-ant-…) dans ⚙️.'); }
+  if (!getKey()) { input.value = ''; return alert('Ajoute ta clé API Gemini (AIza…) dans ⚙️.'); }
   if (scanPreviewUrl) URL.revokeObjectURL(scanPreviewUrl);
   scanPreviewUrl = URL.createObjectURL(files[0]);
   $('scan-preview').src = scanPreviewUrl; $('scan-preview').classList.remove('hide');
@@ -1401,26 +1405,26 @@ window.onScanFileChange = async event => {
   try {
     let items = [], docTotal = 0, status = '';
     if (scanMode === 'part') {
-      $('scan-status').textContent = '🤖 Claude lit la pièce...';
+      $('scan-status').textContent = '🤖 Gemini lit la pièce...';
       const thumb = await compress(files[0], 300, 0.6), blocks = [];
       for (const f of files) blocks.push(...(await imageBlocks(f, false)).blocks);
-      const o = await callClaude([...blocks, { type: 'text', text: PART_PROMPT + hint }], T_PART);
+      const o = await callGemini([...blocks, { text: PART_PROMPT + hint }], T_PART);
       items = [{ ...o, qty: 1, img: thumb }];
       status = o.ref ? 'Pièce lue — vérifie la référence puis valide :' : 'Aucune référence lisible : tape-la dans le champ ou refais une photo plus proche.';
     } else {
       for (let n = 0; n < files.length; n++) {
         const tag = files.length > 1 ? ` (photo ${n + 1}/${files.length})` : '';
-        $('scan-status').textContent = `🤖 Claude lit la facture${tag}...`;
+        $('scan-status').textContent = `🤖 Gemini lit la facture${tag}...`;
         const { blocks, tall } = await imageBlocks(files[n], true);
         const intro = tall ? TALL_NOTE : '';
-        let o = await callClaude([...blocks, { type: 'text', text: INVOICE_PROMPT + intro + hint }], T_INVOICE);
+        let o = await callGemini([...blocks, { text: INVOICE_PROMPT + intro + hint }], T_INVOICE);
         let lines = o.lines || [];
         const flagged = lines.map((l, i) => ({ i, why: issueOf(l) })).filter(x => x.why);
         if (flagged.length) {
           $('scan-status').textContent = `🔍 Vérification de ${flagged.length} ligne(s) douteuse(s)${tag}...`;
           try {
             const vp = `Voici les lignes que tu as extraites :\n${JSON.stringify(lines)}\n\nLignes douteuses : ${flagged.map(f => `#${f.i + 1} (${f.why})`).join(' ; ')}.\nRelis attentivement l'image et corrige ce qui est faux (références caractère par caractère, quantités, prix, remises). N'ajoute ni ne supprime de ligne sauf erreur évidente. Renvoie le tableau complet.${intro}${hint}`;
-            const v = await callClaude([...blocks, { type: 'text', text: vp }], T_INVOICE);
+            const v = await callGemini([...blocks, { text: vp }], T_INVOICE);
             if ((v.lines || []).length) { lines = v.lines; o = v; }
           } catch (e) { console.warn('vérification ignorée', e); }
         }
@@ -1428,7 +1432,7 @@ window.onScanFileChange = async event => {
         items = items.concat(lines);
       }
       const sum = items.reduce((a, l) => a + (Number(l.total) || 0), 0);
-      status = `${items.length} ligne(s) lue(s) par Claude.` + (docTotal > 0 && sum > 0
+      status = `${items.length} ligne(s) lue(s) par Gemini.` + (docTotal > 0 && sum > 0
         ? (Math.abs(sum - docTotal) <= 0.05 ? ` ✅ Somme des lignes = total HT du document (${eur(docTotal)}).` : ` ⚠️ Somme des lignes ${eur(sum)} ≠ total HT ${eur(docTotal)} (ligne manquée ou port ?).`) : '') + ' Vérifie avant de valider :';
     }
     scannedRows = buildRowsFromItems(items);
