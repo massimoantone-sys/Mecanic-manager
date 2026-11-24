@@ -1145,7 +1145,7 @@ window.deleteStock = id => {
 };
 
 /* ===== Scan IA Gemini : factures + photo de pièce ===== */
-let scanMode = 'invoice';
+let scanMode = 'invoice', scanDocKey = '';
 const SCAN_TITLE = { invoice: '🤖 Facture / bon de commande → Stock', part: '📸 Photo d\'une pièce → Stock' };
 let _gemModels = null;
 async function geminiModels() {
@@ -1164,7 +1164,7 @@ async function geminiModels() {
   _gemModels = list.length ? list.slice(0, 3).map(x => x.n) : ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
   return _gemModels;
 }
-const getKey = () => String(cfg.aiKey || '').replace(/[\s"'“”‘’]/g, '');
+const getKey = () => String(localStorage.getItem('mm_aikey') || cfg.aiKey || '').replace(/[\s"'“”‘’]/g, '');
 const keyProblem = () => {
   const k = getKey();
   if (!k) return 'Aucune clé enregistrée : colle ta clé Gemini dans ⚙️ puis appuie sur Enregistrer.';
@@ -1184,7 +1184,7 @@ function clearScanPreview() {
   if ($('scan-file')) $('scan-file').value = '';
 }
 window.setScanMode = m => {
-  scanMode = m; scannedRows = []; clearScanPreview();
+  scanMode = m; scannedRows = []; scanDocKey = ''; clearScanPreview();
   document.querySelector('#scan-modal h2').textContent = SCAN_TITLE[m];
   document.querySelectorAll('#scan-modes .fchip').forEach(c => c.classList.toggle('active', c.dataset.m === m));
   $('scan-file').multiple = true;
@@ -1303,7 +1303,7 @@ Règles absolues : recopie la référence caractère par caractère comme imprim
 const S = { s: { type: 'string' }, n: { type: 'number' } };
 const T_INVOICE = { name: 'enregistrer_lignes', description: 'Enregistre les lignes d\'articles lues sur le document',
   input_schema: { type: 'object', required: ['lines'], properties: {
-    invoiceTotalHT: { type: 'number', description: 'Total HT général du document (0 si illisible)' },
+    invoiceTotalHT: { type: 'number', description: 'Total HT général du document (0 si illisible)' }, invoiceNumber: S.s, supplier: S.s,
     lines: { type: 'array', items: { type: 'object', required: ['ref', 'qty', 'confidence'], properties: {
       ref: S.s, altRefs: { type: 'array', items: S.s }, name: S.s, brand: S.s, models: S.s, type: { type: 'string', enum: TYPE_KEYS },
       qty: S.n, unitPrice: S.n, discountPct: S.n, total: S.n, confidence: { type: 'string', enum: ['high', 'low'] }, note: S.s } } } } } };
@@ -1316,7 +1316,7 @@ const INVOICE_PROMPT = `Lis ce document de pièces hors-bord. Renvoie UNE entré
 - name : désignation courte. brand/models/type : seulement si lisibles ou évidents.
 - qty : quantité facturée. unitPrice : P.U. HT avant remise. discountPct : remise de la ligne en % (0 sinon). total : total HT de la ligne.
 - Vérifie chaque ligne : qty × unitPrice × (1 − remise) ≈ total. Si ça ne colle pas, relis les chiffres (virgule/point, colonnes décalées).
-- invoiceTotalHT : total HT du document. Ignore en-têtes, port, TVA, adresses, mentions légales.
+- invoiceTotalHT : total HT du document. invoiceNumber : numéro de la facture / du bon. supplier : nom du fournisseur. Ignore en-têtes, port, TVA, adresses, mentions légales.
 Particularités fréquentes : colonnes Code | Description | Qté | P.U. HT | % Rem | Montant HT | Montant TTC. Les codes sont souvent imprimés SANS tirets et coupés sur deux lignes (ex : « 94702003910 » puis « 0 » dessous = 947020039100) : recolle-les. Une ligne de code coupée occupe deux lignes visuelles mais ne fait qu'UN article : associe-lui la quantité et les prix situés à sa hauteur, sans décalage. total = Montant HT de la ligne.`;
 const PART_PROMPT = `Cette photo montre une pièce de hors-bord ou son emballage.
 1) ref : référence constructeur (OEM Yamaha/Suzuki/Mercury, ou NGK/Sierra pour bougies et filtres), la plus probable ; altRefs : autres références lisibles (max 3).
@@ -1446,7 +1446,7 @@ window.onScanFileChange = async event => {
   $('scan-apply-btn').disabled = true;
   const hint = knownHint();
   try {
-    let items = [], docTotal = 0, status = '';
+    let items = [], docTotal = 0, status = '', docNum = '';
     if (scanMode === 'part') {
       $('scan-status').textContent = '🤖 Gemini lit la pièce...';
       const thumb = await compress(files[0], 300, 0.6), blocks = [];
@@ -1479,6 +1479,7 @@ window.onScanFileChange = async event => {
           } catch (e) { console.warn('vérification ignorée', e); }
         }
         docTotal += Number(o.invoiceTotalHT) || 0;
+        if (o.invoiceNumber) docNum = (o.supplier || '') + '|' + o.invoiceNumber;
         items = items.concat(lines);
       }
       const sum = items.reduce((a, l) => a + (Number(l.total) || 0), 0);
@@ -1486,6 +1487,8 @@ window.onScanFileChange = async event => {
         ? (Math.abs(sum - docTotal) <= 0.05 ? ` ✅ Somme des lignes = total HT du document (${eur(docTotal)}).` : ` ⚠️ Somme des lignes ${eur(sum)} ≠ total HT ${eur(docTotal)} (ligne manquée ou port ?).`) : '') + ' Vérifie avant de valider :';
     }
     scannedRows = buildRowsFromItems(items);
+    scanDocKey = scanMode === 'invoice' && docNum ? cleanRef(docNum) + '_' + Math.round(docTotal * 100) : '';
+    if (scanDocKey && (cfg.importedInvoices || []).includes(scanDocKey)) status = '⚠️ Facture déjà importée (même numéro et même total) : ' + status;
     if (scanMode === 'part' && !scannedRows.length) scannedRows = [{ id: '0_', ref: '', checked: false, qty: 1, warn: '', alts: [], suggest: '', img: items[0].img,
       mode: 'create', stockId: '', name: '', type: 'Autre', brand: '', models: '', buyPrice: 0, sellPrice: 0 }];
     $('scan-status').textContent = status;
@@ -1500,11 +1503,21 @@ window.onScanFileChange = async event => {
   }
 };
 
+/* -- Apprentissage : une pièce validée avec ses modèles rejoint ta base de références -- */
+function learnRef(batch, r) {
+  const bk = canonBrand(r.brand);
+  if (!bk || !r.models || !r.ref) return;
+  if (findRefEntries(r.ref, r.brand).some(e => e.brand === bk && e.models)) return;
+  batch.set(doc(db, 'ref_db', cleanRef(r.ref) + '_' + bk), { ref: r.ref, type: TYPE_KEYS.includes(r.type) ? r.type : 'Autre', brand: bk,
+    models: r.models, src: r.guess ? 'estimée par l\'IA, validée à la main' : 'validée à la main' });
+}
 window.applyScannedStock = async () => {
   const active = scannedRows.filter(r => r.checked && r.qty > 0);
   if (!active.length) return alert('Coche au moins une ligne avec une quantité supérieure à 0.');
+  if (scanDocKey && (cfg.importedInvoices || []).includes(scanDocKey) && !confirm('Cette facture a déjà été importée. Ajouter quand même au stock ?')) return;
   const batch = writeBatch(db);
   for (const r of active) {
+    learnRef(batch, r);
     if (r.mode === 'add' && r.stockId) {
       const upd = { qty: increment(r.qty) };
       if (r.buyPrice > 0) upd.buyPrice = r.buyPrice;
@@ -1521,9 +1534,63 @@ window.applyScannedStock = async () => {
       });
     }
   }
+  if (scanDocKey) batch.set(doc(db, 'settings', 'general'), { importedInvoices: arrayUnion(scanDocKey) }, { merge: true });
   await safe(() => batch.commit(), `${active.length} ligne(s) ajoutée(s) au stock`);
   closeModals();
 };
+
+
+/* ===== Planning : préparer l'entretien prévu ===== */
+window.startPlanned = id => {
+  const p = planning.find(x => x.id === id); if (!p) return;
+  openBoatDetail(p.boatId);
+  const std = ['Maintenance 100h', 'Maintenance 300h'].includes(p.maintCategory);
+  $('m-type').value = std ? p.maintCategory : 'Autre';
+  $('m-custom-type').value = std ? '' : p.maintType;
+  onBoatMaintTypeChange();
+  if (!std) onBoatCustomTypeInput();
+  toast('Entretien pré-rempli : complète, valide, puis marque l\'intervention faite dans le planning.');
+};
+
+/* ===== Liste à commander groupée par référence ===== */
+window.copyOrderList = () => {
+  const agg = new Map();
+  planning.filter(p => !p.done).forEach(p => {
+    const b = boats.find(x => x.id === p.boatId) || { id: p.boatId, name: p.boatName, engineBrand: p.engineLabel, engineModel: '' };
+    getNeededPartsForBoat(b, p.maintType).filter(c => !c.ok).forEach(m => {
+      const k = m.name + '|' + m.ref, e = agg.get(k) || { ...m, qty: 0, boats: new Set() };
+      e.qty += m.missingQty; e.boats.add(b.name); agg.set(k, e);
+    });
+  });
+  if (!agg.size) return toast('Rien à commander');
+  const txt = 'Liste à commander :\n' + [...agg.values()].map(e => `• ${e.ref} — ${e.name} × ${fmt(e.qty)} ${e.unit} (${[...e.boats].join(', ')})`).join('\n');
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast('Liste copiée'), () => prompt('Copie la liste :', txt));
+  else prompt('Copie la liste :', txt);
+};
+
+/* ===== Restauration d'une sauvegarde (réglages et compteur de factures non touchés) ===== */
+(() => {
+  const d = document.createElement('div');
+  d.innerHTML = `<div class="sec-t">♻️ Restaurer une sauvegarde</div><div class="lbl">Charge un fichier 💾 exporté : remet bateaux, stock et planning. Les réglages et le compteur de factures ne sont pas modifiés.</div><input id="restore-file" type="file" accept="application/json" class="inp">`;
+  $('settings-modal').querySelector('.mb').before(d);
+  $('restore-file').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const j = JSON.parse(await f.text());
+      const ops = [['boats', j.boats], ['stock', j.stock], ['planning', j.planning]]
+        .flatMap(([c, arr]) => (Array.isArray(arr) ? arr : []).filter(x => x && x.id).map(x => { const { id, ...data } = x; return [c, id, data]; }));
+      if (!ops.length) throw new Error('fichier vide ou invalide');
+      if (!confirm(`Restaurer ${ops.length} éléments ? Ceux de même identifiant seront remplacés par la version de la sauvegarde (historique et factures des bateaux compris).`)) return;
+      for (let i = 0; i < ops.length; i += 400) {
+        const b = writeBatch(db);
+        ops.slice(i, i + 400).forEach(([c, id, data]) => b.set(doc(db, c, id), data));
+        await b.commit();
+      }
+      toast(`${ops.length} éléments restaurés`);
+    } catch (err) { console.error(err); toast('Restauration impossible : ' + err.message, true); }
+    e.target.value = '';
+  };
+})();
 
 /* ===== Flotte & fiche bateau ===== */
 window.openBoatDetail = id => {
@@ -1904,7 +1971,7 @@ function renderOrderRecapByBoat(q) {
         </div>`;
       }).join('')}
     </div>`).join('');
-  return `<div class="card" style="grid-column:1/-1;border-color:var(--red)"><div style="font-weight:800;color:#ff8d99">🛒 Pièces à commander par bateau</div>${blocks}</div>`;
+  return `<div class="card" style="grid-column:1/-1;border-color:var(--red)"><div style="font-weight:800;color:#ff8d99">🛒 Pièces à commander par bateau</div><button class="btn b-o" style="margin:8px 0" onclick="copyOrderList()">📋 Copier la liste groupée par référence</button>${blocks}</div>`;
 }
 function renderPlanning() {
   const q = query();
@@ -1951,7 +2018,7 @@ function renderPlanning() {
         : `<div class="oil-banner">✅ Stock complet (${checks.length} poste(s))</div>`}
       <div class="actions">
         <button class="btn ${p.done ? 'b-s' : 'b-g'}" onclick="togglePlanningDone('${p.id}', ${!p.done})">${p.done ? 'Réouvrir' : 'Marquer fait'}</button>
-        ${b.id ? `<button class="btn b-p hbtn" onclick="openBoatDetail('${b.id}')">Fiche</button>` : ''}
+        ${b.id && !p.done ? `<button class="btn b-o hbtn" onclick="startPlanned('${p.id}')">🛠️ Réaliser</button>` : ''}${b.id ? `<button class="btn b-p hbtn" onclick="openBoatDetail('${b.id}')">Fiche</button>` : ''}
         <button class="btn b-d hbtn" onclick="deletePlanningItem('${p.id}')">🗑</button>
       </div>
     </div>`;
@@ -2244,7 +2311,7 @@ window.importRefs = async () => {
 
 /* ===== Paramètres & sauvegarde ===== */
 window.openSettingsModal = () => {
-  $('cfg-aikey').value = cfg.aiKey || '';
+  $('cfg-aikey').value = localStorage.getItem('mm_aikey') || '';
   $('cfg-rate').value = cfg.hourlyRate ?? 60; $('cfg-vat').value = cfg.vatRate ?? 0;
   $('cfg-biz').value = cfg.bizName || ''; $('cfg-addr').value = cfg.bizAddr || '';
   $('cfg-legal').value = cfg.bizLegal || ''; $('cfg-invnum').value = cfg.nextInvNum || 1;
@@ -2252,7 +2319,7 @@ window.openSettingsModal = () => {
 };
 window.saveSettings = () => {
   const data = {
-    aiKey: $('cfg-aikey').value.trim(),
+    aiKey: (localStorage.setItem('mm_aikey', $('cfg-aikey').value.trim()), ''),
     hourlyRate: parseFloat($('cfg-rate').value) || 0, vatRate: parseFloat($('cfg-vat').value) || 0,
     bizName: $('cfg-biz').value.trim() || 'Meca Manager', bizAddr: $('cfg-addr').value.trim(),
     bizLegal: $('cfg-legal').value.trim(), nextInvNum: parseInt($('cfg-invnum').value, 10) || 1
