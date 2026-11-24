@@ -1147,7 +1147,7 @@ window.deleteStock = id => {
 /* ===== Scan IA Gemini : factures + photo de pièce ===== */
 let scanMode = 'invoice';
 const SCAN_TITLE = { invoice: '🤖 Facture / bon de commande → Stock', part: '📸 Photo d\'une pièce → Stock' };
-const GEMINI_MODELS = ['gemini-3.1-flash-lite-preview', 'gemini-3-flash-preview', 'gemini-2.5-pro'];
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 const getKey = () => String(cfg.aiKey || '').replace(/[\s"'“”‘’]/g, '');
 const keyProblem = () => {
   const k = getKey();
@@ -1300,7 +1300,8 @@ const INVOICE_PROMPT = `Lis ce document de pièces hors-bord. Renvoie UNE entré
 - name : désignation courte. brand/models/type : seulement si lisibles ou évidents.
 - qty : quantité facturée. unitPrice : P.U. HT avant remise. discountPct : remise de la ligne en % (0 sinon). total : total HT de la ligne.
 - Vérifie chaque ligne : qty × unitPrice × (1 − remise) ≈ total. Si ça ne colle pas, relis les chiffres (virgule/point, colonnes décalées).
-- invoiceTotalHT : total HT du document. Ignore en-têtes, port, TVA, adresses, mentions légales.`;
+- invoiceTotalHT : total HT du document. Ignore en-têtes, port, TVA, adresses, mentions légales.
+Particularités fréquentes : colonnes Code | Description | Qté | P.U. HT | % Rem | Montant HT | Montant TTC. Les codes sont souvent imprimés SANS tirets et coupés sur deux lignes (ex : « 94702003910 » puis « 0 » dessous = 947020039100) : recolle-les. Une ligne de code coupée occupe deux lignes visuelles mais ne fait qu'UN article : associe-lui la quantité et les prix situés à sa hauteur, sans décalage. total = Montant HT de la ligne.`;
 const PART_PROMPT = `Cette photo montre une pièce de hors-bord ou son emballage.
 1) ref : référence constructeur (OEM Yamaha/Suzuki/Mercury, ou NGK/Sierra pour bougies et filtres), la plus probable ; altRefs : autres références lisibles (max 3).
 2) name : désignation courte en français. brand : marque du hors-bord concerné. type : le type de pièce.
@@ -1308,12 +1309,19 @@ const PART_PROMPT = `Cette photo montre une pièce de hors-bord ou son emballage
 4) modelsGuess : si models est vide, liste les modèles de hors-bord compatibles que tu connais avec CERTITUDE pour cette référence, sinon "". Format : codes séparés par des virgules, sans la marque (Yamaha "F115B, F150, LF200" ; Suzuki "DF140A, DF150AP" ; Mercury "150 EFI, 250 Verado"). Ne devine jamais : vide vaut mieux qu'inventé.
 Si aucune référence n'est lisible, ref = "".`;
 
+function parseLoose(txt) {
+  try { return JSON.parse(txt); } catch (e) {
+    const i = txt.lastIndexOf('},');
+    if (i > 0) { try { return JSON.parse(txt.slice(0, i + 1) + ']}'); } catch {} }
+    throw new Error('Réponse IA coupée : réessaie (ou envoie la facture en deux photos)');
+  }
+}
 const toGem = o => Array.isArray(o) ? o.map(toGem) : (o && typeof o === 'object')
-  ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, k === 'type' && typeof v === 'string' ? v.toLowerCase() : toGem(v)])) : o;
+  ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, k === 'type' && typeof v === 'string' ? v.toUpperCase() : toGem(v)])) : o;
 async function callGemini(parts, tool) {
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: 'user', parts }],
-    generationConfig: { temperature: 0, maxOutputTokens: 8192, responseMimeType: 'application/json', responseSchema: toGem(tool.input_schema) }
+    generationConfig: { temperature: 0, maxOutputTokens: 16384, thinkingConfig: { thinkingBudget: 2048 }, responseMimeType: 'application/json', responseSchema: toGem(tool.input_schema) }
   });
   let last;
   for (const model of GEMINI_MODELS) for (let t = 0; t < 3; t++) {
@@ -1327,7 +1335,7 @@ async function callGemini(parts, tool) {
     if (!res.ok) throw new Error(res.status === 400 && /API key/i.test(data?.error?.message || '') || res.status === 403 ? 'Clé API Gemini invalide (⚙️)' : data?.error?.message || `API Gemini (${res.status})`);
     const txt = (data?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
     if (!txt) throw new Error('Réponse IA vide');
-    return JSON.parse(txt.replace(/```json|```/g, '').trim());
+    return parseLoose(txt.replace(/```json|```/g, '').trim());
   }
   throw last || new Error('IA indisponible');
 }
@@ -1422,11 +1430,10 @@ window.onScanFileChange = async event => {
   $('scan-apply-btn').disabled = true;
   const hint = knownHint();
   try {
-    let items = [], docTotal = 0, status = '', thumb = '';
+    let items = [], docTotal = 0, status = '';
     if (scanMode === 'part') {
       $('scan-status').textContent = '🤖 Gemini lit la pièce...';
-      thumb = await compress(files[0], 300, 0.6);
-      const blocks = [];
+      const thumb = await compress(files[0], 300, 0.6), blocks = [];
       for (const f of files) blocks.push(...(await imageBlocks(f, false)).blocks);
       let o = await callGemini([...blocks, { text: PART_PROMPT + hint }], T_PART);
       if (!o.ref || o.confidence === 'low') {
@@ -1463,7 +1470,7 @@ window.onScanFileChange = async event => {
         ? (Math.abs(sum - docTotal) <= 0.05 ? ` ✅ Somme des lignes = total HT du document (${eur(docTotal)}).` : ` ⚠️ Somme des lignes ${eur(sum)} ≠ total HT ${eur(docTotal)} (ligne manquée ou port ?).`) : '') + ' Vérifie avant de valider :';
     }
     scannedRows = buildRowsFromItems(items);
-    if (scanMode === 'part' && !scannedRows.length) scannedRows = [{ id: '0_', ref: '', checked: false, qty: 1, warn: '', alts: [], suggest: '', img: items[0]?.img || thumb || '',
+    if (scanMode === 'part' && !scannedRows.length) scannedRows = [{ id: '0_', ref: '', checked: false, qty: 1, warn: '', alts: [], suggest: '', img: items[0].img,
       mode: 'create', stockId: '', name: '', type: 'Autre', brand: '', models: '', buyPrice: 0, sellPrice: 0 }];
     $('scan-status').textContent = status;
     renderScannedRows();
