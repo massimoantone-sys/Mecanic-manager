@@ -1147,7 +1147,7 @@ window.deleteStock = id => {
 /* ===== Scan IA Gemini : factures + photo de pièce ===== */
 let scanMode = 'invoice';
 const SCAN_TITLE = { invoice: '🤖 Facture / bon de commande → Stock', part: '📸 Photo d\'une pièce → Stock' };
-const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+const GEMINI_MODELS = ['gemini-3.1-flash-lite-preview', 'gemini-3-flash-preview', 'gemini-2.5-pro'];
 const getKey = () => String(cfg.aiKey || '').replace(/[\s"'“”‘’]/g, '');
 const keyProblem = () => {
   const k = getKey();
@@ -1309,7 +1309,7 @@ const PART_PROMPT = `Cette photo montre une pièce de hors-bord ou son emballage
 Si aucune référence n'est lisible, ref = "".`;
 
 const toGem = o => Array.isArray(o) ? o.map(toGem) : (o && typeof o === 'object')
-  ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, k === 'type' && typeof v === 'string' ? v.toUpperCase() : toGem(v)])) : o;
+  ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, k === 'type' && typeof v === 'string' ? v.toLowerCase() : toGem(v)])) : o;
 async function callGemini(parts, tool) {
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: 'user', parts }],
@@ -1422,10 +1422,11 @@ window.onScanFileChange = async event => {
   $('scan-apply-btn').disabled = true;
   const hint = knownHint();
   try {
-    let items = [], docTotal = 0, status = '';
+    let items = [], docTotal = 0, status = '', thumb = '';
     if (scanMode === 'part') {
       $('scan-status').textContent = '🤖 Gemini lit la pièce...';
-      const thumb = await compress(files[0], 300, 0.6), blocks = [];
+      thumb = await compress(files[0], 300, 0.6);
+      const blocks = [];
       for (const f of files) blocks.push(...(await imageBlocks(f, false)).blocks);
       let o = await callGemini([...blocks, { text: PART_PROMPT + hint }], T_PART);
       if (!o.ref || o.confidence === 'low') {
@@ -1462,7 +1463,7 @@ window.onScanFileChange = async event => {
         ? (Math.abs(sum - docTotal) <= 0.05 ? ` ✅ Somme des lignes = total HT du document (${eur(docTotal)}).` : ` ⚠️ Somme des lignes ${eur(sum)} ≠ total HT ${eur(docTotal)} (ligne manquée ou port ?).`) : '') + ' Vérifie avant de valider :';
     }
     scannedRows = buildRowsFromItems(items);
-    if (scanMode === 'part' && !scannedRows.length) scannedRows = [{ id: '0_', ref: '', checked: false, qty: 1, warn: '', alts: [], suggest: '', img: items[0].img,
+    if (scanMode === 'part' && !scannedRows.length) scannedRows = [{ id: '0_', ref: '', checked: false, qty: 1, warn: '', alts: [], suggest: '', img: items[0]?.img || thumb || '',
       mode: 'create', stockId: '', name: '', type: 'Autre', brand: '', models: '', buyPrice: 0, sellPrice: 0 }];
     $('scan-status').textContent = status;
     renderScannedRows();
