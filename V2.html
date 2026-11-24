@@ -1144,182 +1144,226 @@ window.deleteStock = id => {
   if (confirm(`Supprimer « ${s ? s.name : 'cette pièce'} » ?`)) safe(() => deleteDoc(doc(db, 'stock', id)));
 };
 
-/* ===== Agent IA Vision + Repli OCR pour factures ===== */
+/* ===== Scan IA Claude : factures + photo de pièce ===== */
+let scanMode = 'invoice';
+const SCAN_TITLE = { invoice: '🤖 Facture / bon de commande → Stock', part: '📸 Photo d\'une pièce → Stock' };
+const CLAUDE_MODELS = ['claude-sonnet-5-5', 'claude-haiku-5-5'];
+const getKey = () => /^sk-ant-/.test((cfg.aiKey || '').trim()) ? cfg.aiKey.trim() : '';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+$('cfg-aikey').previousElementSibling.textContent = 'Clé API Claude (console.anthropic.com) — lecture IA factures & pièces';
+$('cfg-aikey').placeholder = 'sk-ant-...';
+
 function clearScanPreview() {
-  if (scanPreviewUrl) {
-    URL.revokeObjectURL(scanPreviewUrl);
-    scanPreviewUrl = '';
-  }
+  if (scanPreviewUrl) { URL.revokeObjectURL(scanPreviewUrl); scanPreviewUrl = ''; }
   const img = $('scan-preview');
-  if (img) {
-    img.src = '';
-    img.classList.add('hide');
-  }
+  if (img) { img.src = ''; img.classList.add('hide'); }
   if ($('scan-file')) $('scan-file').value = '';
 }
-
-window.openScanModal = () => {
-  scannedRows = [];
-  clearScanPreview();
-  $('scan-status').textContent = cfg.aiKey
-    ? 'Agent IA actif : sélectionne une photo de ta facture dans la galerie.'
-    : 'Mode OCR local actif (ajoute une clé Gemini dans ⚙️ pour une lecture IA encore plus précise).';
+window.setScanMode = m => {
+  scanMode = m; scannedRows = []; clearScanPreview();
+  document.querySelector('#scan-modal h2').textContent = SCAN_TITLE[m];
+  document.querySelectorAll('#scan-modes .fchip').forEach(c => c.classList.toggle('active', c.dataset.m === m));
+  $('scan-file').multiple = true;
+  $('scan-status').textContent = !getKey()
+    ? '⚠️ Ajoute ta clé API Claude (sk-ant-…) dans ⚙️ pour activer la lecture IA.'
+    : m === 'part'
+      ? 'Photographie la pièce ou son emballage, référence bien visible (tu peux ajouter face + dos). Réf connue : la quantité s\'ajoute. Sinon : la pièce est créée.'
+      : 'Choisis une ou plusieurs photos de la facture (une par page, à plat, bien éclairée).';
   $('scan-lines').innerHTML = '';
+};
+window.openScanModal = (mode = 'invoice') => {
+  if (!$('scan-modes')) {
+    const d = document.createElement('div');
+    d.id = 'scan-modes'; d.className = 'filters'; d.style.padding = '0';
+    d.innerHTML = `<button class="fchip" data-m="invoice" onclick="setScanMode('invoice')">🧾 Facture</button><button class="fchip" data-m="part" onclick="setScanMode('part')">📸 Pièce</button>`;
+    $('scan-modal').querySelector('.file-btn').before(d);
+  }
+  setScanMode(mode);
   $('scan-modal').classList.add('active');
 };
 
+/* -- Références connues : suggestions seulement, jamais de correction automatique -- */
+const foldRef = s => s.replace(/[OQD]/g, '0').replace(/[IL]/g, '1').replace(/S/g, '5').replace(/B/g, '8').replace(/Z/g, '2');
+function lev(a, b) {
+  if (a === b) return 0;
+  if (Math.abs(a.length - b.length) > 1) return 2;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[b.length];
+}
+function knownRefMap() {
+  const m = new Map();
+  const add = s => String(s || '').split(/[,;]+/).map(x => x.trim()).filter(Boolean).forEach(x => {
+    const c = cleanRef(x); if (c.length >= 7 && !m.has(c)) m.set(c, x);
+  });
+  REF_DB.forEach(e => add(e.ref)); stock.forEach(s => add(s.ref));
+  return m;
+}
+function suggestRef(raw) {
+  const c = cleanRef(raw);
+  if (c.length < 7) return '';
+  const m = knownRefMap();
+  if ([...m.keys()].some(k => fuzzyRefMatch(c, k))) return '';
+  for (const [k, orig] of m) if (Math.abs(k.length - c.length) <= 1 && (foldRef(k) === foldRef(c) || lev(k, c) <= 1)) return orig;
+  return '';
+}
+const knownHint = () => {
+  const l = [...knownRefMap().values()].slice(0, 700).join(' | ');
+  return l ? `\n\nRéférences déjà connues de l'atelier (sert UNIQUEMENT à départager deux lectures possibles d'un caractère flou ; si l'image montre autre chose, écris ce que tu vois) :\n${l}` : '';
+};
 function findExistingOrBasePart(refCand, brandHint = '') {
   const existing = stock.find(s => {
     const es = enrich(s);
     const all = [...refList(s.ref), ...refList(es.crossRefs)];
     return refList(refCand).some(r => all.some(a => fuzzyRefMatch(r, a)));
   });
-  const baseHit = findRefEntries(refCand, brandHint)[0] || null;
-  return { existing, baseHit };
+  return { existing, baseHit: findRefEntries(refCand, brandHint)[0] || null };
 }
 
+/* -- Lignes de revue -- */
+function issueOf(l) {
+  if (l.confidence === 'low') return 'lecture incertaine' + (l.note ? ' : ' + l.note : '');
+  const q = +l.qty || 0, pu = +l.unitPrice || 0, rem = +l.discountPct || 0, tot = +l.total || 0;
+  if (q && pu && tot) {
+    const exp = q * pu * (1 - rem / 100);
+    if (Math.abs(exp - tot) > Math.max(0.05, tot * 0.02)) return `qté × PU − remise = ${exp.toFixed(2)} ≠ total ${tot}`;
+  }
+  if (!cleanRef(l.ref) && l.name) return 'référence manquante';
+  return '';
+}
 function buildRowsFromItems(rawItems) {
-  const out = [];
-  (Array.isArray(rawItems) ? rawItems : []).forEach((it, idx) => {
+  return (Array.isArray(rawItems) ? rawItems : []).map((it, idx) => {
     const refCand = String(it.ref || '').trim().toUpperCase();
-    if (!refCand || cleanRef(refCand).length < 4) return;
+    const valid = cleanRef(refCand).length >= 4;
     const qty = Math.max(0, parseFloat(it.qty) || 1);
-    const buyPrice = Math.max(0, parseFloat(it.buyPrice) || 0);
-    const { existing, baseHit } = findExistingOrBasePart(refCand, it.brand || '');
-
-    const auto = existing
-      ? {
-          mode: 'add',
-          stockId: existing.id,
-          name: existing.name,
-          type: existing.type || partType(existing),
-          brand: existing.brand || it.brand || '',
-          models: existing.models || it.models || '',
-          buyPrice: buyPrice || Number(existing.buyPrice) || 0,
-          sellPrice: Number(existing.sellPrice) || 0,
-          qty
-        }
-      : {
-          mode: 'create',
-          stockId: '',
-          name: String(it.name || '').trim() || (baseHit ? baseHit.src : `Pièce ${refCand}`),
-          type: baseHit ? baseHit.type : partType({ name: it.name || '' }),
-          brand: String(it.brand || '').trim() || (baseHit ? (BRAND_LABEL[baseHit.brand] || baseHit.brand) : ''),
-          models: String(it.models || '').trim() || (baseHit ? baseHit.models : ''),
-          buyPrice,
-          sellPrice: buyPrice ? fmt(buyPrice * 1.6) : 0,
-          qty
-        };
-
-    out.push({ id: idx + '_' + cleanRef(refCand), ref: refCand, checked: true, ...auto });
-  });
-  return out;
-}
-
-async function extractInvoiceWithAI(dataUrl, apiKey) {
-  const base64 = dataUrl.split(',')[1];
-  const prompt = `Tu es un assistant spécialisé dans la lecture de factures et bons de commande de pièces détachées nautiques/hors-bord (Yamaha, Mercury, Suzuki, Honda...).
-Extrais chaque ligne d'article commandé du tableau.
-Règles importantes :
-- Regroupe les références ou codes coupés sur deux lignes (ex: un code suivi d'un "0", "00" ou "200" sur la ligne du dessous).
-- Corrige les confusions de lecture évidentes dans les références (ex: LFR5A11 plutôt que LFRSA11).
-- "qty" = quantité commandée (nombre).
-- "buyPrice" = prix unitaire HT ("P.U. HT", nombre avec point décimal).
-- Ignore les en-têtes, totaux, TVA, remises globales et mentions légales.
-Réponds UNIQUEMENT avec un tableau JSON valide :
-[{"ref":"...","name":"...","brand":"...","models":"...","qty":1,"buyPrice":0}]`;
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { inline_data: { mime_type: 'image/jpeg', data: base64 } },
-            { text: prompt }
-          ]
-        }],
-        generationConfig: { responseMimeType: 'application/json' }
-      })
+    const pu = parseFloat(it.unitPrice) || 0, rem = parseFloat(it.discountPct) || 0, tot = parseFloat(it.total) || 0;
+    let buyPrice = rem > 0 && pu ? pu * (1 - rem / 100) : pu;
+    if (tot > 0 && qty > 0) {
+      const byTot = tot / qty;
+      if (!buyPrice || Math.abs(buyPrice - byTot) > 0.02 * Math.max(1, byTot)) buyPrice = byTot;
     }
-  );
-  if (!res.ok) throw new Error(`API IA (${res.status})`);
-  const data = await res.json();
-  const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
-  const parsed = JSON.parse(txt);
-  return buildRowsFromItems(parsed);
+    buyPrice = Math.max(0, fmt(buyPrice));
+    const { existing, baseHit } = valid ? findExistingOrBasePart(refCand, it.brand || '') : { existing: null, baseHit: null };
+    const why = it.confidence === 'low' ? issueOf(it) || 'lecture incertaine' : issueOf(it);
+    const common = {
+      id: idx + '_' + cleanRef(refCand || it.name), ref: valid ? refCand : '', checked: valid && !why, qty, warn: why,
+      alts: (it.altRefs || []).map(x => String(x || '').trim().toUpperCase()).filter(Boolean).slice(0, 3),
+      suggest: valid ? suggestRef(refCand) : '', img: it.img || ''
+    };
+    if (existing) return { ...common, mode: 'add', stockId: existing.id, name: existing.name, type: existing.type || partType(existing),
+      brand: existing.brand || it.brand || '', models: existing.models || it.models || '',
+      buyPrice: buyPrice || Number(existing.buyPrice) || 0, sellPrice: Number(existing.sellPrice) || 0 };
+    return { ...common, mode: 'create', stockId: '',
+      name: String(it.name || '').trim() || (baseHit ? baseHit.src : (valid ? `Pièce ${refCand}` : '')),
+      type: baseHit ? baseHit.type : (TYPE_KEYS.includes(it.type) ? it.type : partType({ name: it.name || '' })),
+      brand: String(it.brand || '').trim() || (baseHit ? (BRAND_LABEL[baseHit.brand] || baseHit.brand) : ''),
+      models: String(it.models || '').trim() || (baseHit ? baseHit.models : ''),
+      buyPrice, sellPrice: buyPrice ? fmt(buyPrice * 1.6) : 0 };
+  }).filter(r => r.ref || r.name);
 }
 
-function sanitizeOcrLine(line) {
-  return String(line || '').replace(/[|[\]()}{~<>`«»“”]/g, ' ').replace(/\s+/g, ' ').trim();
-}
+/* -- Appel Claude : tool use forcé (JSON garanti), 2 modèles, retry -- */
+const SYS = `Tu es un expert en pièces détachées de moteurs hors-bord (Yamaha, Mercury/Quicksilver/Mariner, Suzuki, Honda, Tohatsu, Sierra, NGK). Tu lis des photos de factures, bons de commande, pièces et emballages, avec une précision maniaque sur les références.
+Formats de références courants :
+- Yamaha : 3 caractères-5 chiffres-2-2 (69J-13440-05-00, 5GH-13440-90-00, 6P3-WS24A-02), 90430-14M09, 94702-00425-00, kits MAR-100HR-KT-30.
+- Suzuki : 5 chiffres-3 caractères (17400-96J04, 16510-96J00, 15412-92J00, 09482-00615).
+- Mercury/Quicksilver : 8M0094233, 35-8M0065103, 46-43024A7, 47-803748Q01 ; Sierra : 18-7906-2, 18-3442.
+- NGK : LFR6A-11, ILFR6G-E, DPR6EA-9, CR6HSB.
+Règles absolues : recopie la référence caractère par caractère comme imprimée, avec ses tirets et suffixes (-00). Une référence coupée sur deux lignes se recolle. Distingue O/0, I/1, S/5, B/8, Z/2, U/V : les refs Yamaha et Suzuki sont surtout numériques, et deux refs qui ne diffèrent que d'un caractère (96J03 / 96J04) sont deux pièces différentes. Ne déduis jamais une référence de la désignation. Ignore codes-barres, EAN (13 chiffres), numéros de lot, dates. Si un caractère reste douteux, mets confidence="low" et explique dans "note".`;
+const S = { s: { type: 'string' }, n: { type: 'number' } };
+const T_INVOICE = { name: 'enregistrer_lignes', description: 'Enregistre les lignes d\'articles lues sur le document',
+  input_schema: { type: 'object', required: ['lines'], properties: {
+    invoiceTotalHT: { type: 'number', description: 'Total HT général du document (0 si illisible)' },
+    lines: { type: 'array', items: { type: 'object', required: ['ref', 'qty', 'confidence'], properties: {
+      ref: S.s, altRefs: { type: 'array', items: S.s }, name: S.s, brand: S.s, models: S.s, type: { type: 'string', enum: TYPE_KEYS },
+      qty: S.n, unitPrice: S.n, discountPct: S.n, total: S.n, confidence: { type: 'string', enum: ['high', 'low'] }, note: S.s } } } } } };
+const T_PART = { name: 'enregistrer_piece', description: 'Enregistre la pièce lue sur la photo',
+  input_schema: { type: 'object', required: ['ref', 'confidence'], properties: {
+    ref: S.s, altRefs: { type: 'array', items: S.s }, name: S.s, brand: S.s, type: { type: 'string', enum: TYPE_KEYS }, models: S.s,
+    confidence: { type: 'string', enum: ['high', 'low'] }, note: S.s } } };
+const INVOICE_PROMPT = `Lis ce document de pièces hors-bord. Renvoie UNE entrée par ligne d'article, dans l'ordre.
+- ref : référence fabricant exacte. altRefs : autres références de la ligne (réf fournisseur, équivalence).
+- name : désignation courte. brand/models/type : seulement si lisibles ou évidents.
+- qty : quantité facturée. unitPrice : P.U. HT avant remise. discountPct : remise de la ligne en % (0 sinon). total : total HT de la ligne.
+- Vérifie chaque ligne : qty × unitPrice × (1 − remise) ≈ total. Si ça ne colle pas, relis les chiffres (virgule/point, colonnes décalées).
+- invoiceTotalHT : total HT du document. Ignore en-têtes, port, TVA, adresses, mentions légales.`;
+const PART_PROMPT = `Cette photo montre une pièce de hors-bord ou son emballage. Lis la référence constructeur (OEM Yamaha/Suzuki/Mercury, ou NGK/Sierra pour bougies et filtres) : ref = la plus probable, altRefs = autres références lisibles (max 3). name = désignation courte en français, brand = marque du hors-bord concerné si indiquée, models = modèles compatibles seulement s'ils sont écrits. Si aucune référence n'est lisible, ref = "".`;
 
-function extractItemsWithOcrFallback(rawText) {
-  const rawLines = String(rawText || '').split(/\r?\n/).map(sanitizeOcrLine).filter(Boolean);
-  const merged = [];
-  for (const l of rawLines) {
-    if (/^\d{1,3}$/.test(l) && merged.length) {
-      merged[merged.length - 1] += l;
-    } else {
-      merged.push(l);
-    }
+async function callClaude(content, tool) {
+  const body = model => JSON.stringify({ model, max_tokens: 8000, system: SYS, tools: [tool], tool_choice: { type: 'tool', name: tool.name }, messages: [{ role: 'user', content }] });
+  let last;
+  for (const model of CLAUDE_MODELS) for (let t = 0; t < 2; t++) {
+    let res;
+    try {
+      res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', body: body(model), headers: {
+        'content-type': 'application/json', 'x-api-key': getKey(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' } });
+    } catch { last = new Error('Réseau indisponible'); await sleep(900); continue; }
+    if (res.status === 404) { last = new Error('Modèle Claude indisponible'); break; }
+    if (res.status === 429 || res.status === 529 || res.status >= 500) { last = new Error(`IA surchargée (${res.status}), réessaie`); await sleep(1200 * (t + 1)); continue; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(res.status === 401 ? 'Clé API Claude invalide (⚙️)' : data?.error?.message || `API Claude (${res.status})`);
+    const tu = (data.content || []).find(c => c.type === 'tool_use');
+    if (!tu) throw new Error('Réponse IA vide');
+    return tu.input;
   }
-  const items = [];
-  merged.forEach(line => {
-    const tokens = line.split(/\s+/).filter(Boolean);
-    const refCand = tokens.map(t => t.replace(/^[.,:;!?/\\-]+|[.,:;!?/\\-]+$/g, '').toUpperCase())
-      .find(t => {
-        const c = cleanRef(t);
-        return c.length >= 6 && /[A-Z]/.test(c) && /\d/.test(c);
-      });
-    if (!refCand) return;
-    const nums = [...line.matchAll(/\b\d+(?:[.,]\d{1,2})?\b/g)]
-      .map(m => ({ val: parseFloat(m[0].replace(',', '.')), dec: m[0].includes(',') || m[0].includes('.') }))
-      .filter(n => !isNaN(n.val) && n.val > 0 && n.val < 50000);
-    const qty = nums.find(n => !n.dec && n.val <= 200)?.val || 1;
-    const decs = nums.filter(n => n.dec).map(n => n.val);
-    const buyPrice = decs.length ? Math.min(...decs) : 0;
-    const name = line.replace(new RegExp(refCand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ')
-      .replace(/\b\d+(?:[.,]\d{1,2})?\b/g, ' ').replace(/\s{2,}/g, ' ').trim().slice(0, 60);
-    items.push({ ref: refCand, name, qty, buyPrice });
-  });
-  return buildRowsFromItems(items);
+  throw last || new Error('IA indisponible');
 }
 
+/* -- Images : pleine résolution utile, page haute découpée en 2 moitiés qui se chevauchent -- */
+function loadImg(file) {
+  return new Promise((res, rej) => {
+    const u = URL.createObjectURL(file), im = new Image();
+    im.onload = () => { URL.revokeObjectURL(u); res(im); };
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('image illisible')); };
+    im.src = u;
+  });
+}
+function cropB64(im, sx, sy, sw, sh, maxSide) {
+  const sc = Math.min(1, maxSide / Math.max(sw, sh)), c = document.createElement('canvas');
+  c.width = Math.round(sw * sc); c.height = Math.round(sh * sc);
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  x.drawImage(im, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.92).split(',')[1];
+}
+async function imageBlocks(file, allowSplit) {
+  const im = await loadImg(file), W = im.naturalWidth, H = im.naturalHeight;
+  const blk = d => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: d } });
+  if (allowSplit && H / W > 1.5) {
+    const half = H / 2, ov = H * 0.06;
+    return { tall: true, blocks: [blk(cropB64(im, 0, 0, W, H, 1200)), blk(cropB64(im, 0, 0, W, half + ov, 1568)), blk(cropB64(im, 0, half - ov, W, half + ov, 1568))] };
+  }
+  return { tall: false, blocks: [blk(cropB64(im, 0, 0, W, H, 1568))] };
+}
+const TALL_NOTE = '\nImage 1 = page entière (vue d\'ensemble). Images 2 et 3 = moitié haute et moitié basse, avec un chevauchement : ne duplique pas les lignes présentes dans les deux.';
+
+/* -- Édition des lignes détectées -- */
 window.updateScannedRowField = (i, field, val) => {
-  if (!scannedRows[i]) return;
-  scannedRows[i][field] = val;
+  const r = scannedRows[i]; if (!r) return;
+  r[field] = val;
   if (field === 'ref') {
-    const { existing, baseHit } = findExistingOrBasePart(val, scannedRows[i].brand);
-    if (existing) {
-      scannedRows[i].mode = 'add';
-      scannedRows[i].stockId = existing.id;
-      scannedRows[i].name = existing.name;
-      scannedRows[i].type = existing.type || partType(existing);
-      scannedRows[i].brand = existing.brand || scannedRows[i].brand;
-      scannedRows[i].models = existing.models || scannedRows[i].models;
-    } else if (baseHit) {
-      scannedRows[i].mode = 'create';
-      scannedRows[i].stockId = '';
-      scannedRows[i].type = baseHit.type;
-      scannedRows[i].brand = BRAND_LABEL[baseHit.brand] || baseHit.brand;
-      scannedRows[i].models = baseHit.models;
-      if (!scannedRows[i].name || /^Pièce\s/i.test(scannedRows[i].name)) scannedRows[i].name = baseHit.src;
+    const { existing, baseHit } = findExistingOrBasePart(val, r.brand);
+    r.suggest = suggestRef(val);
+    if (existing) Object.assign(r, { mode: 'add', stockId: existing.id, name: existing.name, type: existing.type || partType(existing),
+      brand: existing.brand || r.brand, models: existing.models || r.models });
+    else {
+      r.mode = 'create'; r.stockId = '';
+      if (baseHit) {
+        Object.assign(r, { type: baseHit.type, brand: BRAND_LABEL[baseHit.brand] || baseHit.brand, models: baseHit.models });
+        if (!r.name || /^Pièce\s/i.test(r.name)) r.name = baseHit.src;
+      }
     }
+    if (cleanRef(val).length >= 4) r.checked = true;
     renderScannedRows();
-  } else if (field === 'brand' || field === 'models') {
-    renderScannedRows();
-  }
+  } else if (field === 'brand' || field === 'models') renderScannedRows();
 };
-
 function renderScannedRows() {
   const box = $('scan-lines');
-  if (!scannedRows.length) {
-    box.innerHTML = `<div class="note">Aucune ligne détectée sur cette photo. Essaie une photo nette et bien éclairée sur le tableau des articles.</div>`;
-    return;
-  }
+  if (!scannedRows.length) { box.innerHTML = `<div class="note">Aucune ligne détectée. Essaie une photo nette, bien éclairée, avec la référence au centre.</div>`; return; }
   box.innerHTML = scannedRows.map((r, i) => {
     const fits = boats.filter(b => compat({ name: r.name, ref: r.ref, type: r.type, brand: r.brand, models: r.models }, b).level === 'match').map(b => b.name);
     return `<div class="ed-line">
@@ -1330,12 +1374,15 @@ function renderScannedRows() {
         </label>
         <span class="badge ${r.mode === 'add' ? 's-eau' : 's-hangar'}">${r.mode === 'add' ? '+ Stock existant' : '+ Nouvelle pièce'}</span>
       </div>
-      <input class="inp" style="padding:7px 9px;font-size:.82rem" value="${esc(r.name)}" placeholder="Nom de la pièce" oninput="updateScannedRowField(${i},'name',this.value)">
+      ${r.warn ? `<div class="note">⚠️ À vérifier : ${esc(r.warn)}</div>` : ''}
+      ${r.suggest ? `<div class="note">🔎 Réf proche connue : <b>${esc(r.suggest)}</b> <button type="button" class="btn b-o hbtn" onclick="updateScannedRowField(${i},'ref','${esc(r.suggest)}')">Utiliser</button></div>` : ''}
+      ${r.alts.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="lbl">Autres réfs lues :</span>${r.alts.map(a => `<button type="button" class="fchip" onclick="updateScannedRowField(${i},'ref','${esc(a)}')">${esc(a)}</button>`).join('')}</div>` : ''}
+      <input class="inp" style="padding:7px 9px;font-size:.82rem" value="${esc(r.name)}" placeholder="Nom de la pièce" onchange="updateScannedRowField(${i},'name',this.value)">
       <div style="display:grid;grid-template-columns:1fr 1fr 80px 90px;gap:6px">
-        <input class="inp" style="padding:7px 8px;font-size:.8rem" value="${esc(r.brand)}" placeholder="Marque" oninput="updateScannedRowField(${i},'brand',this.value)">
-        <input class="inp" style="padding:7px 8px;font-size:.8rem" value="${esc(r.models)}" placeholder="Modèles" oninput="updateScannedRowField(${i},'models',this.value)">
-        <input type="number" step="0.1" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.qty)}" placeholder="Qté" oninput="updateScannedRowField(${i},'qty',parseFloat(this.value)||0)">
-        <input type="number" step="0.01" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.buyPrice)}" placeholder="Achat €" oninput="updateScannedRowField(${i},'buyPrice',parseFloat(this.value)||0)">
+        <input class="inp" style="padding:7px 8px;font-size:.8rem" value="${esc(r.brand)}" placeholder="Marque" onchange="updateScannedRowField(${i},'brand',this.value)">
+        <input class="inp" style="padding:7px 8px;font-size:.8rem" value="${esc(r.models)}" placeholder="Modèles" onchange="updateScannedRowField(${i},'models',this.value)">
+        <input type="number" step="0.1" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.qty)}" placeholder="Qté" onchange="updateScannedRowField(${i},'qty',parseFloat(this.value)||0)">
+        <input type="number" step="0.01" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.buyPrice)}" placeholder="Achat €" onchange="updateScannedRowField(${i},'buyPrice',parseFloat(this.value)||0)">
       </div>
       <div style="font-size:.74rem;color:var(--cy)">⛵ Compatibilité flotte : ${fits.length ? esc(fits.join(', ')) : 'aucun bateau correspondant'}</div>
     </div>`;
@@ -1343,34 +1390,56 @@ function renderScannedRows() {
 }
 
 window.onScanFileChange = async event => {
-  const input = event.target;
-  const file = input?.files?.[0];
-  if (!file) return;
-
+  const input = event.target, files = [...(input?.files || [])];
+  if (!files.length) return;
+  if (!getKey()) { input.value = ''; return alert('Ajoute ta clé API Claude (sk-ant-…) dans ⚙️.'); }
   if (scanPreviewUrl) URL.revokeObjectURL(scanPreviewUrl);
-  scanPreviewUrl = URL.createObjectURL(file);
-  $('scan-preview').src = scanPreviewUrl;
-  $('scan-preview').classList.remove('hide');
+  scanPreviewUrl = URL.createObjectURL(files[0]);
+  $('scan-preview').src = scanPreviewUrl; $('scan-preview').classList.remove('hide');
   $('scan-apply-btn').disabled = true;
-
+  const hint = knownHint();
   try {
-    const compressed = await compress(file, 1100, 0.8);
-    if (cfg.aiKey && cfg.aiKey.trim()) {
-      $('scan-status').textContent = '🤖 Agent IA en train d’analyser la facture...';
-      scannedRows = await extractInvoiceWithAI(compressed || scanPreviewUrl, cfg.aiKey.trim());
-      $('scan-status').textContent = `${scannedRows.length} ligne(s) extraite(s) par l'IA — vérifie et valide :`;
+    let items = [], docTotal = 0, status = '';
+    if (scanMode === 'part') {
+      $('scan-status').textContent = '🤖 Claude lit la pièce...';
+      const thumb = await compress(files[0], 300, 0.6), blocks = [];
+      for (const f of files) blocks.push(...(await imageBlocks(f, false)).blocks);
+      const o = await callClaude([...blocks, { type: 'text', text: PART_PROMPT + hint }], T_PART);
+      items = [{ ...o, qty: 1, img: thumb }];
+      status = o.ref ? 'Pièce lue — vérifie la référence puis valide :' : 'Aucune référence lisible : tape-la dans le champ ou refais une photo plus proche.';
     } else {
-      if (typeof Tesseract === 'undefined') throw new Error('OCR indisponible');
-      $('scan-status').textContent = '⏳ Lecture OCR locale en cours...';
-      const res = await Tesseract.recognize(file, 'fra+eng');
-      scannedRows = extractItemsWithOcrFallback(res.data?.text || '');
-      $('scan-status').textContent = `${scannedRows.length} ligne(s) détectée(s) (OCR local) — vérifie et valide :`;
+      for (let n = 0; n < files.length; n++) {
+        const tag = files.length > 1 ? ` (photo ${n + 1}/${files.length})` : '';
+        $('scan-status').textContent = `🤖 Claude lit la facture${tag}...`;
+        const { blocks, tall } = await imageBlocks(files[n], true);
+        const intro = tall ? TALL_NOTE : '';
+        let o = await callClaude([...blocks, { type: 'text', text: INVOICE_PROMPT + intro + hint }], T_INVOICE);
+        let lines = o.lines || [];
+        const flagged = lines.map((l, i) => ({ i, why: issueOf(l) })).filter(x => x.why);
+        if (flagged.length) {
+          $('scan-status').textContent = `🔍 Vérification de ${flagged.length} ligne(s) douteuse(s)${tag}...`;
+          try {
+            const vp = `Voici les lignes que tu as extraites :\n${JSON.stringify(lines)}\n\nLignes douteuses : ${flagged.map(f => `#${f.i + 1} (${f.why})`).join(' ; ')}.\nRelis attentivement l'image et corrige ce qui est faux (références caractère par caractère, quantités, prix, remises). N'ajoute ni ne supprime de ligne sauf erreur évidente. Renvoie le tableau complet.${intro}${hint}`;
+            const v = await callClaude([...blocks, { type: 'text', text: vp }], T_INVOICE);
+            if ((v.lines || []).length) { lines = v.lines; o = v; }
+          } catch (e) { console.warn('vérification ignorée', e); }
+        }
+        docTotal += Number(o.invoiceTotalHT) || 0;
+        items = items.concat(lines);
+      }
+      const sum = items.reduce((a, l) => a + (Number(l.total) || 0), 0);
+      status = `${items.length} ligne(s) lue(s) par Claude.` + (docTotal > 0 && sum > 0
+        ? (Math.abs(sum - docTotal) <= 0.05 ? ` ✅ Somme des lignes = total HT du document (${eur(docTotal)}).` : ` ⚠️ Somme des lignes ${eur(sum)} ≠ total HT ${eur(docTotal)} (ligne manquée ou port ?).`) : '') + ' Vérifie avant de valider :';
     }
+    scannedRows = buildRowsFromItems(items);
+    if (scanMode === 'part' && !scannedRows.length) scannedRows = [{ id: '0_', ref: '', checked: false, qty: 1, warn: '', alts: [], suggest: '', img: items[0].img,
+      mode: 'create', stockId: '', name: '', type: 'Autre', brand: '', models: '', buyPrice: 0, sellPrice: 0 }];
+    $('scan-status').textContent = status;
     renderScannedRows();
   } catch (e) {
     console.error(e);
     $('scan-status').textContent = 'Erreur de lecture : ' + (e.message || 'réessaie avec une photo nette.');
-    toast('Erreur pendant la lecture de la facture.', true);
+    toast('Erreur pendant la lecture.', true);
   } finally {
     input.value = '';
     $('scan-apply-btn').disabled = false;
@@ -1385,22 +1454,15 @@ window.applyScannedStock = async () => {
     if (r.mode === 'add' && r.stockId) {
       const upd = { qty: increment(r.qty) };
       if (r.buyPrice > 0) upd.buyPrice = r.buyPrice;
+      const ex = stock.find(s => s.id === r.stockId);
+      if (r.img && ex && !ex.img) upd.img = r.img;
       batch.update(doc(db, 'stock', r.stockId), upd);
     } else {
       const pre = enrich({ name: r.name, ref: r.ref, type: r.type, brand: r.brand, models: r.models });
       batch.set(doc(collection(db, 'stock')), {
-        name: r.name.trim() || `Pièce ${r.ref}`,
-        ref: r.ref.trim(),
-        type: pre.type || 'Autre',
-        brand: pre.brand,
-        models: pre.models,
-        cat: 'Moteur / Filtres',
-        buyPrice: Number(r.buyPrice) || 0,
-        sellPrice: Number(r.sellPrice) || fmt((Number(r.buyPrice) || 0) * 1.6),
-        qty: Number(r.qty) || 0,
-        min: 2,
-        loc: '',
-        img: ''
+        name: r.name.trim() || `Pièce ${r.ref}`, ref: r.ref.trim(), type: pre.type || 'Autre', brand: pre.brand, models: pre.models,
+        cat: 'Moteur / Filtres', buyPrice: Number(r.buyPrice) || 0,
+        sellPrice: Number(r.sellPrice) || fmt((Number(r.buyPrice) || 0) * 1.6), qty: Number(r.qty) || 0, min: 2, loc: '', img: r.img || ''
       });
     }
   }
