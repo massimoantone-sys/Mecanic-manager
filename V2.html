@@ -1253,16 +1253,18 @@ function buildRowsFromItems(rawItems) {
     const common = {
       id: idx + '_' + cleanRef(refCand || it.name), ref: valid ? refCand : '', checked: valid && !why, qty, warn: why,
       alts: (it.altRefs || []).map(x => String(x || '').trim().toUpperCase()).filter(Boolean).slice(0, 3),
-      suggest: valid ? suggestRef(refCand) : '', img: it.img || ''
+      suggest: valid ? suggestRef(refCand) : '', img: it.img || '',
+      guess: !!(it.modelsGuess && !String(it.models || '').trim() && !baseHit && !(existing && existing.models)),
+      msrc: existing && existing.models ? 'ta fiche de stock' : baseHit ? baseHit.src : it.models ? 'écrit sur la pièce' : it.modelsGuess ? 'estimé par l\'IA' : ''
     };
     if (existing) return { ...common, mode: 'add', stockId: existing.id, name: existing.name, type: existing.type || partType(existing),
-      brand: existing.brand || it.brand || '', models: existing.models || it.models || '',
+      brand: existing.brand || it.brand || '', models: existing.models || (baseHit ? baseHit.models : '') || it.models || it.modelsGuess || '',
       buyPrice: buyPrice || Number(existing.buyPrice) || 0, sellPrice: Number(existing.sellPrice) || 0 };
     return { ...common, mode: 'create', stockId: '',
       name: String(it.name || '').trim() || (baseHit ? baseHit.src : (valid ? `Pièce ${refCand}` : '')),
       type: baseHit ? baseHit.type : (TYPE_KEYS.includes(it.type) ? it.type : partType({ name: it.name || '' })),
       brand: String(it.brand || '').trim() || (baseHit ? (BRAND_LABEL[baseHit.brand] || baseHit.brand) : ''),
-      models: String(it.models || '').trim() || (baseHit ? baseHit.models : ''),
+      models: String(it.models || '').trim() || (baseHit ? baseHit.models : '') || String(it.modelsGuess || '').trim(),
       buyPrice, sellPrice: buyPrice ? fmt(buyPrice * 1.6) : 0 };
   }).filter(r => r.ref || r.name);
 }
@@ -1284,7 +1286,7 @@ const T_INVOICE = { name: 'enregistrer_lignes', description: 'Enregistre les lig
       qty: S.n, unitPrice: S.n, discountPct: S.n, total: S.n, confidence: { type: 'string', enum: ['high', 'low'] }, note: S.s } } } } } };
 const T_PART = { name: 'enregistrer_piece', description: 'Enregistre la pièce lue sur la photo',
   input_schema: { type: 'object', required: ['ref', 'confidence'], properties: {
-    ref: S.s, altRefs: { type: 'array', items: S.s }, name: S.s, brand: S.s, type: { type: 'string', enum: TYPE_KEYS }, models: S.s,
+    ref: S.s, altRefs: { type: 'array', items: S.s }, name: S.s, brand: S.s, type: { type: 'string', enum: TYPE_KEYS }, models: S.s, modelsGuess: S.s,
     confidence: { type: 'string', enum: ['high', 'low'] }, note: S.s } } };
 const INVOICE_PROMPT = `Lis ce document de pièces hors-bord. Renvoie UNE entrée par ligne d'article, dans l'ordre.
 - ref : référence fabricant exacte. altRefs : autres références de la ligne (réf fournisseur, équivalence).
@@ -1292,7 +1294,12 @@ const INVOICE_PROMPT = `Lis ce document de pièces hors-bord. Renvoie UNE entré
 - qty : quantité facturée. unitPrice : P.U. HT avant remise. discountPct : remise de la ligne en % (0 sinon). total : total HT de la ligne.
 - Vérifie chaque ligne : qty × unitPrice × (1 − remise) ≈ total. Si ça ne colle pas, relis les chiffres (virgule/point, colonnes décalées).
 - invoiceTotalHT : total HT du document. Ignore en-têtes, port, TVA, adresses, mentions légales.`;
-const PART_PROMPT = `Cette photo montre une pièce de hors-bord ou son emballage. Lis la référence constructeur (OEM Yamaha/Suzuki/Mercury, ou NGK/Sierra pour bougies et filtres) : ref = la plus probable, altRefs = autres références lisibles (max 3). name = désignation courte en français, brand = marque du hors-bord concerné si indiquée, models = modèles compatibles seulement s'ils sont écrits. Si aucune référence n'est lisible, ref = "".`;
+const PART_PROMPT = `Cette photo montre une pièce de hors-bord ou son emballage.
+1) ref : référence constructeur (OEM Yamaha/Suzuki/Mercury, ou NGK/Sierra pour bougies et filtres), la plus probable ; altRefs : autres références lisibles (max 3).
+2) name : désignation courte en français. brand : marque du hors-bord concerné. type : le type de pièce.
+3) models : modèles de moteurs écrits sur la pièce ou l'emballage, uniquement s'ils sont imprimés (sinon "").
+4) modelsGuess : si models est vide, liste les modèles de hors-bord compatibles que tu connais avec CERTITUDE pour cette référence, sinon "". Format : codes séparés par des virgules, sans la marque (Yamaha "F115B, F150, LF200" ; Suzuki "DF140A, DF150AP" ; Mercury "150 EFI, 250 Verado"). Ne devine jamais : vide vaut mieux qu'inventé.
+Si aucune référence n'est lisible, ref = "".`;
 
 const toGem = o => Array.isArray(o) ? o.map(toGem) : (o && typeof o === 'object')
   ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, k === 'type' && typeof v === 'string' ? v.toUpperCase() : toGem(v)])) : o;
@@ -1343,21 +1350,26 @@ async function imageBlocks(file, allowSplit) {
   }
   return { tall: false, blocks: [blk(cropB64(im, 0, 0, W, H, 1568))] };
 }
+async function centerBlocks(file) {
+  const im = await loadImg(file), W = im.naturalWidth, H = im.naturalHeight;
+  return [{ inline_data: { mime_type: 'image/jpeg', data: cropB64(im, W * .15, H * .15, W * .7, H * .7, 1568) } }];
+}
 const TALL_NOTE = '\nImage 1 = page entière (vue d\'ensemble). Images 2 et 3 = moitié haute et moitié basse, avec un chevauchement : ne duplique pas les lignes présentes dans les deux.';
 
 /* -- Édition des lignes détectées -- */
 window.updateScannedRowField = (i, field, val) => {
   const r = scannedRows[i]; if (!r) return;
   r[field] = val;
+  if (field === 'models') { r.guess = false; r.msrc = 'saisi à la main'; }
   if (field === 'ref') {
     const { existing, baseHit } = findExistingOrBasePart(val, r.brand);
     r.suggest = suggestRef(val);
     if (existing) Object.assign(r, { mode: 'add', stockId: existing.id, name: existing.name, type: existing.type || partType(existing),
-      brand: existing.brand || r.brand, models: existing.models || r.models });
+      brand: existing.brand || r.brand, models: existing.models || r.models, guess: false, msrc: 'ta fiche de stock' });
     else {
       r.mode = 'create'; r.stockId = '';
       if (baseHit) {
-        Object.assign(r, { type: baseHit.type, brand: BRAND_LABEL[baseHit.brand] || baseHit.brand, models: baseHit.models });
+        Object.assign(r, { type: baseHit.type, brand: BRAND_LABEL[baseHit.brand] || baseHit.brand, models: baseHit.models, guess: false, msrc: baseHit.src });
         if (!r.name || /^Pièce\s/i.test(r.name)) r.name = baseHit.src;
       }
     }
@@ -1388,7 +1400,7 @@ function renderScannedRows() {
         <input type="number" step="0.1" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.qty)}" placeholder="Qté" onchange="updateScannedRowField(${i},'qty',parseFloat(this.value)||0)">
         <input type="number" step="0.01" class="inp" style="padding:7px 6px;font-size:.8rem" value="${esc(r.buyPrice)}" placeholder="Achat €" onchange="updateScannedRowField(${i},'buyPrice',parseFloat(this.value)||0)">
       </div>
-      <div style="font-size:.74rem;color:var(--cy)">⛵ Compatibilité flotte : ${fits.length ? esc(fits.join(', ')) : 'aucun bateau correspondant'}</div>
+      <div class="equiv-box">⚙️ <b>Moteurs compatibles :</b> <span style="color:#fff">${esc(r.models || 'non renseignés ⚠️')}</span>${r.msrc ? `<br>Source : ${esc(r.msrc)}` : ''}${r.guess ? `<br>⚠️ Estimation de l'IA : à vérifier dans le catalogue avant de t'y fier.` : ''}<div style="margin-top:4px;color:#2ec4b6">⛵ Bateaux de ta flotte : ${fits.length ? esc(fits.join(', ')) : 'aucun'}</div></div>
     </div>`;
   }).join('');
 }
@@ -1408,7 +1420,14 @@ window.onScanFileChange = async event => {
       $('scan-status').textContent = '🤖 Gemini lit la pièce...';
       const thumb = await compress(files[0], 300, 0.6), blocks = [];
       for (const f of files) blocks.push(...(await imageBlocks(f, false)).blocks);
-      const o = await callGemini([...blocks, { text: PART_PROMPT + hint }], T_PART);
+      let o = await callGemini([...blocks, { text: PART_PROMPT + hint }], T_PART);
+      if (!o.ref || o.confidence === 'low') {
+        $('scan-status').textContent = '🔍 Zoom sur la référence...';
+        try {
+          const z = await callGemini([...(await centerBlocks(files[0])), { text: PART_PROMPT + '\nCette image est un zoom sur le centre de la photo : lis la référence.' + hint }], T_PART);
+          if (z.ref) o = { ...z, modelsGuess: z.modelsGuess || o.modelsGuess };
+        } catch (e) { console.warn('zoom ignoré', e); }
+      }
       items = [{ ...o, qty: 1, img: thumb }];
       status = o.ref ? 'Pièce lue — vérifie la référence puis valide :' : 'Aucune référence lisible : tape-la dans le champ ou refais une photo plus proche.';
     } else {
@@ -1460,6 +1479,7 @@ window.applyScannedStock = async () => {
       if (r.buyPrice > 0) upd.buyPrice = r.buyPrice;
       const ex = stock.find(s => s.id === r.stockId);
       if (r.img && ex && !ex.img) upd.img = r.img;
+      if (ex && !String(ex.models || '').trim() && r.models) { upd.models = r.models; if (!ex.brand && r.brand) upd.brand = r.brand; }
       batch.update(doc(db, 'stock', r.stockId), upd);
     } else {
       const pre = enrich({ name: r.name, ref: r.ref, type: r.type, brand: r.brand, models: r.models });
