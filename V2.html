@@ -1148,7 +1148,14 @@ window.deleteStock = id => {
 let scanMode = 'invoice';
 const SCAN_TITLE = { invoice: '🤖 Facture / bon de commande → Stock', part: '📸 Photo d\'une pièce → Stock' };
 const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
-const getKey = () => /^AIza/.test((cfg.aiKey || '').trim()) ? cfg.aiKey.trim() : '';
+const getKey = () => String(cfg.aiKey || '').replace(/[\s"'“”‘’]/g, '');
+const keyProblem = () => {
+  const k = getKey();
+  if (!k) return 'Aucune clé enregistrée : colle ta clé Gemini dans ⚙️ puis appuie sur Enregistrer.';
+  if (/^sk-ant/.test(k)) return 'C\'est une clé Claude (sk-ant…) : il faut une clé Gemini, gratuite sur aistudio.google.com/apikey.';
+  if (k.length < 20) return 'La clé enregistrée semble incomplète : recolle-la en entier dans ⚙️.';
+  return '';
+};
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 $('cfg-aikey').previousElementSibling.textContent = 'Clé API Gemini (aistudio.google.com/apikey) (gratuite) — lecture IA factures & pièces';
@@ -1165,8 +1172,8 @@ window.setScanMode = m => {
   document.querySelector('#scan-modal h2').textContent = SCAN_TITLE[m];
   document.querySelectorAll('#scan-modes .fchip').forEach(c => c.classList.toggle('active', c.dataset.m === m));
   $('scan-file').multiple = true;
-  $('scan-status').textContent = !getKey()
-    ? '⚠️ Ajoute ta clé API Gemini (AIza…) dans ⚙️ pour activer la lecture IA.'
+  $('scan-status').textContent = keyProblem()
+    ? '⚠️ ' + keyProblem()
     : m === 'part'
       ? 'Photographie la pièce ou son emballage, référence bien visible (tu peux ajouter face + dos). Réf connue : la quantité s\'ajoute. Sinon : la pièce est créée.'
       : 'Choisis une ou plusieurs photos de la facture (une par page, à plat, bien éclairée).';
@@ -1408,7 +1415,7 @@ function renderScannedRows() {
 window.onScanFileChange = async event => {
   const input = event.target, files = [...(input?.files || [])];
   if (!files.length) return;
-  if (!getKey()) { input.value = ''; return alert('Ajoute ta clé API Gemini (AIza…) dans ⚙️.'); }
+  if (keyProblem()) { input.value = ''; return alert(keyProblem()); }
   if (scanPreviewUrl) URL.revokeObjectURL(scanPreviewUrl);
   scanPreviewUrl = URL.createObjectURL(files[0]);
   $('scan-preview').src = scanPreviewUrl; $('scan-preview').classList.remove('hide');
